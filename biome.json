@@ -35,5 +35,70 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/physics/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "react": "src/physics must not depend on React (spec 01, E14).",
+                  "react-dom": "src/physics must not depend on React (spec 01, E14).",
+                  "next": "src/physics must not depend on Next.js (spec 01, E14)."
+                },
+                "patterns": [
+                  {
+                    "group": [
+                      "react/**",
+                      "react-dom/**",
+                      "next/**",
+                      "@next/**"
+                    ],
+                    "message": "src/physics must not depend on React or Next.js (spec 01, E14)."
+                  }
+                ]
+              }
+            },
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "window": "src/physics must not use DOM globals (spec 01, E14).",
+                  "self": "src/physics must not use DOM globals (spec 01, E14).",
+                  "document": "src/physics must not use DOM globals (spec 01, E14).",
+                  "navigator": "src/physics must not use DOM globals (spec 01, E14).",
+                  "location": "src/physics must not use DOM globals (spec 01, E14).",
+                  "localStorage": "src/physics must not use DOM globals (spec 01, E14).",
+                  "sessionStorage": "src/physics must not use DOM globals (spec 01, E14).",
+                  "requestAnimationFrame": "src/physics must not use DOM globals (spec 01, E14).",
+                  "cancelAnimationFrame": "src/physics must not use DOM globals (spec 01, E14)."
+                }
+              }
+            }
+          },
+          "correctness": {
+            "noNodejsModules": "error"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "src/physics/**/*.test.ts",
+        "src/physics/**/*.bench.ts",
+        "src/physics/testing/**"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          }
+        }
+      }
+    }
+  ]
 }
