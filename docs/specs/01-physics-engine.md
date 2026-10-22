@@ -1,6 +1,6 @@
 # Spec 01: Physics engine
 
-Status: draft for review (2026-10-22). Committed before any engine code.
+Status: approved (2026-10-22), amended after the implementation plan review. Committed before any engine code.
 
 ## Goal
 
@@ -16,13 +16,23 @@ A pure TypeScript module that advances a system of point masses under Newtonian 
 
 Full rationale and costs will go in the README.
 
-1. **Integrator: 4th-order Yoshida, built from velocity Verlet.** Both are symplectic: their energy error oscillates but does not grow, which is what orbits that repeat forever need. Verlet is also exported, as the baseline for tests.
-2. **Fixed time step.** The caller passes a maximum step `dt`. `advance(state, duration)` splits `duration` into `n = ceil(duration / dt)` equal substeps, so the step stays uniform and the simulated time matches `duration` exactly. Cost: steps are wasted in calm phases. With three bodies this is negligible, and adaptive stepping would break the symplectic property.
+1. **Integrator: 4th-order Yoshida, built from velocity Verlet.** Both are symplectic: their energy error oscillates but does not grow, which is what orbits that repeat forever need. Verlet is also exported, as the baseline for tests. Known cost: a Yoshida step costs three force evaluations. The E9 data shows whether Yoshida at `dt` beats Verlet at `dt / 3` (same cost); the comparison is recorded here when the engine is implemented.
+2. **Fixed time step.** The caller passes a maximum step `dt`. `advance(state, duration)` splits `duration` into `n = max(1, ceil(duration / dt − 1e-9))` equal substeps (`n = 0` when `duration = 0`), so the step stays uniform and the simulated time matches `duration` exactly. The `1e-9` absorbs round-off: in JavaScript `Math.ceil((3 * 0.1) / 0.1)` is 4, so without it a caller advancing by "three steps of 0.1" would get four shorter ones. Each substep is therefore at most `dt · (1 + 1e-9)`. One call is limited to 1,000,000 substeps, so a bad input cannot freeze the page. Cost: steps are wasted in calm phases. With three bodies this is negligible, and adaptive stepping would break the symplectic property.
 3. **Dimensionless units, with `G` as a parameter (default 1).** The Part B catalog uses G = 1 and unit masses. Converting to km and km/s for Part A is the UI's job, not the engine's.
-4. **Optional softening `ε`, default 0.** Part B uses exact physics. A sandbox can pass ε > 0 so that close encounters do not blow up. With ε > 0, `totalEnergy` uses the softened potential, so energy stays consistent with the forces.
-5. **Pure public API.** Functions return a new state and never mutate their input. The internal representation (plain objects or reused typed arrays) is decided in the plan, by measurement. The public API does not change either way.
+4. **Optional Plummer softening `ε`, default 0.** Part B uses exact physics. A sandbox can pass ε > 0 so that close encounters do not blow up. Forces and energy use the same softened potential, so energy stays consistent with the forces (E16):
+   - acceleration of body i: aᵢ = Σⱼ G·mⱼ·(rⱼ − rᵢ) / (|rⱼ − rᵢ|² + ε²)^(3/2)
+   - potential energy: U = −Σᵢ<ⱼ G·mᵢ·mⱼ / √(|rⱼ − rᵢ|² + ε²)
+
+   With ε = 0 these are exact Newtonian gravity.
+5. **Pure public API.** Functions return a new state and never mutate their input. The internal representation is decided below ("Decided in the plan"), by measurement. The public API does not change either way.
 6. **2D only.** All six Part B orbits and the cannon are planar.
-7. **No dependency on React, Next.js or the DOM.** Enforced mechanically: a lint rule forbids those imports in `src/physics`, and the engine tests run in Vitest's `node` environment, where `window` does not exist.
+7. **No dependency on React, Next.js, Node or the DOM.** The engine runs in the browser and in Node, so it may use neither environment's APIs. Enforced mechanically by Biome rules scoped to `src/physics`, all at error level (the rules default to warn, and `biome ci` passes on warnings):
+   - `noRestrictedImports`: `react`, `react-dom`, `next` and their subpaths, and `@next/*`. Subpaths need `patterns`, because `paths` only matches exact names (`"react"` does not cover `react/jsx-runtime`).
+   - `noNodejsModules`: Node built-ins. Test, benchmark and test-support files are exempt.
+   - `noRestrictedGlobals`: `window`, `self`, `document`, `navigator`, `location`, `localStorage`, `sessionStorage`, `requestAnimationFrame`, `cancelAnimationFrame`. Import rules cannot see globals, and the tsconfig `lib` includes `"dom"`, so TypeScript alone would allow them.
+
+   The engine tests also run in Vitest's `node` environment, where `window` does not exist.
+8. **Two kinds of error.** Invalid input throws a `RangeError` that names the offending field. A physically singular situation (coincident bodies with ε = 0, or forces that overflow) throws a `PhysicsError` with a `code` and the indices of the bodies involved, so callers (spec 02, Part A) can tell the two apart and handle the second.
 
 ## Public API (shape, not final code)
 
@@ -40,49 +50,76 @@ type SystemState = {
   readonly time: number;
 };
 
-type SimulationOptions = {
-  readonly dt: number;                      // maximum substep
-  readonly G?: number;                      // default 1
-  readonly softening?: number;              // default 0
+type ForceOptions = {
+  readonly G?: number;         // default 1
+  readonly softening?: number; // default 0
+};
+
+type SimulationOptions = ForceOptions & {
+  readonly dt: number;                         // maximum substep
   readonly integrator?: "yoshida4" | "verlet"; // default "yoshida4"
 };
 
-accelerations(state, options): readonly Vec2[]
-advance(state, duration, options): SystemState
-totalEnergy(state, options): number
+class PhysicsError extends Error {
+  readonly code: "coincident-bodies" | "non-finite";
+  readonly bodies: readonly number[]; // indices of the bodies involved
+}
+
+accelerations(state, options?: ForceOptions): readonly Vec2[]
+advance(state, duration, options: SimulationOptions): SystemState
+totalEnergy(state, options?: ForceOptions): number
 linearMomentum(state): Vec2
-angularMomentum(state): number
+angularMomentum(state): number // about the origin
 centerOfMass(state): Vec2
 ```
 
+`accelerations` and `totalEnergy` take only the force options: they do not need a time step.
+
 ## Acceptance criteria
 
-Tolerances marked "measured" are fixed during the build step by running the test, choosing a threshold with a safety margin and writing the value back into this table in the same commit.
+Tolerances marked "measured" are fixed during the build step with the procedure in "Measured tolerances" below, and written back into this table in the same commit.
 
-"Relative" tolerances for conserved quantities are measured against a scale of the system, not against the quantity itself, because a conserved quantity can be zero (for example, total momentum in the centre-of-mass frame). The scale is Σ\|mᵢ·aᵢ\| for forces, Σ\|mᵢ·vᵢ\| for linear momentum and Σ\|rᵢ × mᵢ·vᵢ\| for angular momentum.
+"Relative" tolerances for conserved quantities are measured against a scale of the system, not against the quantity itself, because a conserved quantity can be zero (for example, total momentum in the centre-of-mass frame). The scale is Σ\|mᵢ·aᵢ\| for forces, Σ\|mᵢ·vᵢ\| for linear momentum and Σ\|rᵢ\|·\|mᵢ·vᵢ\| for angular momentum, computed from the initial state. Σ\|rᵢ × mᵢ·vᵢ\| is not used for angular momentum because it is zero when every body moves radially, while the conserved quantity (zero) is still worth checking.
+
+### Fixtures
+
+Named initial states used by the criteria. G = 1 and ε = 0 unless stated otherwise. They are built with `Math.sqrt` and `Math.PI` only, which are exact or correctly rounded, so they are bit-identical on every platform.
+
+| Fixture | Bodies (mass, position, velocity) | Known values |
+|---|---|---|
+| `handPair` | (1, (0, 0), (0, 0)) and (2, (2, 0), (0, 0)) | centre of mass (4/3, 0) |
+| `scatteredFour` | masses 1, 2.5, 0.3 and 7 at (0.1, −0.4), (1.7, 0.9), (−2.2, 1.3) and (0.6, −3.1), at rest | |
+| `circularBinary` | (1, (1, 0), (0, 0.5)) and (1, (−1, 0), (0, −0.5)) | T = 4π, E = −0.25, L = 1 |
+| `eccentricBinary` | (1, (1, 0), (0, s)) and (1, (−1, 0), (0, −s)), with s = √0.5 / 2 ≈ 0.3536; e = 0.5, starting at apoapsis | T = 2π·√(32/27) ≈ 6.840, E₀ = −0.375, L = √0.5 |
+| `lagrangeTriangle` | three masses of 1 on an equilateral triangle of side L = 1, with R = 1/√3: positions (0, R), (−1/2, −R/2) and (1/2, −R/2); velocities (−1, 0), (1/2, −√3/2) and (1/2, √3/2), speed 1/√L = 1 | T = 2π·L^(3/2)/√3 = 2π/√3 ≈ 3.628 |
+| `driftingTriple` | masses 1, 2 and 3 at (1, 0), (−0.5, 0.8) and (−0.3, −1.1); velocities (0.1, 0.6), (−0.4, 0.2) and (0.3, −0.25) | total momentum (0.2, 0.25), so the centre of mass moves. Tests assert that no pair comes closer than 0.05 during the run. |
+
+### Criteria
 
 | ID | Criterion | Source | Verification |
 |---|---|---|---|
-| E1 | Pairwise gravity matches a hand-calculated case. Masses 1 at (0, 0) and 2 at (2, 0), G = 1: body 1 accelerates 0.5 towards +x, body 2 accelerates 0.25 towards −x. | §02, §03 | `gravity.test.ts`: "matches a hand-calculated two-body case" |
-| E2 | Newton's third law: the sum of `mass × acceleration` over all bodies is zero, within 1e-12 relative, for an arbitrary configuration. | §02 (mutual attraction) | `gravity.test.ts`: "net internal force is zero" |
-| E3 | Linear momentum is conserved by `advance`, within 1e-12 relative, and the centre of mass moves in a straight line at constant speed. | §03 | `invariants.test.ts`: "conserves linear momentum" |
-| E4 | Angular momentum is conserved by `advance`, within 1e-10 relative. | §03 | `invariants.test.ts`: "conserves angular momentum" |
-| E5 | Energy error is bounded and does not grow. Eccentric two-body orbit (e = 0.5): masses of 1 starting at (±1, 0) at apoapsis, each moving at √0.5 / 2 ≈ 0.3536 in opposite directions along y, G = 1, period T = 2π·√(32/27) ≈ 6.840. Over 100 periods, the maximum \|ΔE/E₀\| in periods 91 to 100 is at most twice the maximum in periods 1 to 10, and below a measured absolute threshold. An eccentric orbit is used because on a circular one the error is so small that round-off dominates and the test would measure noise. | §03 (orbits repeat forever) | `invariants.test.ts`: "energy error does not grow" |
-| E6 | A circular two-body orbit closes. Two masses of 1 at distance 2, G = 1: each moves at speed 0.5 and the period is T = 4π. After T, positions return to the start within a measured tolerance. | §02 (cannon orbits close) | `integrators.test.ts`: "closes a circular two-body orbit" |
-| E7 | Lagrange's equilateral solution closes after one period. Three masses of 1 on an equilateral triangle of side L, G = 1: speed 1/√L, period T = 2π·L^(3/2)/√3. After T, positions return to the start within a measured tolerance. | §03 (Lagrange) | `integrators.test.ts`: "closes Lagrange's triangle after one period" |
-| E8 | Time reversibility: on the E6 configuration, advancing by one period, negating every velocity and advancing by one period again returns to the initial positions within 1e-10. A non-chaotic configuration is used on purpose: in a chaotic one, round-off grows exponentially and the test would fail for reasons unrelated to the integrator. | §03 | `integrators.test.ts`: "is time-reversible" |
-| E9 | Convergence order: halving `dt` divides the error by about 2⁴ for Yoshida (ratio between 12 and 20) and about 2² for Verlet (ratio between 3 and 5). Error is measured against a reference run with a much smaller step, and `dt` values are chosen in the range where the error scales (small enough to be in the asymptotic regime, large enough to stay above round-off). | §09 (decisions with known cost) | `integrators.test.ts`: "converges at the expected order" |
-| E10 | `advance(state, duration)` ends exactly at `state.time + duration`, using equal substeps no larger than `dt`. `duration = 0` returns an equal state. | §03 (playback controls) | `simulate.test.ts`: "advances by the exact duration" |
-| E11 | Purity: the input state is never mutated (deep-frozen fixture), and the same input always gives the same output. | §09 (maintainability) | `simulate.test.ts`: "does not mutate its input and is deterministic" |
-| E12 | Invalid input throws a `RangeError` with a clear message: `dt <= 0`, `duration < 0`, `mass <= 0`, `G < 0`, `softening < 0`, or any non-finite number. `G = 0` is allowed (no gravity), which a lesson can use to show what happens without it. | §09 | `simulate.test.ts`: "rejects invalid input" |
-| E13 | The engine never returns non-finite values. With ε > 0, coincident bodies produce finite accelerations. With ε = 0, coincident bodies throw a descriptive error. | §02 (sandbox) | `gravity.test.ts`: "handles coincident bodies" |
-| E14 | `src/physics` imports nothing from React, Next.js or the DOM. | Decision 7 | Lint rule in CI, plus all engine tests running in the `node` environment |
-| E15 | Advancing three bodies by 1,000 substeps takes under 2 ms in Node. Measured with a local benchmark script, not a CI test (timings are noisy on shared runners). Result recorded in this spec. | §09 (UX: smooth animation) | `pnpm bench:physics`, result noted here |
+| E1 | Pairwise gravity matches a hand-calculated case. `handPair`: body 1 accelerates 0.5 towards +x, body 2 accelerates 0.25 towards −x, each component within 1e-15. | §02, §03 | `gravity.test.ts`: "matches a hand-calculated two-body case" |
+| E2 | Newton's third law: the sum of `mass × acceleration` over all bodies is zero, within 1e-12 relative. `scatteredFour`, with G ∈ {1, 0.5} and ε ∈ {0, 0.05}. | §02 (mutual attraction) | `gravity.test.ts`: "net internal force is zero" |
+| E3 | Linear momentum is conserved by `advance`, within 1e-12 relative, and the centre of mass moves in a straight line at constant speed, within 1e-12 × maxᵢ\|rᵢ\|. `driftingTriple`, dt = 1e-3, from t = 0 to 5 in 50 calls of `advance(state, 0.1)`, with both integrators. | §03 | `invariants.test.ts`: "conserves linear momentum" |
+| E4 | Angular momentum is conserved by `advance`, within 1e-10 relative. Same run as E3. | §03 | `invariants.test.ts`: "conserves angular momentum" |
+| E5 | Energy error is bounded and does not grow. `eccentricBinary`, dt = T/1000, over 100 periods, sampling \|ΔE/E₀\| after every substep (the error peaks in a short window around periapsis). The maximum in periods 91 to 100 is at most twice the maximum in periods 1 to 10, and the overall maximum is below a measured absolute threshold. An eccentric orbit is used because on a circular one the error is so small that round-off dominates and the test would measure noise. | §03 (orbits repeat forever) | `invariants.test.ts`: "energy error does not grow" |
+| E6 | A circular two-body orbit closes. `circularBinary`, dt = T/1000: each body moves at speed 0.5 and the period is T = 4π. After T, positions return to the start within a measured absolute tolerance. | §02 (cannon orbits close) | `integrators.test.ts`: "closes a circular two-body orbit" |
+| E7 | Lagrange's equilateral solution closes after one period. `lagrangeTriangle` (L = 1), dt = T/1000. After T, positions return to the start within a measured absolute tolerance. | §03 (Lagrange) | `integrators.test.ts`: "closes Lagrange's triangle after one period" |
+| E8 | Time reversibility: `circularBinary`, dt = T/1000. Advancing by one period, negating every velocity and advancing by one period again returns positions to the start and velocities to the negated start, both within 1e-10, with both integrators. A non-chaotic configuration is used on purpose: in a chaotic one, round-off grows exponentially and the test would fail for reasons unrelated to the integrator. | §03 | `integrators.test.ts`: "is time-reversible" |
+| E9 | Convergence order: halving `dt` divides the error by about 2⁴ for Yoshida (ratio between 12 and 20) and about 2² for Verlet (ratio between 3 and 5), for two consecutive halvings. `eccentricBinary` over one period. Error is the largest position distance from a reference run with Yoshida at T/12800, itself checked against T/25600. The `dt` values are chosen from a sweep between T/25 and T/1600, in the range where the error scales (small enough to be in the asymptotic regime, large enough to stay above round-off), and written here (measured). | §09 (decisions with known cost) | `integrators.test.ts`: "converges at the expected order" |
+| E10 | `advance(state, duration)` ends exactly at `state.time + duration`, using n equal substeps as defined in Decision 2, each no larger than `dt · (1 + 1e-9)`. With dt = 0.1: duration 0.25 gives 3 substeps, `3 * 0.1` gives 3 (not 4), and 1 gives 10. `duration = 0` returns an equal state. The substep plan is not visible through the public API, so it is tested on the internal `planSubsteps`. | §03 (playback controls) | `simulate.test.ts`: "advances by the exact duration" |
+| E11 | Purity: the input is never mutated (deep-frozen `driftingTriple` and frozen options, passed to all six public functions), and the same input always gives the same output. | §09 (maintainability) | `simulate.test.ts`: "does not mutate its input and is deterministic" |
+| E12 | Invalid input throws a `RangeError` whose message names the field: `dt <= 0`, `duration < 0`, `mass <= 0`, `G < 0`, `softening < 0`, any non-finite number (including positions, velocities and `time`), an empty `bodies` array, an unknown `integrator` (checked at runtime, because JavaScript callers and tutor tool calls bypass TypeScript), or more than 1,000,000 substeps in one call. `G = 0` is allowed (no gravity), which a lesson can use to show what happens without it: bodies then move in straight lines. | §09 | `validate.test.ts`: "rejects invalid input" (every case), and `simulate.test.ts`: "every public function validates its input" (one case per function) |
+| E13 | The engine never returns non-finite values. With ε > 0, coincident bodies produce finite accelerations and energy. With ε = 0, coincident bodies (r² + ε² = 0, which also catches distinct bodies closer than about 1e-154, where r² underflows to zero) make `accelerations` and `totalEnergy` throw a `PhysicsError` with code `"coincident-bodies"` naming both bodies. Forces that overflow (for example masses of 1e308 with G = 10) throw a `PhysicsError` with code `"non-finite"` instead of returning infinity. | §02 (sandbox) | `gravity.test.ts`: "handles coincident bodies"; `invariants.test.ts` (energy); `simulate.test.ts` (a head-on pair with ε = 0.1 stays finite) |
+| E14 | `src/physics` imports nothing from React, Next.js or Node, and uses no DOM globals (Decision 7). | Decision 7 | Biome rules in CI; `environment.test.ts`: "loads the public entry point without DOM globals"; plus a one-off manual probe when the rules are added, with its output in the step summary (flagged cases: `react`, `react/jsx-runtime`, `react-dom/client`, `next`, `next/link`, `next/dist/…`, `node:fs`, `path`, `window`, `document`, `requestAnimationFrame` in `src/physics`; clean cases: a relative import in `src/physics`, `react` in `src/app`, `node:fs` in a test file in `src/physics`) |
+| E15 | Advancing three bodies by 1,000 substeps (`lagrangeTriangle`, `advance(state, 1, { dt: 0.001 })`, Yoshida) takes under 2 ms on average in Node. Measured with a local benchmark (Vitest bench mode), not a CI test, because timings are noisy on shared runners. The result is recorded here with p99, CPU and Node version; p99 is recorded because garbage-collection pauses, not the average, are the real risk for a smooth animation. | §09 (UX: smooth animation) | `pnpm bench:physics` (`advance.bench.ts`), result noted here |
+| E16 | Forces are the negative gradient of the potential used by `totalEnergy`. `scatteredFour`, ε ∈ {0, 0.05}: central finite differences of `totalEnergy` (step 1e-6 per coordinate) match −mᵢ·aᵢ within 1e-6 relative. This is the only check that forces and energy agree, which Decision 4 relies on. | Decision 4 | `gravity.test.ts`: "forces are the negative gradient of the potential" |
 
 ## Out of scope
 
 - Re-anchoring to the initial state after each period, and the orbit catalog: spec 02 (orbits).
 - Collision with a planet's surface and classifying cannon outcomes: Part A spec.
+- Massless test particles: masses must be positive (E12). The Part A spec decides how to model the projectile, for example with a very small mass.
 - Adaptive time stepping.
 - Performance for many bodies (N > 3).
 - 3D.
@@ -90,13 +127,53 @@ Tolerances marked "measured" are fixed during the build step by running the test
 
 ## Risks
 
-- **Tolerances too tight make tests flaky; too loose makes them useless.** Mitigation: measure first, then set thresholds with an explicit margin, recorded in this spec.
+- **Tolerances too tight make tests flaky; too loose makes them useless.** Mitigation: measure first, then set thresholds with an explicit margin, recorded in this spec, and check that a weaker integrator fails them (see "Measured tolerances").
 - **Floating-point limits on unstable orbits.** Even a perfect integrator cannot keep Lagrange (equal masses) or most Part B orbits closed for many periods. Criteria E6 and E7 check one period only. Long-term behaviour is handled by re-anchoring in spec 02.
-- **Varying frame durations change the step between calls.** Animation frames do not last exactly the same, so `advance(state, frameDuration)` would use a slightly different substep each frame, which weakens the long-term energy guarantee. Mitigation: the animation loop accumulates real time and advances the simulation in whole multiples of `dt` (the "fixed timestep with accumulator" pattern). `advance` still accepts any duration, but callers should use multiples of `dt`.
-- **`noUncheckedIndexedAccess` against typed arrays in hot loops.** Every indexed read becomes possibly undefined. Mitigation: decide the representation in the plan, and if typed arrays win, keep their access inside one small file.
+- **Varying frame durations change the step between calls.** Animation frames do not last exactly the same, so `advance(state, frameDuration)` would use a slightly different substep each frame, which weakens the long-term energy guarantee. Mitigation: the animation loop accumulates real time and advances the simulation in whole multiples of `dt` (the "fixed timestep with accumulator" pattern), and Decision 2's round-off margin keeps those multiples at exactly `dt` per substep. `advance` still accepts any duration, but callers should use multiples of `dt`.
+- **`noUncheckedIndexedAccess` against typed arrays in hot loops.** Every indexed read becomes possibly undefined. Mitigation: see "Internal state representation" below.
 
-## Decided in the plan, not here
+## Decided in the plan
 
-- Internal state representation (objects or typed arrays), backed by the E15 benchmark.
-- Exact values of the "measured" tolerances.
-- File layout inside `src/physics`.
+### File layout
+
+| File in `src/physics` | Responsibility |
+|---|---|
+| `index.ts` | Public entry point: re-exports the six functions, the types and `PhysicsError`, and nothing internal. |
+| `types.ts` | `Vec2`, `Body`, `SystemState`, `ForceOptions`, `SimulationOptions`, `IntegratorName`. |
+| `vec2.ts` | Small pure vector helpers (`add`, `sub`, `scale`, `dot`, `cross`, `lengthSquared`). |
+| `validate.ts` | Input checks that throw `RangeError` (E12), and option defaults. |
+| `errors.ts` | `PhysicsError` (E13). |
+| `gravity.ts` | `accelerations`: softened pairwise gravity, coincidence and overflow detection. |
+| `invariants.ts` | `totalEnergy`, `linearMomentum`, `angularMomentum`, `centerOfMass`. |
+| `integrators.ts` | One step of `verlet` and of `yoshida4`. The Yoshida coefficients are written as literals, not computed with `Math.cbrt`, so they are identical on every platform. |
+| `simulate.ts` | `advance`: validation, substep planning (`planSubsteps`, exported for tests but not from `index.ts`), the step loop, `time = t0 + duration`, and the final finiteness check. |
+| `kernel.ts` | Only if the benchmark rule below requires it: the typed-array kernel, the only file with indexed reads. |
+| `testing/fixtures.ts` | The fixtures above, with their periods and energies. |
+| `testing/assertions.ts` | Scale helpers, `deepFreeze` and distance helpers for tests. |
+
+Tests sit next to the code (`gravity.test.ts`, `invariants.test.ts`, `integrators.test.ts`, `simulate.test.ts`, `validate.test.ts`, `environment.test.ts`), and the benchmark is `advance.bench.ts`. Imports inside `src/physics` are relative; code outside it imports `@/physics`.
+
+### Internal state representation
+
+Plain immutable objects with the same shapes as the public types, unless the benchmark rule below says otherwise.
+
+- **`noUncheckedIndexedAccess`.** With objects, the code needs no indexed reads: per-body updates use `map`, and pairwise accelerations use nested `for…of` over `entries()`, skipping `i === j`. Each pair is then computed twice (6 evaluations instead of 3 for N = 3), which is irrelevant at this size and N > 3 is out of scope. With typed arrays, every read `x[i]` has type `number | undefined` and needs a non-null assertion `!`, which Biome's recommended `noNonNullAssertion` reports on every read. `?? 0` is not an option: it would turn an out-of-bounds bug into a silent zero.
+- **Readability.** The engine is the part most likely to be reviewed line by line (§09).
+- **Purity.** If typed arrays are needed, they are allocated once per `advance` call and reused across its substeps. There are no module-level buffers, which would be hidden shared state.
+
+**Benchmark rule (E15), fixed before measuring.** `pnpm bench:physics` on the `lagrangeTriangle` case, 3 runs on the development machine (on power, no other heavy work), taking the median of the reported means and the worst p99.
+
+- Keep plain objects if the mean is at most 1.0 ms (half the E15 budget) and p99 is at most 2.0 ms.
+- Otherwise, move integration to a Float64Array kernel in `kernel.ts` behind the same API (E1–E13 make that a safe refactor), with a Biome override allowing `!` in that one file only, and record both results.
+- If the kernel also misses the budget, E15 is revisited explicitly, not relaxed quietly.
+
+### Measured tolerances
+
+For each tolerance marked "measured" (E5, E6, E7, and the E9 `dt` values):
+
+1. **Measure through a failing run.** The test is first written with a threshold of 0. It fails, and the failure shows the measured value.
+2. **Check it measures the integrator, not noise.** Re-run at `dt / 2`: for Yoshida the value must drop by about 16. If it does not, round-off dominates and `dt` is increased.
+3. **Check the threshold can fail.** Verlet at the same `dt` (E6, E7), or an explicit Euler step substituted temporarily (E5), must exceed the threshold by at least 10 times. Otherwise the threshold is useless.
+4. **Set the threshold** to 10 times the measured value, rounded up to the next 1, 2 or 5 × 10ᵏ. The results are deterministic: the engine uses only `+ − × ÷` and `Math.sqrt`, which IEEE 754 rounds exactly, and no `pow`, `hypot` or `cbrt`. The margin absorbs future refactors that change the order of operations, not noise.
+5. **Write it back** into the criteria table in the same commit, for example "≤ 1e-7 (measured 8.3e-9 at dt = T/1000, Node 24.14 arm64; Verlet at the same dt: 4.1e-5)". A "Measured values" subsection also records what was observed for the fixed tolerances (E2, E3, E4, E8), so their margins are known.
+6. **Confirm on CI.** CI runs on Linux x64, which checks that the thresholds hold on another platform.
