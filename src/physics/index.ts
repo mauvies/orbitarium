@@ -7,6 +7,7 @@ export {
   linearMomentum,
   totalEnergy,
 } from "./invariants";
+export { advance } from "./simulate";
 export type {
   Body,
   ForceOptions,
