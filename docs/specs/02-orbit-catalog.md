@@ -94,7 +94,21 @@ tracePeriod(orbit, points: number): readonly (readonly Vec2[])[] // [body][sampl
 
 ### Measured values (O4)
 
-Recorded when `stepsPerPeriod` is measured. The planning measurements, which are preliminary, chose 1,000 for Lagrange and figure-eight, 20,000 for moth I, 100,000 for butterfly I and goggles, and 500,000 for yin-yang I.
+Output of `pnpm measure:orbits` (2026-10-23, Node 24.14.0, arm64). The engine uses only + − × ÷ and `Math.sqrt`, so the values are the same on every platform. CI checks them again through O3 on Linux x64.
+
+| Orbit | T | Steps per period | Closure (position / velocity) | Margin to 1e-4 | Next lower value | At twice the steps (ratio) | Substeps per unit of time |
+|---|---|---|---|---|---|---|---|
+| Lagrange | 3.6276 | 1,000 | 5.2e-9 / 9.1e-9 | 11,028× | none (bottom of the ladder) | 3.3e-10 / 5.7e-10 (÷16.0) | 276 |
+| Figure-eight | 6.3259 | 1,000 | 1.7e-7 / 2.3e-7 | 432× | none (bottom of the ladder) | 1.1e-8 / 1.4e-8 (÷16.0) | 158 |
+| Butterfly I | 6.2347 | 100,000 | 5.8e-5 / 4.6e-5 | 1.7× | 50,000: 8.9e-4 / 7.3e-4 | 3.6e-6 / 2.9e-6 (÷15.8) | 16,039 |
+| Goggles | 10.4648 | 100,000 | 6.8e-5 / 7.7e-5 | 1.3× | 50,000: 1.0e-3 / 1.3e-3 | 4.3e-6 / 4.8e-6 (÷16.0) | 9,556 |
+| Moth I | 14.8943 | 20,000 | 4.2e-5 / 4.7e-5 | 2.1× | 10,000: 6.6e-4 / 7.5e-4 | 2.6e-6 / 3.0e-6 (÷15.9) | 1,343 |
+| Yin-yang I | 17.3288 | 500,000 | 7.3e-6 / 7.4e-6 | 14× | 200,000: 2.8e-4 / 2.8e-4 | 4.5e-7 / 4.6e-7 (÷16.0) | 28,854 |
+
+- **The closures are truncation error.** Doubling the steps divides every closure by 15.8 to 16.0, the fourth order of Yoshida's method. Round-off would not shrink with the step. The refined initial conditions close to 1e-10 or better. That is at least 50 times below every closure at the chosen steps, so they do not limit those closures.
+- **The threshold can fail.** At the next lower value, every close-encounter orbit fails O3, by a factor of 2.8 (yin-yang I) to 13 (goggles). At 1,000 steps, the four close-encounter orbits fail it by orders of magnitude: their closures are 6.4 to 84.
+- **The goggles margin is thin but stable.** At 1.3×, it is the smallest margin, but the results are deterministic, so a thin margin is not flaky. Only a change to the engine's arithmetic could move it, and that is what O3 should catch.
+- **Substeps per unit of time is `stepsPerPeriod / T`.** It gives the cost of any playback speed in spec 03: at s units of simulation time per second and 60 Hz, a frame needs that number times s / 60 substeps.
 
 ## Out of scope
 
@@ -107,7 +121,7 @@ Recorded when `stepsPerPeriod` is measured. The planning measurements, which are
 
 ## Risks
 
-- **The heaviest orbit costs the most per frame.** Yin-yang I needs 500,000 substeps per period (planning measurement; O4 records the final value). At 60 Hz and P seconds of playback per period, a frame needs 500,000 / (60 · P) substeps:
+- **The heaviest orbit costs the most per frame.** Yin-yang I needs 500,000 substeps per period (O4). At 60 Hz and P seconds of playback per period, a frame needs 500,000 / (60 · P) substeps:
 
   | P | Substeps per frame | Time per frame at 1.23 µs per substep |
   |---|---|---|
@@ -132,7 +146,8 @@ Recorded when `stepsPerPeriod` is measured. The planning measurements, which are
 |---|---|
 | `index.ts` | Public entry point: re-exports `orbits`, `getOrbit`, `startPlayback`, `advancePlayback`, `tracePeriod`, `STEPS_PER_PERIOD_LADDER` and the types, and nothing internal. |
 | `types.ts` | `OrbitSlug`, `StepsPerPeriod`, `OrbitPreset`, `Playback`, `PlaybackOptions`. |
-| `catalog.ts` | The ladder, `collinearStart(p1, p2)`, the six presets, `orbits` and `getOrbit`. |
+| `ladder.ts` | `STEPS_PER_PERIOD_LADDER`, the source of the `StepsPerPeriod` type. |
+| `catalog.ts` | `collinearStart(p1, p2)`, the six presets, `orbits` and `getOrbit`. |
 | `stepping.ts` | `runSubsteps(state, count, dt)`: one `advance(state, dt, { dt })` per substep, shared by playback and trace. |
 | `playback.ts` | `startPlayback`, `advancePlayback`: accumulator, period boundary, re-anchoring, cap. |
 | `trace.ts` | `tracePeriod`. |

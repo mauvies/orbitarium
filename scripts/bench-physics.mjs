@@ -2,11 +2,7 @@
 // module runner every import becomes a getter, which dominates the hot loop.
 import { cpus } from "node:os";
 import { performance } from "node:perf_hooks";
-import { fileURLToPath } from "node:url";
-import { build } from "vite";
-
-const root = fileURLToPath(new URL("..", import.meta.url));
-const outDir = new URL("../.bench/physics/", import.meta.url);
+import { bundleForNode } from "./bundle.mjs";
 
 const WARM_UP_CALLS = 300;
 const TIMED_CALLS = 1000;
@@ -14,27 +10,12 @@ const TIMED_CALLS = 1000;
 const DURATION = 1;
 const DT = 0.001;
 
-await build({
-  root,
-  configFile: false,
-  publicDir: false,
-  logLevel: "warn",
-  build: {
-    ssr: true,
-    outDir: fileURLToPath(outDir),
-    emptyOutDir: true,
-    rolldownOptions: {
-      input: {
-        engine: "src/physics/index.ts",
-        fixtures: "src/physics/testing/fixtures.ts",
-      },
-      output: { entryFileNames: "[name].mjs" },
-    },
-  },
+const { engine, fixtures } = await bundleForNode("physics", {
+  engine: "src/physics/index.ts",
+  fixtures: "src/physics/testing/fixtures.ts",
 });
-
-const { advance } = await import(new URL("engine.mjs", outDir).href);
-const { lagrangeTriangle } = await import(new URL("fixtures.mjs", outDir).href);
+const { advance } = engine;
+const { lagrangeTriangle } = fixtures;
 
 function timeAdvance(integrator) {
   const options = { dt: DT, integrator };

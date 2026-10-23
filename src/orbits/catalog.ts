@@ -55,6 +55,7 @@ const lagrange: OrbitPreset = {
     ],
   },
   period: (2 * Math.PI) / Math.sqrt(3),
+  stepsPerPeriod: 1_000,
   source: "Lagrange (1772); analytic equilateral solution of side 1",
 };
 
@@ -63,6 +64,7 @@ const figureEight: OrbitPreset = {
   name: "Figure-eight",
   initialState: collinearStart(0.347116888118, 0.532724945388),
   period: 6.325913982923,
+  stepsPerPeriod: 1_000,
   source: `Chenciner and Montgomery (2000); Šuvakov's convention, ${REFINED}`,
 };
 
@@ -71,6 +73,7 @@ const butterflyI: OrbitPreset = {
   name: "Butterfly I",
   initialState: collinearStart(0.306893420453, 0.125506567018),
   period: 6.234674838629,
+  stepsPerPeriod: 100_000,
   source: `${SUVAKOV_TABLE}; ${REFINED}`,
 };
 
@@ -79,6 +82,7 @@ const goggles: OrbitPreset = {
   name: "Goggles",
   initialState: collinearStart(0.083300071859, 0.127889255504),
   period: 10.464849525803,
+  stepsPerPeriod: 100_000,
   source: `${SUVAKOV_TABLE}; ${REFINED}`,
 };
 
@@ -87,6 +91,7 @@ const mothI: OrbitPreset = {
   name: "Moth I",
   initialState: collinearStart(0.464445172818, 0.396060014653),
   period: 14.894305175019,
+  stepsPerPeriod: 20_000,
   source: `${SUVAKOV_TABLE}; ${REFINED}`,
 };
 
@@ -95,6 +100,7 @@ const yinYangI: OrbitPreset = {
   name: "Yin-yang I",
   initialState: collinearStart(0.513938537458, 0.304735919347),
   period: 17.328834018431,
+  stepsPerPeriod: 500_000,
   source: `${SUVAKOV_TABLE}, variant (a); ${REFINED}`,
 };
 

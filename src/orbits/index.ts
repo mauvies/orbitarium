@@ -1,2 +1,3 @@
 export { getOrbit, orbits } from "./catalog";
-export type { OrbitPreset, OrbitSlug } from "./types";
+export { STEPS_PER_PERIOD_LADDER } from "./ladder";
+export type { OrbitPreset, OrbitSlug, StepsPerPeriod } from "./types";
