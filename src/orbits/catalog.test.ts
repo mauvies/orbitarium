@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  advance,
   angularMomentum,
   linearMomentum,
   type SystemState,
   type Vec2,
 } from "@/physics";
-import { magnitude } from "@/physics/testing/assertions";
+import { magnitude, maxDistance } from "@/physics/testing/assertions";
 import {
   lagrangeTriangle,
   lagrangeTrianglePeriod,
@@ -26,7 +27,22 @@ const KEBAB_CASE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 // Spec 02, O2.
 const MOMENTUM_TOLERANCE = 1e-12;
 
+// Spec 02, O3: a requirement (sub-pixel), not ten times a measurement.
+const CLOSURE_TOLERANCE = 1e-4;
+
+// The heaviest orbit runs 500,000 substeps, about 1 s locally. Shared CI
+// runners are about twice as slow, and Vitest's default is 5 s per test.
+const HEAVY_TEST_TIMEOUT_MS = 30_000;
+
 const collinearOrbits = orbits.filter((orbit) => orbit.slug !== "lagrange");
+
+function positions(state: SystemState): readonly Vec2[] {
+  return state.bodies.map((body) => body.position);
+}
+
+function velocities(state: SystemState): readonly Vec2[] {
+  return state.bodies.map((body) => body.velocity);
+}
 
 /** The convention of docs/research/orbits.md, from the velocity (p₁, p₂). */
 function collinearConvention({ x: p1, y: p2 }: Vec2): SystemState {
@@ -108,4 +124,23 @@ describe("follows the researched convention", () => {
       MOMENTUM_TOLERANCE,
     );
   });
+});
+
+describe("closes every orbit after one period", () => {
+  it.each(orbits)(
+    "closes $slug after one period ($stepsPerPeriod steps)",
+    ({ initialState, period, stepsPerPeriod }) => {
+      const end = advance(initialState, period, {
+        dt: period / stepsPerPeriod,
+      });
+
+      expect(
+        maxDistance(positions(end), positions(initialState)),
+      ).toBeLessThanOrEqual(CLOSURE_TOLERANCE);
+      expect(
+        maxDistance(velocities(end), velocities(initialState)),
+      ).toBeLessThanOrEqual(CLOSURE_TOLERANCE);
+    },
+    HEAVY_TEST_TIMEOUT_MS,
+  );
 });
