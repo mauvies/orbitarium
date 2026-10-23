@@ -5,6 +5,7 @@ import {
   type Step,
   verletStep,
   withAccelerations,
+  yoshida4Step,
 } from "./integrators";
 import type {
   Body,
@@ -72,8 +73,7 @@ function stepFor(integrator: IntegratorName): Step {
     case "verlet":
       return verletStep;
     case "yoshida4":
-      // Not implemented yet: it arrives with its convergence test (spec 01, E9).
-      throw new RangeError('options.integrator "yoshida4" is not implemented');
+      return yoshida4Step;
   }
 }
 
