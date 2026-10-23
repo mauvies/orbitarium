@@ -6,7 +6,7 @@ Status: agreed on 2026-10-22, design system added on 2026-10-23. Applied through
 
 A night sky with gold linework, inspired by the design of the technical brief: a dark violet background, a single amber accent and thin golden orbit lines. This is inspiration, not branding: no logo, company name or tagline from the brief is used. The app is Orbitarium.
 
-**The one memorable element is the orbit linework.** Thin amber paths drawn from the real simulation appear in the logo, the home hero, the gallery thumbnails and the detail canvas. Everything around them stays quiet: flat surfaces, hairline borders, no shadows, no gradient washes beyond the page background, and no decoration that does not carry information.
+**The one memorable element is the orbit linework.** Thin amber orbit lines appear in the logo, the home hero, the gallery thumbnails and the detail canvas. Everything around them stays quiet: flat surfaces, hairline borders, no shadows, no gradient washes beyond the page background, and no decoration that does not carry information.
 
 ## Typography
 
@@ -94,17 +94,10 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 
 ## Logo
 
-An apple drawn as an orbit: one continuous amber line traces the outline of an apple, two rounded leaves sit on top, and a small light dot sits on the line, like a body travelling along its orbit. It joins the two halves of the app: Newton's apple (Part A) and the orbits (Part B).
+Three amber orbits crossing at the centre: three identical ellipses, rotated 0°, 60° and 120°, with nothing else.
 
-- **Mark** (header, 28 px): the outline at 3 units of a 64-unit box, leaves filled, dot `strong` with a ring of the background colour that cuts the line. Rendered as an inline SVG component using the theme tokens.
-- **Icon** (favicon and app icon, `src/app/icon.svg`): the same drawing on a `bg-top` rounded square, with a heavier 5-unit line so it reads at 16 and 32 px.
-
-Path data (64 × 64 box):
-
-- Apple: `M32 21 C35.5 15 49 13.5 53.5 25 C57.5 36.5 51.5 51.5 43.5 54.5 C39.5 56 35.5 54.5 32 54 C28.5 54.5 24.5 56 20.5 54.5 C12.5 51.5 6.5 36.5 10.5 25 C15 13.5 28.5 15 32 21 Z`
-- Right leaf: `M33.5 16 C34.5 10 39 6.5 45 7 C44.5 12.5 40 16.5 33.5 16 Z`
-- Left leaf: `M30.5 16 C29.5 11.5 26 9 21.5 9.5 C22 13.5 25.5 16.5 30.5 16 Z`
-- Body: a circle at (9.3, 36).
+- **Mark** (header, 28 px): ellipses with rx 27 and ry 10 in a 64-unit box, centred, stroke 2 units, in `accent`. Rendered as an inline SVG component using the theme tokens.
+- **Icon** (favicon and app icon, `src/app/icon.svg`): the same drawing on a `bg-top` rounded square (radius 14), with the same 2-unit stroke. The fine line is a deliberate choice; at 16 px the icon reads as amber orbits rather than in detail.
 
 ## Motion
 
@@ -114,4 +107,4 @@ One orchestrated moment: on the home page, the hero orbit draws itself once on l
 
 - Dark theme only. Stated in the README as a known limit: a light theme would mean redefining the colour tokens.
 - Colours are defined once as CSS variables in the Tailwind theme. No component hardcodes a colour (enforced by `src/theme.test.ts`).
-- Orbit drawings always come from the simulation, never from hand-drawn shapes.
+- Orbit drawings in the hero, thumbnails and canvas always come from the simulation, never from hand-drawn shapes. The logo is the one symbolic exception.
