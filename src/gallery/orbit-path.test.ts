@@ -5,7 +5,9 @@ import {
   COORDINATE_DECIMALS,
   orbitPath,
   svgFrame,
+  svgOpenPathData,
   svgPathData,
+  svgUnitsPerPixel,
 } from "./orbit-path";
 import { largestDistanceToClosedPath } from "./testing/support";
 
@@ -92,6 +94,25 @@ describe("SVG output", () => {
         { x: 0, y: -0.5 },
       ]),
     ).toBe("M0 -1L1 0L0 0.5Z");
+  });
+
+  it("leaves an open path open", () => {
+    expect(
+      svgOpenPathData([
+        { x: 0, y: 1 },
+        { x: 1, y: 0 },
+      ]),
+    ).toBe("M0 -1L1 0");
+  });
+
+  it("converts pixels to view box units for the side that limits the fit", () => {
+    const wide = { x: 0, y: 0, width: 4, height: 1 };
+    const tall = { x: 0, y: 0, width: 1, height: 3 };
+
+    // A 4:3 picture 400 px wide: the wide frame fills its width, the tall
+    // frame its height.
+    expect(svgUnitsPerPixel(wide, 400, 300)).toBeCloseTo(0.01);
+    expect(svgUnitsPerPixel(tall, 400, 300)).toBeCloseTo(0.01);
   });
 
   it("frames the bounds with a margin, in the flipped coordinates", () => {

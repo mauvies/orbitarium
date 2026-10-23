@@ -32,6 +32,29 @@ test("the skip link moves keyboard focus past the header", async ({ page }) => {
   ).toBeFocused();
 });
 
+// docs/design/visual-style.md, "Header".
+for (const { path, current } of [
+  { path: "/", current: undefined },
+  { path: "/gallery", current: es.site.navigation.gallery },
+  { path: "/learn", current: es.site.navigation.learn },
+]) {
+  test(`the navigation marks the current section on ${path}`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+    const marked = page
+      .getByRole("navigation", { name: es.site.navigation.label })
+      .locator('[aria-current="page"]');
+
+    if (current === undefined) {
+      await expect(marked).toHaveCount(0);
+    } else {
+      await expect(marked).toHaveCount(1);
+      await expect(marked).toHaveText(current);
+    }
+  });
+}
+
 test("the header links to every section", async ({ page }) => {
   await page.goto("/learn");
   const navigation = page.getByRole("navigation", {

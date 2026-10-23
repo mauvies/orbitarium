@@ -1,29 +1,48 @@
+import {
+  PLATE_WIDTH_PX,
+  Plate,
+  type PlateShape,
+  plateUnitsPerPixel,
+} from "@/components/plate";
 import type { OrbitPreset } from "@/orbits";
 import { orbitPath, svgFrame, svgPathData } from "./orbit-path";
 
-// The widest a thumbnail is drawn: one of two cards at 768 px (spec 03, G9).
-const THUMBNAIL_SIZE_PX = 360;
+const START_DOT_RADIUS_PX = 2;
 
 /**
- * The orbit's path as a static SVG, traced when the page is built (spec 03,
- * Decision 4). Decorative: the card's text names the orbit.
+ * The orbit's path on a plate, as a static SVG traced when the page is built
+ * (spec 03, Decision 4), with the bodies' starting points.
  */
-export function OrbitThumbnail({ orbit }: { orbit: OrbitPreset }) {
-  const path = orbitPath(orbit, THUMBNAIL_SIZE_PX);
-  const { x, y, width, height } = svgFrame(path.bounds);
+export function OrbitThumbnail({
+  orbit,
+  shape = "wide",
+  className,
+}: {
+  orbit: OrbitPreset;
+  shape?: PlateShape;
+  className?: string;
+}) {
+  const path = orbitPath(orbit, PLATE_WIDTH_PX);
+  const frame = svgFrame(path.bounds);
+  const dotRadius = START_DOT_RADIUS_PX * plateUnitsPerPixel(frame, shape);
   return (
-    <svg
-      viewBox={`${x} ${y} ${width} ${height}`}
-      className="aspect-4/3 w-full"
-      aria-hidden="true"
-    >
+    <Plate frame={frame} shape={shape} className={className}>
       <path
         d={path.bodies.map(svgPathData).join("")}
-        className="fill-none stroke-accent"
-        strokeWidth={1.5}
+        className="fill-none stroke-accent opacity-85 group-focus-within:opacity-100 group-hover:opacity-100 motion-safe:transition-opacity"
+        strokeWidth={1.25}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />
-    </svg>
+      {orbit.initialState.bodies.map(({ position: { x, y } }) => (
+        <circle
+          key={`${x} ${y}`}
+          cx={x}
+          cy={-y}
+          r={dotRadius}
+          className="fill-strong"
+        />
+      ))}
+    </Plate>
   );
 }

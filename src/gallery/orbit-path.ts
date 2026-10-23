@@ -51,19 +51,25 @@ export function orbitPath(orbit: OrbitPreset, sizePx: number): OrbitPath {
 
 /** SVG path data for a closed path, with y flipped so that up stays up. */
 export function svgPathData(points: readonly Vec2[]): string {
-  const commands = points.map(
-    ({ x, y }, i) => `${i === 0 ? "M" : "L"}${x} ${-y}`,
-  );
-  return `${commands.join("")}Z`;
+  return `${svgOpenPathData(points)}Z`;
 }
 
+/** SVG path data for a path that does not return to its start. */
+export function svgOpenPathData(points: readonly Vec2[]): string {
+  return points
+    .map(({ x, y }, i) => `${i === 0 ? "M" : "L"}${x} ${-y}`)
+    .join("");
+}
+
+export type SvgFrame = {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+};
+
 /** The SVG view box that frames `bounds`, in svgPathData's flipped coordinates. */
-export function svgFrame(bounds: Bounds): {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-} {
+export function svgFrame(bounds: Bounds): SvgFrame {
   const margin = FRAME_MARGIN * largerSide(bounds);
   return {
     x: bounds.minX - margin,
@@ -73,7 +79,19 @@ export function svgFrame(bounds: Bounds): {
   };
 }
 
-function boundsOf(points: readonly Vec2[]): Bounds {
+/**
+ * View box units per pixel when `frame` is fitted, whole and centred, into a
+ * picture `widthPx` by `heightPx`: for sizes that must not scale, like dots.
+ */
+export function svgUnitsPerPixel(
+  frame: SvgFrame,
+  widthPx: number,
+  heightPx: number,
+): number {
+  return Math.max(frame.width / widthPx, frame.height / heightPx);
+}
+
+export function boundsOf(points: readonly Vec2[]): Bounds {
   const xs = points.map(({ x }) => x);
   const ys = points.map(({ y }) => y);
   return {
