@@ -1,6 +1,6 @@
 # Spec 01: Physics engine
 
-Status: approved (2026-10-22), amended after the implementation plan review. Committed before any engine code.
+Status: implemented (2026-10-23). Approved on 2026-10-22 and amended after the implementation plan review, before any engine code.
 
 ## Goal
 
@@ -16,7 +16,7 @@ A pure TypeScript module that advances a system of point masses under Newtonian 
 
 Full rationale and costs will go in the README.
 
-1. **Integrator: 4th-order Yoshida, built from velocity Verlet.** Both are symplectic: their energy error oscillates but does not grow, which is what orbits that repeat forever need. Verlet is also exported, as the baseline for tests. Known cost: a Yoshida step costs three force evaluations. The E9 data shows whether Yoshida at `dt` beats Verlet at `dt / 3` (same cost); the comparison is recorded here when the engine is implemented.
+1. **Integrator: 4th-order Yoshida, built from velocity Verlet.** Both are symplectic: their energy error oscillates but does not grow, which is what orbits that repeat forever need. Verlet is also exported, as the baseline for tests. Known cost: a Yoshida step costs three force evaluations, as much as Verlet at `dt / 3`. At that equal cost, Verlet is slightly more accurate at T/100, and Yoshida is 3.2 times more accurate at T/200 and 12.9 times at T/400, a gap that grows about fourfold with each halving (see "Convergence (E9)"). E5 to E8 run at T/1000, well past the crossover.
 2. **Fixed time step.** The caller passes a maximum step `dt`. `advance(state, duration)` splits `duration` into `n = max(1, ceil(duration / dt − 1e-9))` equal substeps (`n = 0` when `duration = 0`), so the step stays uniform and the simulated time matches `duration` exactly. The `1e-9` absorbs round-off: in JavaScript `Math.ceil((3 * 0.1) / 0.1)` is 4, so without it a caller advancing by "three steps of 0.1" would get four shorter ones. Each substep is therefore at most `dt · (1 + 1e-9)`. One call is limited to 1,000,000 substeps, so a bad input cannot freeze the page. Cost: steps are wasted in calm phases. With three bodies this is negligible, and adaptive stepping would break the symplectic property.
 3. **Dimensionless units, with `G` as a parameter (default 1).** The Part B catalog uses G = 1 and unit masses. Converting to km and km/s for Part A is the UI's job, not the engine's.
 4. **Optional Plummer softening `ε`, default 0.** Part B uses exact physics. A sandbox can pass ε > 0 so that close encounters do not blow up. Forces and energy use the same softened potential, so energy stays consistent with the forces (E16):
@@ -127,6 +127,30 @@ What the tests observe for the fixed tolerances, so their margins are known. Eac
 | E4 | Angular momentum | 6.9e-15 | 6.0e-15 | 1e-10 |
 | E8 | Position after forward and back (absolute) | 4.8e-15 | 7.5e-14 | 1e-10 |
 | E8 | Velocity after forward and back (absolute) | 3.0e-15 | 3.7e-14 | 1e-10 |
+
+### Convergence (E9)
+
+Position error after one period of `eccentricBinary`, against a Yoshida reference at T/12800 (whose own error, against T/25600, is 7.4e-12). Node 24.14.0, arm64.
+
+| dt | Yoshida error | Ratio | Verlet error | Ratio |
+|---|---|---|---|---|
+| T/25 | 1.52e-1 | | 2.05e-1 | |
+| T/50 | 2.79e-2 | 5.46 | 5.74e-2 | 3.57 |
+| T/100 | 2.00e-3 | 13.96 | 1.48e-2 | 3.87 |
+| T/200 | 1.29e-4 | **15.55** | 3.74e-3 | **3.97** |
+| T/400 | 8.10e-6 | **15.89** | 9.37e-4 | **3.99** |
+| T/800 | 5.07e-7 | 15.97 | 2.34e-4 | **4.00** |
+| T/1600 | 3.17e-8 | 16.00 | 5.86e-5 | 4.00 |
+
+Ratios in bold are the ones E9 tests. Both integrators reach their theoretical order (16 for 4th order, 4 for 2nd) once dt is small enough.
+
+At equal cost (one Yoshida step is three force evaluations, like three Verlet steps):
+
+| Yoshida at | Verlet at | Yoshida error | Verlet error | Verlet / Yoshida |
+|---|---|---|---|---|
+| T/100 | T/300 | 2.00e-3 | 1.67e-3 | 0.83 |
+| T/200 | T/600 | 1.29e-4 | 4.17e-4 | 3.24 |
+| T/400 | T/1200 | 8.10e-6 | 1.04e-4 | 12.87 |
 
 ## Out of scope
 
