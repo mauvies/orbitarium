@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { advance } from "@/physics";
-import { deepFreeze } from "@/physics/testing/assertions";
+import { beforeAll, describe, expect, it } from "vitest";
+import { advance, type SystemState, type Vec2 } from "@/physics";
+import { deepFreeze, maxDistance } from "@/physics/testing/assertions";
 import { getOrbit } from "./catalog";
 import { advancePlayback, startPlayback } from "./playback";
 import type { OrbitPreset, OrbitSlug, PlaybackOptions } from "./types";
@@ -10,6 +10,14 @@ const CARRY_TOLERANCE = 1e-12;
 
 // Spec 02, O5.
 const BOUNDARIES = 10;
+
+// Spec 02, O6.
+const VISIBLE_DRIFT = 0.1;
+const MAX_DRIFT_PERIODS = 10;
+
+// Goggles runs 100,000 substeps per period. Shared CI runners are about twice
+// as slow as a laptop, and Vitest's default is 5 s per test.
+const HEAVY_TEST_TIMEOUT_MS = 30_000;
 
 function presetOf(slug: OrbitSlug): OrbitPreset {
   const preset = getOrbit(slug);
@@ -26,6 +34,10 @@ function substepOf({ period, stepsPerPeriod }: OrbitPreset): number {
 /** Enough substeps for any call in these tests to run uncapped. */
 function uncapped(orbit: OrbitPreset, reanchor: boolean): PlaybackOptions {
   return { reanchor, maxSubsteps: 10 * orbit.stepsPerPeriod };
+}
+
+function positions(state: SystemState): readonly Vec2[] {
+  return state.bodies.map((body) => body.position);
 }
 
 const lagrange = presetOf("lagrange");
@@ -97,6 +109,54 @@ describe.each([
     expect(playback.periodsCompleted).toBe(3);
     expect(playback.substepInPeriod).toBe(orbit.stepsPerPeriod / 2);
   });
+});
+
+// Spec 02, O6.
+describe.each([
+  presetOf("lagrange"),
+  presetOf("goggles"),
+])("re-anchoring keeps unstable orbits on their path ($slug)", (orbit) => {
+  // One period per call, so every call ends on a boundary.
+  const onePeriodPerCall = (reanchor: boolean): PlaybackOptions => ({
+    reanchor,
+    maxSubsteps: orbit.stepsPerPeriod,
+  });
+  const driftFromPath = (state: SystemState) =>
+    maxDistance(positions(state), positions(orbit.initialState));
+
+  let drifted = startPlayback(orbit);
+
+  beforeAll(() => {
+    while (
+      drifted.periodsCompleted < MAX_DRIFT_PERIODS &&
+      driftFromPath(drifted.state) <= VISIBLE_DRIFT
+    ) {
+      drifted = advancePlayback(drifted, orbit.period, onePeriodPerCall(false));
+    }
+  }, HEAVY_TEST_TIMEOUT_MS);
+
+  it("drifts more than 0.1 from its path within 10 periods without re-anchoring", () => {
+    // Measured: Lagrange 1.06 at period 8, goggles 104 at period 4.
+    expect(driftFromPath(drifted.state)).toBeGreaterThan(VISIBLE_DRIFT);
+    expect(drifted.periodsCompleted).toBeLessThanOrEqual(MAX_DRIFT_PERIODS);
+  });
+
+  it(
+    "is exactly on its path at that boundary with re-anchoring",
+    () => {
+      let reanchored = startPlayback(orbit);
+      while (reanchored.periodsCompleted < drifted.periodsCompleted) {
+        reanchored = advancePlayback(
+          reanchored,
+          orbit.period,
+          onePeriodPerCall(true),
+        );
+      }
+
+      expect(reanchored.state.bodies).toStrictEqual(orbit.initialState.bodies);
+    },
+    HEAVY_TEST_TIMEOUT_MS,
+  );
 });
 
 // Spec 02, Decision 5.
