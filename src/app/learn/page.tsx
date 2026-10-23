@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: es.learn.title };
 // A placeholder until the Part A spec replaces it (spec 03, Decision 1).
 export default function LearnPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 sm:py-24">
+    <div className="mx-auto max-w-3xl px-4 py-16 sm:py-24">
       <h1 className="font-heading text-4xl font-semibold text-strong">
         {es.learn.title}
       </h1>
@@ -20,6 +20,6 @@ export default function LearnPage() {
           {es.learn.galleryLink}
         </Link>
       </p>
-    </main>
+    </div>
   );
 }

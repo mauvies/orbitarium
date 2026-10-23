@@ -8,6 +8,18 @@ export const es = {
     titleTemplate: `%s · ${APP_NAME}`,
     description:
       "Aprende la ley de la gravitación universal de Newton jugando con ella, y explora una galería de órbitas periódicas de tres cuerpos.",
+    skipToContent: "Saltar al contenido",
+    navigation: {
+      label: "Principal",
+      gallery: "Galería",
+      learn: "Aprende",
+    },
+  },
+  notFound: {
+    title: "Página no encontrada",
+    message: "La dirección que buscas no existe o ha cambiado.",
+    homeLink: "Volver al inicio",
+    galleryLink: "Ir a la galería de órbitas",
   },
   home: {
     title: APP_NAME,
