@@ -2,11 +2,36 @@ import { describe, expect, it } from "vitest";
 import { INNER_WEIGHT, OUTER_WEIGHT } from "./integrators";
 import { advance } from "./simulate";
 import { maxDistance } from "./testing/assertions";
-import { eccentricBinary, eccentricBinaryPeriod } from "./testing/fixtures";
+import {
+  circularBinary,
+  circularBinaryPeriod,
+  eccentricBinary,
+  eccentricBinaryPeriod,
+} from "./testing/fixtures";
 import type { IntegratorName, SystemState, Vec2 } from "./types";
+import { scale } from "./vec2";
+
+// Spec 01, E8.
+const REVERSIBILITY_TOLERANCE = 1e-10;
+
+const integrators: readonly IntegratorName[] = ["verlet", "yoshida4"];
 
 function positions(state: SystemState): readonly Vec2[] {
   return state.bodies.map((body) => body.position);
+}
+
+function velocities(state: SystemState): readonly Vec2[] {
+  return state.bodies.map((body) => body.velocity);
+}
+
+function withVelocitiesReversed(state: SystemState): SystemState {
+  return {
+    ...state,
+    bodies: state.bodies.map((body) => ({
+      ...body,
+      velocity: scale(body.velocity, -1),
+    })),
+  };
 }
 
 function afterOnePeriod(
@@ -33,6 +58,44 @@ describe("Yoshida weights", () => {
     expect(
       Math.abs(INNER_WEIGHT - -cubeRootOfTwo / (2 - cubeRootOfTwo)),
     ).toBeLessThanOrEqual(LITERAL_TOLERANCE);
+  });
+});
+
+// Spec 01, E8.
+describe("is time-reversible", () => {
+  const options = { dt: circularBinaryPeriod / 1000 };
+
+  function forwardAndBack(integrator: IntegratorName): SystemState {
+    const forward = advance(circularBinary, circularBinaryPeriod, {
+      ...options,
+      integrator,
+    });
+    return advance(withVelocitiesReversed(forward), circularBinaryPeriod, {
+      ...options,
+      integrator,
+    });
+  }
+
+  it.each(
+    integrators,
+  )("returns every body to its start position (%s)", (integrator) => {
+    expect(
+      maxDistance(
+        positions(forwardAndBack(integrator)),
+        positions(circularBinary),
+      ),
+    ).toBeLessThanOrEqual(REVERSIBILITY_TOLERANCE);
+  });
+
+  it.each(
+    integrators,
+  )("returns every body to its start velocity, reversed (%s)", (integrator) => {
+    expect(
+      maxDistance(
+        velocities(forwardAndBack(integrator)),
+        velocities(withVelocitiesReversed(circularBinary)),
+      ),
+    ).toBeLessThanOrEqual(REVERSIBILITY_TOLERANCE);
   });
 });
 

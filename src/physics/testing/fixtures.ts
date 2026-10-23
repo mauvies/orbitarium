@@ -80,6 +80,8 @@ export const eccentricBinary: SystemState = {
 
 export const eccentricBinaryPeriod = 2 * Math.PI * Math.sqrt(32 / 27);
 
+export const circularBinaryPeriod = 4 * Math.PI;
+
 const triangleRadius = 1 / Math.sqrt(3);
 
 /** Lagrange's equilateral solution, side 1: every body moves at speed 1. */

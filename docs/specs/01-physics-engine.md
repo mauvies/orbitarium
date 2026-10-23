@@ -121,9 +121,12 @@ What the tests observe for the fixed tolerances, so their margins are known. Eac
 
 | ID | Quantity | Verlet | Yoshida | Tolerance |
 |---|---|---|---|---|
+| E2 | Net internal force, worst of the four cases (no integrator involved) | 1.0e-16 | 1.0e-16 | 1e-12 |
 | E3 | Linear momentum | 3.1e-15 | 7.6e-15 | 1e-12 |
 | E3 | Centre of mass, off its straight line | 2.4e-15 | 9.6e-15 | 1e-12 |
 | E4 | Angular momentum | 6.9e-15 | 6.0e-15 | 1e-10 |
+| E8 | Position after forward and back (absolute) | 4.8e-15 | 7.5e-14 | 1e-10 |
+| E8 | Velocity after forward and back (absolute) | 3.0e-15 | 3.7e-14 | 1e-10 |
 
 ## Out of scope
 
