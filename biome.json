@@ -38,6 +38,16 @@
   },
   "overrides": [
     {
+      "includes": ["src/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noJsxLiterals": "error"
+          }
+        }
+      }
+    },
+    {
       "includes": ["src/physics/**", "src/orbits/**"],
       "linter": {
         "rules": {
