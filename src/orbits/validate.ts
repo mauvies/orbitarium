@@ -15,3 +15,14 @@ export function validateMaxSubsteps(maxSubsteps: number): void {
     );
   }
 }
+
+/** Spec 02, Decision 7: every sample falls on a substep. */
+export function validatePoints(points: number, stepsPerPeriod: number): void {
+  if (
+    !(Number.isInteger(points) && points > 0 && stepsPerPeriod % points === 0)
+  ) {
+    throw new RangeError(
+      `points must be a positive integer that divides stepsPerPeriod (${stepsPerPeriod}), got ${points}`,
+    );
+  }
+}

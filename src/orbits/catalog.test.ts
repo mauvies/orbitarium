@@ -12,6 +12,7 @@ import {
   lagrangeTrianglePeriod,
 } from "@/physics/testing/fixtures";
 import { getOrbit, orbits } from "./catalog";
+import { HEAVY_TEST_TIMEOUT_MS, positions } from "./testing/support";
 
 // Spec 02, O1: the order of the brief (§03).
 const BRIEF_ORDER = [
@@ -30,15 +31,7 @@ const MOMENTUM_TOLERANCE = 1e-12;
 // Spec 02, O3: a requirement (sub-pixel), not ten times a measurement.
 const CLOSURE_TOLERANCE = 1e-4;
 
-// The heaviest orbit runs 500,000 substeps, about 1 s locally. Shared CI
-// runners are about twice as slow, and Vitest's default is 5 s per test.
-const HEAVY_TEST_TIMEOUT_MS = 30_000;
-
 const collinearOrbits = orbits.filter((orbit) => orbit.slug !== "lagrange");
-
-function positions(state: SystemState): readonly Vec2[] {
-  return state.bodies.map((body) => body.position);
-}
 
 function velocities(state: SystemState): readonly Vec2[] {
   return state.bodies.map((body) => body.velocity);

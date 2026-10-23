@@ -153,7 +153,7 @@ Output of `pnpm measure:orbits` (2026-10-23, Node 24.14.0, arm64). The engine us
 | `trace.ts` | `tracePeriod`. |
 | `validate.ts` | `RangeError` checks for `simulationTime`, `options.maxSubsteps` and `points`. |
 
-Tests sit next to the code: `catalog.test.ts` (O1 to O3), `playback.test.ts` (O5 to O7, O9, O10), `trace.test.ts` (O8 to O10) and `environment.test.ts` (O9). They reuse `deepFreeze`, `maxDistance` and `lagrangeTriangle` from `@/physics/testing`. Outside `src/orbits`:
+Tests sit next to the code: `catalog.test.ts` (O1 to O3), `playback.test.ts` (O5 to O7, O9, O10), `trace.test.ts` (O8 to O10) and `environment.test.ts` (O9). They reuse `deepFreeze`, `maxDistance` and `lagrangeTriangle` from `@/physics/testing`, and share `presetOf`, `positions` and the timeout for heavy tests through `src/orbits/testing/support.ts`. Outside `src/orbits`:
 
 - `scripts/bundle.mjs` holds the Vite bundling shared by the scripts, extracted from `scripts/bench-physics.mjs`.
 - `scripts/measure-orbits.mjs` measures O4.
