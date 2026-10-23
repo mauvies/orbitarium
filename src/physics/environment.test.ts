@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// Spec 01, E14: engine tests run in Node, where DOM globals do not exist.
+// Spec 01, E14. Imports through "@/physics" on purpose: it is the only test of the Vitest alias.
 describe("environment", () => {
   it("loads the public entry point without DOM globals", async () => {
     expect("window" in globalThis).toBe(false);
