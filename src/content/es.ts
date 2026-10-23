@@ -5,17 +5,64 @@ const APP_NAME = "Orbitarium";
 
 type OrbitContent = {
   readonly name: string;
+  readonly description: string;
+  readonly discovery: string;
+  readonly source: string;
 };
+
+// Šuvakov and Dmitrašinović named their orbits after the curve each one draws
+// on the shape sphere, not after the paths of the bodies.
+const shapeSphereName = (meaning: string) =>
+  `Su nombre, ${meaning}, describe la curva que la órbita traza en la «esfera de formas», que representa la forma del triángulo que forman los tres cuerpos, no las trayectorias que ves aquí.`;
+const SUVAKOV_SEARCH =
+  "Pertenece a las 13 familias de órbitas periódicas que una búsqueda numérica descubrió en 2013.";
+const SUVAKOV_DISCOVERY = "Milovan Šuvakov y Veljko Dmitrašinović, 2013";
+const SUVAKOV_SOURCE =
+  "Šuvakov y Dmitrašinović, Physical Review Letters 110, 114301 (2013); valores iniciales refinados en este proyecto.";
 
 // The brief's names, untranslated: they are the names used in the literature
 // (spec 03, "Content per orbit").
 const orbitContent = {
-  lagrange: { name: "Lagrange" },
-  "figure-eight": { name: "Figura de ocho" },
-  "butterfly-i": { name: "Butterfly I" },
-  goggles: { name: "Goggles" },
-  "moth-i": { name: "Moth I" },
-  "yin-yang-i": { name: "Yin-Yang I" },
+  lagrange: {
+    name: "Lagrange",
+    description:
+      "Tres masas iguales en los vértices de un triángulo equilátero que gira sin deformarse. Es la solución periódica más antigua del problema de los tres cuerpos, pero con masas iguales es inestable: el menor error la deshace en unas pocas vueltas.",
+    discovery: "Joseph-Louis Lagrange, 1772",
+    source: "Lagrange (1772): solución exacta del triángulo equilátero.",
+  },
+  "figure-eight": {
+    name: "Figura de ocho",
+    description:
+      "Los tres cuerpos se persiguen por una misma curva en forma de ocho, separados por un tercio de período. Es de las pocas órbitas de tres cuerpos que resisten pequeñas perturbaciones.",
+    discovery:
+      "Cris Moore la encontró numéricamente en 1993; Alain Chenciner y Richard Montgomery demostraron que existe en 2000",
+    source:
+      "Chenciner y Montgomery, Annals of Mathematics 152 (2000); valores iniciales refinados en este proyecto.",
+  },
+  "butterfly-i": {
+    name: "Butterfly I",
+    description: `${shapeSphereName("«mariposa» en inglés")} ${SUVAKOV_SEARCH}`,
+    discovery: SUVAKOV_DISCOVERY,
+    source: SUVAKOV_SOURCE,
+  },
+  goggles: {
+    name: "Goggles",
+    description: `${shapeSphereName("«gafas» en inglés")} ${SUVAKOV_SEARCH}`,
+    discovery: SUVAKOV_DISCOVERY,
+    source: SUVAKOV_SOURCE,
+  },
+  "moth-i": {
+    name: "Moth I",
+    description: `${shapeSphereName("«polilla» en inglés")} ${SUVAKOV_SEARCH}`,
+    discovery: SUVAKOV_DISCOVERY,
+    source: SUVAKOV_SOURCE,
+  },
+  "yin-yang-i": {
+    name: "Yin-Yang I",
+    description: `${shapeSphereName("por el símbolo del yin y el yang")} ${SUVAKOV_SEARCH}`,
+    discovery: SUVAKOV_DISCOVERY,
+    source: SUVAKOV_SOURCE,
+  },
 } as const satisfies Record<OrbitSlug, OrbitContent>;
 
 // Spanish number formatting: "6,23" (spec 03, Decision 2).
@@ -80,6 +127,17 @@ export const es = {
     },
   },
   orbits: orbitContent,
+  detail: {
+    backLink: "Volver a la galería",
+    facts: {
+      discovery: "Descubierta por",
+      period: "Período",
+      stability: "Estabilidad",
+      source: "Fuente",
+    },
+    period: (period: number) =>
+      `${twoDecimals.format(period)} unidades de tiempo`,
+  },
   learn: {
     title: "Aprende",
     comingSoon:

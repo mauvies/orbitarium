@@ -32,10 +32,11 @@ test("the skip link moves keyboard focus past the header", async ({ page }) => {
   ).toBeFocused();
 });
 
-// docs/design/visual-style.md, "Header".
+// docs/design/visual-style.md, "Header": a detail page marks the gallery.
 for (const { path, current } of [
   { path: "/", current: undefined },
   { path: "/gallery", current: es.site.navigation.gallery },
+  { path: "/gallery/lagrange", current: es.site.navigation.gallery },
   { path: "/learn", current: es.site.navigation.learn },
 ]) {
   test(`the navigation marks the current section on ${path}`, async ({

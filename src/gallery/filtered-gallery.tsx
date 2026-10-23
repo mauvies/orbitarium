@@ -1,7 +1,12 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { type ReactNode, startTransition, useOptimistic } from "react";
+import {
+  type ReactNode,
+  startTransition,
+  useEffect,
+  useOptimistic,
+} from "react";
 import { es } from "@/content/es";
 import {
   FILTER_PARAMETER,
@@ -11,6 +16,7 @@ import {
   parseFilter,
 } from "./filter";
 import { FilterControls } from "./filter-controls";
+import { useGallerySession } from "./gallery-session";
 import { type GalleryCard, OrbitGrid } from "./orbit-grid";
 
 /**
@@ -26,6 +32,10 @@ export function FilteredGallery({
   cards: readonly GalleryCard[];
 }) {
   const urlFilter = parseFilter(useSearchParams().get(FILTER_PARAMETER));
+  const { rememberGallerySearch } = useGallerySession();
+  useEffect(() => {
+    rememberGallerySearch(filterSearch(urlFilter));
+  }, [rememberGallerySearch, urlFilter]);
   // The router re-renders with the new URL a moment after it changes; until
   // then the choice is shown optimistically, so the radio does not flicker.
   const [filter, showFilterNow] = useOptimistic(urlFilter);
