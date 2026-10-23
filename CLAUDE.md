@@ -13,10 +13,38 @@ A Next.js app that teaches Newton's law of universal gravitation (Part A: lesson
 - Stay inside the current step. Flag any deviation from the plan or the spec explicitly instead of making it silently.
 - Commit messages follow Conventional Commits and reference the spec and criteria when they apply, e.g. `feat(physics): add yoshida integrator (spec 01, E9)`.
 
+## Decision log and AI log
+
+Reviewers read these, so every line must earn its place.
+
+`docs/decision-log.md` records technical decisions that no spec records.
+
+- Add an entry only if the decision changes the result (behaviour, quality, how the app is run or reviewed) or is likely to be asked about in a review. Skip defaults, tool versions, config details and anything a reader can see in the code; a code comment is the right place for those.
+- Decisions about a component go in its spec, not here.
+- Describe the decision as it stands now, not how it was reached. The history lives in git, and notable AI mistakes in `docs/ai-log.md`.
+- Format: the decision in bold, then why and its cost. One or two sentences; longer only for decisions with real weight.
+- "Considered and discarded" lists only real alternatives that a reviewer could ask about.
+
+`docs/ai-log.md` records mistakes made by AI assistants and how they were caught. The human writes it, because the point is that the verification is human.
+
+- When a mistake by an AI assistant is caught (by the human, CI, a test or a review), propose an entry in the step summary: what happened · who or what caught it · fix. Do not write it yourself.
+- Only mistakes that would have reached the result or that show how verification works. Skip typos and trivial fixes.
+
 ## Code
+
+Code is reviewed line by line by the hiring team, so optimise for a reader joining the team.
 
 - TypeScript is strict, with `noUncheckedIndexedAccess`. No `any`, no non-null assertions (`!`) and no casts to silence the compiler.
 - `src/physics` is pure: no React, Next.js, Node built-ins or DOM globals (enforced by Biome). Imports inside it are relative; code outside it imports `@/physics`.
+- Clarity over cleverness. Optimise only when a measurement shows it is needed (as in spec 01, E15).
+- Small functions with one responsibility. Logic lives in pure functions; side effects (DOM, network, timers) stay at the edges.
+- Names say what something is in domain terms (`position`, `orbitPeriod`, `learnerProfile`). Standard physics symbols (`G`, `dt`, `r`) are fine inside formulas.
+- Exported functions have explicit parameter and return types. Inside a function, let TypeScript infer.
+- Fail loudly: invalid input throws an error that names the field. Never swallow an error or return a silent default.
+- Comments explain why, not what. When a rule comes from a spec, cite it (`spec 01, E12`).
+- No dead code, no commented-out code and no abstractions for needs we do not have yet.
+- Follow the patterns already in the codebase. If a new pattern is needed, flag it in the step summary.
+- Tests read as documentation: the name states the behaviour, one concept per test, named fixtures instead of magic numbers.
 - Code, names, comments, docs and commit messages are in English.
 
 ## Checks
