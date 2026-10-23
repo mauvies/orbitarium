@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { PhysicsError } from "./errors";
 import {
   angularMomentum,
@@ -19,6 +19,7 @@ import {
   coincidentTriple,
   driftingTriple,
   eccentricBinary,
+  eccentricBinaryPeriod,
   handPair,
   overflowingPair,
 } from "./testing/fixtures";
@@ -185,4 +186,45 @@ it.each(integrators)("conserves angular momentum (%s)", (integrator) => {
       tolerance,
     );
   }
+});
+
+// Spec 01, E5: eccentricBinary with the default integrator, sampled after
+// every substep, because the error peaks in a short window around periapsis.
+describe("energy error does not grow", () => {
+  const PERIODS = 100;
+  const STEPS_PER_PERIOD = 1000;
+  const GROWTH_LIMIT = 2;
+  const ENERGY_ERROR_THRESHOLD = 5e-7;
+
+  let largestErrorPerPeriod: number[] = [];
+
+  beforeAll(() => {
+    const dt = eccentricBinaryPeriod / STEPS_PER_PERIOD;
+    const initialEnergy = totalEnergy(eccentricBinary);
+    let state = eccentricBinary;
+    largestErrorPerPeriod = Array.from({ length: PERIODS }, () => {
+      let largest = 0;
+      for (let step = 0; step < STEPS_PER_PERIOD; step++) {
+        state = advance(state, dt, { dt });
+        const relativeError = Math.abs(
+          (totalEnergy(state) - initialEnergy) / initialEnergy,
+        );
+        largest = Math.max(largest, relativeError);
+      }
+      return largest;
+    });
+  });
+
+  it("stays below the measured threshold over 100 periods", () => {
+    expect(Math.max(...largestErrorPerPeriod)).toBeLessThanOrEqual(
+      ENERGY_ERROR_THRESHOLD,
+    );
+  });
+
+  it("is at most twice as large in periods 91 to 100 as in periods 1 to 10", () => {
+    const early = Math.max(...largestErrorPerPeriod.slice(0, 10));
+    const late = Math.max(...largestErrorPerPeriod.slice(-10));
+
+    expect(late).toBeLessThanOrEqual(GROWTH_LIMIT * early);
+  });
 });
