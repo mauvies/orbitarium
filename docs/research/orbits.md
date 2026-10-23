@@ -1,6 +1,6 @@
 # Initial conditions of the six orbits
 
-How the initial conditions of the Part B orbits were found and validated. The values below are what the orbit catalog uses (spec 02).
+How the initial conditions of the Part B orbits were found and validated. The catalog (`src/orbits/catalog.ts`, spec 02) holds the values the app uses; they are copied from the table below and checked against it by hand when written.
 
 ## Convention
 
@@ -16,6 +16,8 @@ Each orbit is then defined by three numbers: p₁, p₂ and its period T.
 1. **Šuvakov and Dmitrašinović, "Three Classes of Newtonian Three-Body Planar Periodic Orbits", Phys. Rev. Lett. 110, 114301 (2013), Table I.** The original source for butterfly I, moth I, goggles and yin-yang I. Values are given to 5 decimals.
 2. **Li and Liao, "More than six hundred new families of Newtonian periodic planar collisionless three-body orbits", Sci. China Phys. Mech. Astron. 60, 129511 (2017), supplementary Tables S III and S VII.** The same orbits to 10 decimals, with positions slightly off (−1, 0), so they need rescaling to be compared. Used as an independent cross-check. These tables do not include yin-yang I.
 3. **Chenciner and Montgomery, Annals of Mathematics 152 (2000), with C. Simó's initial conditions.** The figure-eight, used as a cross-check of its period.
+
+   The figure-eight's starting values in this convention (p₁ = 0.347111, p₂ = 0.532728) are not a cited value. They were taken from memory of Šuvakov's online gallery, which could not be fetched. What validates them is the rest of the method: the refinement closes the orbit to about 1e-12, and the refined period matches two independent sources, Li and Liao's (rescaled, to 1e-9) and Simó's.
 4. **Lagrange (1772).** The equilateral solution has an exact analytic form and needs no table (spec 01, `lagrangeTriangle`).
 
 ## Method
@@ -32,8 +34,8 @@ Each orbit is then defined by three numbers: p₁, p₂ and its period T.
 | Lagrange | analytic (spec 01) | | 2π/√3 ≈ 3.627599 | 1 (side of the triangle) | Unstable: about ×100 per period |
 | Figure-eight | 0.347116888118 | 0.532724945388 | 6.325913982923 | | Stable: grows slowly and linearly |
 | Butterfly I | 0.306893420453 | 0.125506567018 | 6.234674838629 | 0.011 | Stable: grows slowly and linearly |
-| Moth I | 0.464445172818 | 0.396060014653 | 14.894305175019 | 0.079 | Stable: grows slowly and linearly |
 | Goggles | 0.083300071859 | 0.127889255504 | 10.464849525803 | 0.019 | Unstable: about ×20 per period |
+| Moth I | 0.464445172818 | 0.396060014653 | 14.894305175019 | 0.079 | Stable: grows slowly and linearly |
 | Yin-yang I (a) | 0.513938537458 | 0.304735919347 | 17.328834018431 | 0.013 | Stable: grows slowly and linearly |
 
 Notes:
@@ -41,6 +43,7 @@ Notes:
 - **The refined periods differ from the printed periods of source 1 in the fourth decimal** (for example, goggles: 10.4648 refined, 10.4668 printed), while p₁ and p₂ round to the printed values. The refined periods are the ones confirmed independently by source 2.
 - **Yin-yang I has two variants in source 1, (a) and (b),** with different periods. The catalog uses (a). Variant (b) refines to p₁ = 0.282702090435, p₂ = 0.327208971523, T = 10.963303088108.
 - **Stability** was measured by perturbing one velocity by 1e-9 and integrating ten periods with the reference integrator. Unstable orbits drift away from their path within a few periods however accurate the integration, which is why the animation resets them every period (spec 02).
+- **"Stable" means linearly stable:** a 1e-9 perturbation grows linearly. At the step counts the catalog uses, each period's truncation error is much larger (about 6e-5 for butterfly I and 7e-6 for yin-yang I). That error takes these two orbits out of the linear regime, and without the reset their drift grows about ×1.9 per period (spec 02, Decision 4).
 
 ## What this means for the engine
 

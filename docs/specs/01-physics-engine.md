@@ -1,6 +1,6 @@
 # Spec 01: Physics engine
 
-Status: implemented (2026-10-23). Approved on 2026-10-22 and amended after the implementation plan review, before any engine code.
+Status: implemented (2026-10-23). Approved on 2026-10-22 and amended after the implementation plan review, before any engine code. The "Real need" note and the frame-duration risk were amended by spec 02 (2026-10-23).
 
 ## Goal
 
@@ -166,7 +166,7 @@ At equal cost (one Yoshida step is three force evaluations, like three Verlet st
 
 - **Tolerances too tight make tests flaky; too loose makes them useless.** Mitigation: measure first, then set thresholds with an explicit margin, recorded in this spec, and check that a weaker integrator fails them (see "Measured tolerances").
 - **Floating-point limits on unstable orbits.** Even a perfect integrator cannot keep Lagrange (equal masses) or most Part B orbits closed for many periods. Criteria E6 and E7 check one period only. Long-term behaviour is handled by re-anchoring in spec 02.
-- **Varying frame durations change the step between calls.** Animation frames do not last exactly the same, so `advance(state, frameDuration)` would use a slightly different substep each frame, which weakens the long-term energy guarantee. Mitigation: the animation loop accumulates real time and advances the simulation in whole multiples of `dt` (the "fixed timestep with accumulator" pattern), and Decision 2's round-off margin keeps those multiples at exactly `dt` per substep. `advance` still accepts any duration, but callers should use multiples of `dt`.
+- **Varying frame durations change the step between calls.** Animation frames do not last exactly the same, so `advance(state, frameDuration)` would use a slightly different substep each frame, which weakens the long-term energy guarantee. Mitigation: the animation loop accumulates real time and advances the simulation in whole substeps of `dt` (the "fixed timestep with accumulator" pattern), with one `advance(state, dt, { dt })` call per substep (spec 02, Decision 6). One call for a multiple k·dt is not enough. Decision 2's round-off margin keeps it at k substeps, but each substep is (k·dt)/k, which can differ from `dt` by one ulp. `advance` still accepts any duration.
 - **`noUncheckedIndexedAccess` against typed arrays in hot loops.** Every indexed read becomes possibly undefined. Mitigation: see "Internal state representation" below.
 
 ## Decided in the plan
@@ -227,6 +227,8 @@ Median mean 1.012 ms, worst p99 1.232 ms: the rule fixed before measuring fails 
 | 1 s | 16.7 | 8.3 |
 | 2 s | 8.3 | 4.2 |
 | 5 s | 3.3 | 1.7 |
+
+Steps per period depend on the orbit and are chosen in spec 02 (Decision 3). This table, and the conclusion that a frame needs around 1/60 of the benchmarked load, hold only at T/1000. The close-encounter orbits need up to 500 times more steps, and spec 02's Risks record their per-frame load.
 
 ### Measured tolerances
 
