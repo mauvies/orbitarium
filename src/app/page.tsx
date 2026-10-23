@@ -8,7 +8,7 @@ const sections = [
 
 export default function HomePage() {
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16 sm:py-24">
+    <div className="mx-auto max-w-4xl px-4 py-16 sm:py-24">
       <h1 className="font-heading text-4xl font-semibold text-strong sm:text-5xl">
         {es.home.title}
       </h1>
@@ -32,6 +32,6 @@ export default function HomePage() {
           </li>
         ))}
       </ul>
-    </main>
+    </div>
   );
 }
