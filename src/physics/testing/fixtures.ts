@@ -104,12 +104,15 @@ export const lagrangeTriangle: SystemState = {
   ],
 };
 
-/** Three unequal masses with non-zero total momentum (0.2, 0.25). */
+/**
+ * A tight binary (bodies 0 and 1) with a lighter body orbiting it, all
+ * drifting together: unequal masses, total momentum (0.6, −1.1).
+ */
 export const driftingTriple: SystemState = {
   time: 0,
   bodies: [
-    { mass: 1, position: { x: 1, y: 0 }, velocity: { x: 0.1, y: 0.6 } },
-    { mass: 2, position: { x: -0.5, y: 0.8 }, velocity: { x: -0.4, y: 0.2 } },
-    { mass: 3, position: { x: -0.3, y: -1.1 }, velocity: { x: 0.3, y: -0.25 } },
+    { mass: 3, position: { x: 0, y: 0 }, velocity: { x: 0.1, y: -1.1 } },
+    { mass: 2, position: { x: 0.6, y: 0 }, velocity: { x: 0.1, y: 1.8 } },
+    { mass: 1, position: { x: -2.5, y: 0 }, velocity: { x: 0.1, y: -1.4 } },
   ],
 };

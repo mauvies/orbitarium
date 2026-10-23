@@ -6,6 +6,14 @@ import {
   linearMomentum,
   totalEnergy,
 } from "./invariants";
+import { advance } from "./simulate";
+import {
+  angularMomentumScale,
+  closestApproach,
+  magnitude,
+  momentumScale,
+  systemSize,
+} from "./testing/assertions";
 import {
   circularBinary,
   coincidentTriple,
@@ -14,6 +22,33 @@ import {
   handPair,
   overflowingPair,
 } from "./testing/fixtures";
+import type { IntegratorName, SystemState } from "./types";
+import { add, scale, sub } from "./vec2";
+
+// Spec 01, E3 and E4: driftingTriple from t = 0 to 5 in calls of 0.1.
+const RUN_DURATION = 5;
+const RUN_DT = 1e-3;
+const SAMPLE_EVERY = 0.1;
+const LINEAR_MOMENTUM_TOLERANCE = 1e-12;
+const CENTER_OF_MASS_TOLERANCE = 1e-12;
+const ANGULAR_MOMENTUM_TOLERANCE = 1e-10;
+const MINIMUM_SEPARATION = 0.05;
+
+const integrators: readonly IntegratorName[] = ["verlet", "yoshida4"];
+
+/** The start state followed by the state after each call to `advance`. */
+function conservationRun(
+  integrator: IntegratorName,
+  sampleEvery = SAMPLE_EVERY,
+): SystemState[] {
+  const states = [driftingTriple];
+  let state = driftingTriple;
+  for (let call = 0; call < Math.round(RUN_DURATION / sampleEvery); call++) {
+    state = advance(state, sampleEvery, { dt: RUN_DT, integrator });
+    states.push(state);
+  }
+  return states;
+}
 
 describe("computes known values", () => {
   it("gives the circular binary a total energy of −0.25", () => {
@@ -33,11 +68,11 @@ describe("computes known values", () => {
     );
   });
 
-  it("gives the drifting triple a linear momentum of (0.2, 0.25)", () => {
+  it("gives the drifting triple a linear momentum of (0.6, −1.1)", () => {
     const momentum = linearMomentum(driftingTriple);
 
-    expect(momentum.x).toBeCloseTo(0.2, 15);
-    expect(momentum.y).toBeCloseTo(0.25, 15);
+    expect(momentum.x).toBeCloseTo(0.6, 15);
+    expect(momentum.y).toBeCloseTo(-1.1, 15);
   });
 
   it("gives the circular binary an angular momentum of 1", () => {
@@ -92,4 +127,62 @@ it.each([
 }) => {
   expect(compute).toThrow(PhysicsError);
   expect(compute).toThrow(expect.objectContaining({ code: "non-finite" }));
+});
+
+it.each(
+  integrators,
+)("keeps every pair of the drifting triple at least 0.05 apart (%s)", (integrator) => {
+  const everySubstep = conservationRun(integrator, RUN_DT);
+
+  expect(Math.min(...everySubstep.map(closestApproach))).toBeGreaterThan(
+    MINIMUM_SEPARATION,
+  );
+});
+
+// Spec 01, E3.
+describe("conserves linear momentum", () => {
+  it.each(
+    integrators,
+  )("keeps the total momentum constant (%s)", (integrator) => {
+    const initial = linearMomentum(driftingTriple);
+    const tolerance = LINEAR_MOMENTUM_TOLERANCE * momentumScale(driftingTriple);
+
+    for (const state of conservationRun(integrator)) {
+      expect(
+        magnitude(sub(linearMomentum(state), initial)),
+      ).toBeLessThanOrEqual(tolerance);
+    }
+  });
+
+  it.each(
+    integrators,
+  )("moves the centre of mass in a straight line at constant speed (%s)", (integrator) => {
+    const totalMass = driftingTriple.bodies.reduce(
+      (sum, body) => sum + body.mass,
+      0,
+    );
+    const start = centerOfMass(driftingTriple);
+    const velocity = scale(linearMomentum(driftingTriple), 1 / totalMass);
+
+    for (const state of conservationRun(integrator)) {
+      const onTheLine = add(start, scale(velocity, state.time));
+
+      expect(
+        magnitude(sub(centerOfMass(state), onTheLine)),
+      ).toBeLessThanOrEqual(CENTER_OF_MASS_TOLERANCE * systemSize(state));
+    }
+  });
+});
+
+// Spec 01, E4.
+it.each(integrators)("conserves angular momentum (%s)", (integrator) => {
+  const initial = angularMomentum(driftingTriple);
+  const tolerance =
+    ANGULAR_MOMENTUM_TOLERANCE * angularMomentumScale(driftingTriple);
+
+  for (const state of conservationRun(integrator)) {
+    expect(Math.abs(angularMomentum(state) - initial)).toBeLessThanOrEqual(
+      tolerance,
+    );
+  }
 });
