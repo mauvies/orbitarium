@@ -106,6 +106,9 @@ export const lagrangeTriangle: SystemState = {
   ],
 };
 
+/** 2π·L^(3/2)/√3 with L = 1. */
+export const lagrangeTrianglePeriod = (2 * Math.PI) / Math.sqrt(3);
+
 /**
  * A tight binary (bodies 0 and 1) with a lighter body orbiting it, all
  * drifting together: unequal masses, total momentum (0.6, −1.1).
