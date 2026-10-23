@@ -80,6 +80,30 @@ export const eccentricBinary: SystemState = {
 
 export const eccentricBinaryPeriod = 2 * Math.PI * Math.sqrt(32 / 27);
 
+const triangleRadius = 1 / Math.sqrt(3);
+
+/** Lagrange's equilateral solution, side 1: every body moves at speed 1. */
+export const lagrangeTriangle: SystemState = {
+  time: 0,
+  bodies: [
+    {
+      mass: 1,
+      position: { x: 0, y: triangleRadius },
+      velocity: { x: -1, y: 0 },
+    },
+    {
+      mass: 1,
+      position: { x: -0.5, y: -triangleRadius / 2 },
+      velocity: { x: 0.5, y: -Math.sqrt(3) / 2 },
+    },
+    {
+      mass: 1,
+      position: { x: 0.5, y: -triangleRadius / 2 },
+      velocity: { x: 0.5, y: Math.sqrt(3) / 2 },
+    },
+  ],
+};
+
 /** Three unequal masses with non-zero total momentum (0.2, 0.25). */
 export const driftingTriple: SystemState = {
   time: 0,

@@ -28,7 +28,7 @@ Full rationale and costs will go in the README.
 6. **2D only.** All six Part B orbits and the cannon are planar.
 7. **No dependency on React, Next.js, Node or the DOM.** The engine runs in the browser and in Node, so it may use neither environment's APIs. Enforced mechanically by Biome rules scoped to `src/physics`, all at error level (the rules default to warn, and `biome ci` passes on warnings):
    - `noRestrictedImports`: `react`, `react-dom`, `next` and their subpaths, and `@next/*`. Subpaths need `patterns`, because `paths` only matches exact names (`"react"` does not cover `react/jsx-runtime`).
-   - `noNodejsModules`: Node built-ins. Test, benchmark and test-support files are exempt.
+   - `noNodejsModules`: Node built-ins. Test and test-support files are exempt. The benchmark lives in `scripts/`, outside `src/physics`.
    - `noRestrictedGlobals`: `window`, `self`, `document`, `navigator`, `location`, `localStorage`, `sessionStorage`, `requestAnimationFrame`, `cancelAnimationFrame`. Import rules cannot see globals, and the tsconfig `lib` includes `"dom"`, so TypeScript alone would allow them.
 
    The engine tests also run in Vitest's `node` environment, where `window` does not exist.
@@ -112,7 +112,7 @@ Named initial states used by the criteria. G = 1 and ε = 0 unless stated otherw
 | E12 | Invalid input throws a `RangeError` whose message names the field: `dt <= 0`, `duration < 0`, `mass <= 0`, `G < 0`, `softening < 0`, any non-finite number (including positions, velocities and `time`), an empty `bodies` array, an unknown `integrator` (checked at runtime, because JavaScript callers and tutor tool calls bypass TypeScript), or more than 1,000,000 substeps in one call. `G = 0` is allowed (no gravity), which a lesson can use to show what happens without it: bodies then move in straight lines. | §09 | `validate.test.ts`: "rejects invalid input" (every case except the substep limit), and `simulate.test.ts`: "every public function validates its input" (one case per function, plus the substep limit, which depends on how `planSubsteps` counts) |
 | E13 | The engine never returns non-finite values. With ε > 0, coincident bodies produce finite accelerations and energy. With ε = 0, coincident bodies (r² + ε² = 0, which also catches distinct bodies closer than about 1e-154, where r² underflows to zero) make `accelerations` and `totalEnergy` throw a `PhysicsError` with code `"coincident-bodies"` naming both bodies. Forces that overflow (for example masses of 1e308 with G = 10) throw a `PhysicsError` with code `"non-finite"` instead of returning infinity. | §02 (sandbox) | `gravity.test.ts`: "handles coincident bodies"; `invariants.test.ts` (energy); `simulate.test.ts` (a head-on pair with ε = 0.1 stays finite) |
 | E14 | `src/physics` imports nothing from React, Next.js or Node, and uses no DOM globals (Decision 7). | Decision 7 | Biome rules in CI; `environment.test.ts`: "loads the public entry point without DOM globals"; plus a one-off manual probe when the rules are added, with its output in the step summary (flagged cases: `react`, `react/jsx-runtime`, `react-dom/client`, `next`, `next/link`, `next/dist/…`, `node:fs`, `path`, `window`, `document`, `requestAnimationFrame` in `src/physics`; clean cases: a relative import in `src/physics`, `react` in `src/app`, `node:fs` in a test file in `src/physics`) |
-| E15 | Advancing three bodies by 1,000 substeps (`lagrangeTriangle`, `advance(state, 1, { dt: 0.001 })`, Yoshida) takes under 2 ms on average in Node. Measured with a local benchmark (Vitest bench mode), not a CI test, because timings are noisy on shared runners. The result is recorded here with p99, CPU and Node version; p99 is recorded because garbage-collection pauses, not the average, are the real risk for a smooth animation. | §09 (UX: smooth animation) | `pnpm bench:physics` (`advance.bench.ts`), result noted here |
+| E15 | Advancing three bodies by 1,000 substeps (`lagrangeTriangle`, `advance(state, 1, { dt: 0.001 })`, Yoshida) takes under 2 ms on average in Node. Measured with a local benchmark on the bundled engine, as the app runs it (see "Benchmark"), not a CI test, because timings are noisy on shared runners. The result is recorded with p99, CPU and Node version; p99 is recorded because garbage-collection pauses, not the average, are the real risk for a smooth animation. **Result:** passes, mean 1.012 ms and worst p99 1.232 ms over three runs (Apple M2 Pro, Node 24.14.0). **Real need:** at dt = T/1000 a frame needs 1000 / (f · P) substeps (f the refresh rate, P the seconds of playback per period), about 17 in the worst realistic case (P = 1 s at 60 Hz), around 1/60 of this load. | §09 (UX: smooth animation) | `pnpm bench:physics` (`scripts/bench-physics.mjs`), result noted here |
 | E16 | Forces are the negative gradient of the potential used by `totalEnergy`. `scatteredFour`, ε ∈ {0, 0.05}: central finite differences of `totalEnergy` (step 1e-6 per coordinate) match −mᵢ·aᵢ within 1e-6 relative. This is the only check that forces and energy agree, which Decision 4 relies on. | Decision 4 | `gravity.test.ts`: "forces are the negative gradient of the potential" |
 
 ## Out of scope
@@ -147,15 +147,15 @@ Named initial states used by the criteria. G = 1 and ε = 0 unless stated otherw
 | `invariants.ts` | `totalEnergy`, `linearMomentum`, `angularMomentum`, `centerOfMass`. |
 | `integrators.ts` | One step of `verlet` and of `yoshida4`. The Yoshida coefficients are written as literals, not computed with `Math.cbrt`, so they are identical on every platform. |
 | `simulate.ts` | `advance`: validation, substep planning (`planSubsteps`, exported for tests but not from `index.ts`), the step loop, `time = t0 + duration`, and the final finiteness check. |
-| `kernel.ts` | Only if the benchmark rule below requires it: the typed-array kernel, the only file with indexed reads. |
+| `kernel.ts` | Not created. Only if the representation decision is reopened (see "Benchmark"): the typed-array kernel, the only file with indexed reads. |
 | `testing/fixtures.ts` | The fixtures above, with their periods and energies. |
 | `testing/assertions.ts` | Scale helpers, `deepFreeze` and distance helpers for tests. |
 
-Tests sit next to the code (`gravity.test.ts`, `invariants.test.ts`, `integrators.test.ts`, `simulate.test.ts`, `validate.test.ts`, `environment.test.ts`), and the benchmark is `advance.bench.ts`. Imports inside `src/physics` are relative; code outside it imports `@/physics`.
+Tests sit next to the code (`gravity.test.ts`, `invariants.test.ts`, `integrators.test.ts`, `simulate.test.ts`, `validate.test.ts`, `environment.test.ts`). The benchmark is `scripts/bench-physics.mjs`, outside `src/physics`. Imports inside `src/physics` are relative; code outside it imports `@/physics`.
 
 ### Internal state representation
 
-Plain immutable objects with the same shapes as the public types, unless the benchmark rule below says otherwise.
+Plain immutable objects with the same shapes as the public types, decided with the benchmark below.
 
 - **`noUncheckedIndexedAccess`.** With objects, the code needs no indexed reads: per-body updates use `map`, and pairwise accelerations use nested `for…of` over `entries()`, skipping `i === j`. Each pair is then computed twice (6 evaluations instead of 3 for N = 3), which is irrelevant at this size and N > 3 is out of scope. With typed arrays, every read `x[i]` has type `number | undefined` and needs a non-null assertion `!`, which Biome's recommended `noNonNullAssertion` reports on every read. `?? 0` is not an option: it would turn an out-of-bounds bug into a silent zero.
 - **Readability.** The engine is the part most likely to be reviewed line by line (§09).
@@ -166,6 +166,30 @@ Plain immutable objects with the same shapes as the public types, unless the ben
 - Keep plain objects if the mean is at most 1.0 ms (half the E15 budget) and p99 is at most 2.0 ms.
 - Otherwise, move integration to a Float64Array kernel in `kernel.ts` behind the same API (E1–E13 make that a safe refactor), with a Biome override allowing `!` in that one file only, and record both results.
 - If the kernel also misses the budget, E15 is revisited explicitly, not relaxed quietly.
+
+### Benchmark
+
+**Instrument.** Vitest bench mode, the first instrument, reported a Yoshida mean of 5.38 ms (p99 5.73 ms) and a Verlet mean of 1.80 ms. Those figures are not used: Vitest's module runner turns every import into a getter, which dominates the engine's hot loop, and the app never runs the engine that way. `pnpm bench:physics` (`scripts/bench-physics.mjs`) instead bundles `src/physics` with Vite, as the app runs it, and times it in plain Node: 300 warm-up calls, then 1,000 timed calls, reporting mean and p99.
+
+**Measurement** (2026-10-23, Apple M2 Pro on AC power, Node 24.14.0):
+
+| Run | Yoshida mean | Yoshida p99 | Verlet mean | Verlet p99 |
+|---|---|---|---|---|
+| 1 | 1.011 ms | 1.145 ms | 0.308 ms | 0.390 ms |
+| 2 | 1.030 ms | 1.180 ms | 0.317 ms | 0.425 ms |
+| 3 | 1.012 ms | 1.232 ms | 0.307 ms | 0.380 ms |
+
+Median mean 1.012 ms, worst p99 1.232 ms: the rule fixed before measuring fails by about 1% on the mean.
+
+**Rule revised after measuring.** The 1.0 ms threshold was a proxy fixed before the real need was known. E15 itself passes with about 2× margin, and the worst realistic case below needs about 17 substeps per frame, around 1/60 of the benchmarked load. Moving to a typed-array kernel would cost readability in the most reviewed code for no visible benefit. **Revised rule: keep plain objects while E15 passes (mean under 2 ms); a regression past 2 ms reopens the representation decision.**
+
+**Real need.** At dt = T/1000 every period takes 1,000 substeps, whatever T is, so an animation frame needs 1000 / (f · P) substeps, where f is the display refresh rate and P the seconds of playback per orbital period. P is left to the Part B spec.
+
+| P | 60 Hz | 120 Hz |
+|---|---|---|
+| 1 s | 16.7 | 8.3 |
+| 2 s | 8.3 | 4.2 |
+| 5 s | 3.3 | 1.7 |
 
 ### Measured tolerances
 
