@@ -87,11 +87,7 @@
       }
     },
     {
-      "includes": [
-        "src/physics/**/*.test.ts",
-        "src/physics/**/*.bench.ts",
-        "src/physics/testing/**"
-      ],
+      "includes": ["src/physics/**/*.test.ts", "src/physics/testing/**"],
       "linter": {
         "rules": {
           "correctness": {
