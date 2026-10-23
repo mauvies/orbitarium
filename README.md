@@ -21,4 +21,8 @@ pnpm dev        # http://localhost:3000
 pnpm typecheck
 pnpm lint
 pnpm test
+
+# End-to-end tests run against a production build
+pnpm exec playwright install chromium   # once
+pnpm build && pnpm test:e2e
 ```
