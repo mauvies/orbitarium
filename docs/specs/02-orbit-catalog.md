@@ -1,6 +1,6 @@
 # Spec 02: Orbit catalog and playback
 
-Status: approved (2026-10-23), amended after the implementation plan review. Committed before any catalog code.
+Status: implemented (2026-10-23). Approved on 2026-10-23 and amended after the implementation plan review, before any catalog code.
 
 ## Goal
 
@@ -29,12 +29,12 @@ The research behind the values is in `docs/research/orbits.md`.
 6. **Playback advances in whole substeps of exactly `dt` with an accumulator.**
    - **Input.** It receives simulation time; spec 03 converts frame durations to simulation time with the playback speed.
    - **Accumulator.** It runs as many whole substeps as fit and carries the remainder to the next call (0 ≤ carry < dt). Advancing by k·dt runs exactly k substeps: the count uses spec 01's round-off margin (Decision 2).
-   - **One `advance` call per substep.** Each substep is one `advance(state, dt, { dt })` call, so it is exactly `dt`, and the result does not depend on how time is split across calls. `advance(state, k·dt, { dt })` would not give that: its substep is (k·dt)/k, which can differ from `dt` by one ulp, and on Lagrange that difference grows ×100 per period. Cost: about 25% more per substep than one call for k substeps (1.23 µs against 0.98 µs bundled, measured during planning on an Apple M2 Pro with Node 24.14), because each call recomputes the accelerations and validates its input.
+   - **One `advance` call per substep.** Each substep is one `advance(state, dt, { dt })` call, so it is exactly `dt`, and the result does not depend on how time is split across calls. `advance(state, k·dt, { dt })` would not give that: its substep is (k·dt)/k, which can differ from `dt` by one ulp, and on Lagrange that difference grows ×100 per period. Cost: 25 to 32% more per substep than one call for the same substeps (1.19 to 1.30 µs against 0.94 to 0.98 µs bundled, for the orbits that run tens of substeps or more per frame; see "Measured values (frame and trace cost)"), because each call recomputes the accelerations and validates its input.
    - **Cap.** A call runs at most `maxSubsteps` substeps. When more are due, it runs `maxSubsteps`, still completes any period boundary inside them, and drops the rest (carry 0). A long pause (for example, a background tab) then slows the playback down instead of freezing the page.
 7. **Traces share the playback's substeps.** `tracePeriod` samples one period at t = i·T/points for i = 0 … points − 1 (the end of the period equals its start). `points` must divide `stepsPerPeriod`, so every sample falls on a substep; any divisor of 1,000 works for every orbit. The samples are the playback's own positions, so the bodies ride exactly on the trail.
 8. **Pure, like the engine.**
    - **Boundary rules.** `src/orbits` has the same boundary rules as `src/physics` (no React, Next.js, Node built-ins or DOM globals).
-   - **Dependencies.** It depends only on the public entry point `@/physics`. Biome enforces this: no other `@/` import and no import of engine internals, except that tests may import `@/physics/testing`. `src/physics` in turn imports no `@/` path.
+   - **Dependencies.** It depends only on the public entry point `@/physics`. Biome enforces this for production files in both folders: they import their own modules by relative path and `@/physics`, nothing else under `@/` and nothing through `../`. Tests may also import `@/physics/testing`. One rule covers both folders, because Biome replaces a rule's options from one override to the next, and repeating the React and Next.js restrictions a third time was not worth it. So `src/physics` cannot import `@/orbits`, but a self-import of `@/physics` inside the engine is not caught; that circular import is left to review.
    - **Errors.** Invalid input throws a `RangeError` naming the field. A `PhysicsError` from the engine propagates; it can only happen while drifting without re-anchoring, and recovering from it is spec 03's job.
 
 ## Public API (shape, not final code)
@@ -110,6 +110,26 @@ Output of `pnpm measure:orbits` (2026-10-23, Node 24.14.0, arm64). The engine us
 - **The goggles margin is thin but stable.** At 1.3×, it is the smallest margin, but the results are deterministic, so a thin margin is not flaky. Only a change to the engine's arithmetic could move it, and that is what O3 should catch.
 - **Substeps per unit of time is `stepsPerPeriod / T`.** It gives the cost of any playback speed in spec 03: at s units of simulation time per second and 60 Hz, a frame needs that number times s / 60 substeps.
 
+### Measured values (frame and trace cost)
+
+Output of `pnpm bench:playback` (`scripts/bench-playback.mjs`, on the bundled code), three runs on 2026-10-23, Apple M2 Pro on AC power, Node 24.14.0. Each range runs from the lowest to the highest value over the three runs.
+
+- **Frame:** one 60 Hz frame at one period every 5 seconds. Each orbit gets 300 warm-up calls, then 1,000 timed calls of `advancePlayback`, chained with re-anchoring on.
+- **One `advance` call:** the same number of substeps in a single call. That is the cost Decision 6 avoids paying in exactness.
+- **Trace:** the mean of three calls of `tracePeriod` with 100 points.
+
+| Orbit | Substeps per frame | Frame mean | Frame p99 | Per substep | One `advance` call, per substep | Trace of one period |
+|---|---|---|---|---|---|---|
+| Lagrange | 3.3 | 0.007–0.008 ms | 0.046–0.055 ms | 2.01–2.29 µs | 1.39–1.48 µs | 2 ms |
+| Figure-eight | 3.3 | 0.005 ms | 0.011 ms | 1.36–1.43 µs | 1.15–1.22 µs | 1–2 ms |
+| Butterfly I | 333 | 0.404–0.433 ms | 0.542–1.266 ms | 1.21–1.30 µs | 0.95–0.96 µs | 119–132 ms |
+| Goggles | 333 | 0.399–0.402 ms | 0.518–0.524 ms | 1.20–1.21 µs | 0.94–0.96 µs | 119–122 ms |
+| Moth I | 67 | 0.079–0.082 ms | 0.120–0.144 ms | 1.19–1.23 µs | 0.95–0.98 µs | 24 ms |
+| Yin-yang I | 1,667 | 2.006–2.121 ms | 2.25–5.64 ms | 1.20–1.27 µs | 0.95–0.97 µs | 606–610 ms |
+
+- **Per-call overhead.** With a frame of about 3 substeps (Lagrange, figure-eight), the fixed cost of each call dominates the time per substep. That cost is irrelevant in absolute terms (under 0.01 ms per frame).
+- **p99 outliers.** Yin-yang I's p99 reached 5.6 ms in two of the three runs, against a mean of about 2.1 ms. These outliers are most likely garbage-collection pauses: every substep allocates new states.
+
 ## Out of scope
 
 - Rendering, the gallery, the detail page, playback controls and the playback speed: spec 03.
@@ -123,14 +143,14 @@ Output of `pnpm measure:orbits` (2026-10-23, Node 24.14.0, arm64). The engine us
 
 - **The heaviest orbit costs the most per frame.** Yin-yang I needs 500,000 substeps per period (O4). At 60 Hz and P seconds of playback per period, a frame needs 500,000 / (60 · P) substeps:
 
-  | P | Substeps per frame | Time per frame at 1.23 µs per substep |
+  | P | Substeps per frame | Time per frame |
   |---|---|---|
-  | 5 s | about 1,670 | 2.1 ms |
-  | 2 s | about 4,170 | 5.1 ms |
-  | 1 s | about 8,330 | 10 ms, most of a 16.7 ms frame |
+  | 5 s | about 1,670 | measured: mean 2.0 to 2.1 ms, p99 up to 5.6 ms |
+  | 2 s | about 4,170 | scaled from the 5 s measurement: mean about 5.2 ms |
+  | 1 s | about 8,330 | scaled from the 5 s measurement: mean about 10.4 ms, most of a 16.7 ms frame |
 
-  Spec 03 chooses P, or a common speed in simulation time per second, from these numbers. The frame cost is measured with `pnpm bench:playback` and recorded here.
-- **Tracing a period costs as much as playing it.** That is 500,000 substeps for yin-yang I, about 0.6 s. Spec 03 must build traces at build time or off the main thread, not when the page loads.
+  Spec 03 chooses P, or a common speed in simulation time per second, from these numbers, and should budget for the p99 rather than the mean. Playing yin-yang I faster than about one period every 2 s would be a reason to revisit spec 01's representation decision (plain objects), which so far rests on E15 alone.
+- **Tracing a period costs as much as playing it.** Measured: about 0.6 s for yin-yang I and 0.12 s for butterfly I and goggles. Spec 03 must build traces at build time or off the main thread, not when the page loads.
 - **Literal values copied wrong.** O2 checks the convention and the momenta, not the digits, and O3 is not designed to catch a small error in p₁, p₂ or T. The literals are therefore compared by hand with the research note when the catalog is written, and the comparison goes in that step's summary.
 
 ## Change to spec 01
@@ -198,4 +218,5 @@ Vitest's module runner makes the engine about 2.2 times slower than the bundled 
 
 - `catalog.test.ts` and `playback.test.ts` run in parallel workers.
 - The O3 and O6 cases have a named timeout of 30 s, because shared CI runners are about twice as slow and Vitest's default is 5 s per test.
+- Measured on 2026-10-23: the suite takes 2.8 s locally (`catalog.test.ts` 1.7 s, `playback.test.ts` 2.6 s) and 5.1 s on CI (`ubuntu-latest`: 2.7 s and 4.7 s). That is close to the estimates, and the heaviest tests stay well under their 30 s timeout.
 - Running O5 and O6 on every orbit for 10 periods would take about 39 s. Bundling the code for the tests would save only the factor of 2.2. A separate slow suite would take O3 and O6 out of `pnpm test`. Native module loading in Vitest fails on the extensionless relative imports and the `@/` alias.
