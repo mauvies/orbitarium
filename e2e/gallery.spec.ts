@@ -26,6 +26,66 @@ test("gallery lists the six orbits", async ({ page }) => {
   }
 });
 
+// Spec 03, Decision 8 and G7.
+const holding = orbits.filter((orbit) => orbit.holdsWithoutCorrection);
+const drifting = orbits.filter((orbit) => !orbit.holdsWithoutCorrection);
+const namesOf = (subset: typeof orbits) =>
+  subset.map((orbit) => es.orbits[orbit.slug].name);
+
+test("the filter shows the matching orbits and survives a reload", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  const cardTitles = page.getByRole("main").getByRole("heading", { level: 2 });
+  await expect(
+    page.getByRole("radio", { name: es.gallery.filter.all }),
+  ).toBeChecked();
+
+  await page.getByRole("radio", { name: es.gallery.filter.holds }).check();
+  await expect(page).toHaveURL("/gallery?filter=holds");
+  await expect(cardTitles).toHaveText(namesOf(holding));
+
+  await page.reload();
+  await expect(cardTitles).toHaveText(namesOf(holding));
+  await expect(
+    page.getByRole("radio", { name: es.gallery.filter.holds }),
+  ).toBeChecked();
+
+  await page.getByRole("radio", { name: es.gallery.filter.all }).check();
+  await expect(page).toHaveURL("/gallery");
+  await expect(cardTitles).toHaveCount(orbits.length);
+});
+
+test("a shared filtered link opens the gallery filtered", async ({ page }) => {
+  await page.goto("/gallery?filter=drifts");
+
+  await expect(
+    page.getByRole("main").getByRole("heading", { level: 2 }),
+  ).toHaveText(namesOf(drifting));
+});
+
+test("an unknown filter shows every orbit", async ({ page }) => {
+  await page.goto("/gallery?filter=nope");
+
+  await expect(
+    page.getByRole("main").getByRole("heading", { level: 2 }),
+  ).toHaveCount(orbits.length);
+  await expect(
+    page.getByRole("radio", { name: es.gallery.filter.all }),
+  ).toBeChecked();
+});
+
+test("changing the filter does not add history entries", async ({ page }) => {
+  await page.goto("/");
+  await page.goto("/gallery");
+  await page.getByRole("radio", { name: es.gallery.filter.holds }).check();
+  await page.getByRole("radio", { name: es.gallery.filter.drifts }).check();
+  await expect(page).toHaveURL("/gallery?filter=drifts");
+
+  await page.goBack();
+  await expect(page).toHaveURL("/");
+});
+
 test("gallery thumbnails render without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();

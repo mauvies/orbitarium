@@ -69,6 +69,15 @@ export const es = {
       drifts: "Se deshace sin corrección",
     },
     period: (period: number) => `T = ${twoDecimals.format(period)}`,
+    // Spec 03, Decision 8.
+    filter: {
+      legend: "Filtrar por estabilidad",
+      all: "Todas",
+      holds: "Se mantienen solas",
+      drifts: "Se deshacen sin corrección",
+      shown: (count: number) =>
+        count === 1 ? "Se muestra 1 órbita" : `Se muestran ${count} órbitas`,
+    },
   },
   orbits: orbitContent,
   learn: {
