@@ -78,6 +78,8 @@ export const eccentricBinary: SystemState = {
   ],
 };
 
+export const eccentricBinaryPeriod = 2 * Math.PI * Math.sqrt(32 / 27);
+
 /** Three unequal masses with non-zero total momentum (0.2, 0.25). */
 export const driftingTriple: SystemState = {
   time: 0,

@@ -9,7 +9,7 @@ import {
 import { advance, planSubsteps } from "./simulate";
 import { deepFreeze, maxDistance } from "./testing/assertions";
 import { circularBinary, driftingTriple, headOnPair } from "./testing/fixtures";
-import type { SimulationOptions } from "./types";
+import type { IntegratorName, SimulationOptions } from "./types";
 import { add, scale } from "./vec2";
 
 // Spec 01, E10.
@@ -150,9 +150,19 @@ describe("every public function validates its input", () => {
   });
 });
 
-it("moves bodies in straight lines when G = 0", () => {
+it("defaults to the yoshida4 integrator", () => {
+  expect(advance(driftingTriple, 1, { dt })).toStrictEqual(
+    advance(driftingTriple, 1, { dt, integrator: "yoshida4" }),
+  );
+});
+
+const integrators: readonly IntegratorName[] = ["verlet", "yoshida4"];
+
+it.each(
+  integrators,
+)("moves bodies in straight lines when G = 0 (%s)", (integrator) => {
   const duration = 2;
-  const result = advance(circularBinary, duration, { ...verlet, G: 0 });
+  const result = advance(circularBinary, duration, { dt, integrator, G: 0 });
   const straightLines = circularBinary.bodies.map((body) =>
     add(body.position, scale(body.velocity, duration)),
   );
