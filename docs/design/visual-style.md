@@ -73,7 +73,7 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 
 ```
 ┌────────────────────────────┐
-│ ┌────────────────────────┐ │  plate: bg-bottom, radius 12, aspect 4:3,
+│ ┌────────────────────────┐ │  plate: bg-bottom, radius 12, aspect 2:1,
 │ │      orbit linework    │ │  orbit in accent at 85 % opacity, 1.25 px;
 │ │   ·  ·  ·  (3 starts)  │ │  the three bodies' starting points as
 │ └────────────────────────┘ │  small strong dots

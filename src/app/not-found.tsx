@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
 
 export const metadata: Metadata = { title: es.notFound.title };
@@ -12,12 +14,9 @@ const links = [
 // Spec 03, Decisions 1 and 2: Next.js's default 404 page is in English.
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 sm:py-24">
-      <h1 className="font-heading text-4xl font-semibold text-strong">
-        {es.notFound.title}
-      </h1>
-      <p className="mt-4 text-lg">{es.notFound.message}</p>
-      <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+    <Container className="pb-16">
+      <PageHeader title={es.notFound.title} lead={es.notFound.message} />
+      <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
         {links.map(({ href, label }) => (
           <li key={href}>
             <Link
@@ -29,6 +28,6 @@ export default function NotFound() {
           </li>
         ))}
       </ul>
-    </div>
+    </Container>
   );
 }

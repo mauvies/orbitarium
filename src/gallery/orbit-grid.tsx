@@ -9,7 +9,7 @@ export type GalleryCard = {
 
 export function OrbitGrid({ cards }: { cards: readonly GalleryCard[] }) {
   return (
-    <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {cards.map(({ slug, card }) => (
         <li key={slug}>{card}</li>
       ))}
