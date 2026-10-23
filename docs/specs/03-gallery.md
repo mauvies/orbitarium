@@ -125,6 +125,53 @@ Output of `pnpm measure:stability` (`scripts/measure-stability.mjs`, on the bund
 - **Spec 02 Decision 4's claim about moth I** ("within 1e-4 for at least 10 periods") holds at period boundaries only: mid-period, moth I reaches 1.5e-4 in period 2.
 - **`src/orbits/stability.test.ts` covers figure-eight, moth I, Lagrange and goggles,** in 2.7 s. Butterfly I and yin-yang I are left to the script, because they would add about 3 s and 20 s to the unit suite.
 
+### Frame cost (G10)
+
+**G10 is not fully met: the p99 stays within the 2 ms budget in 23 of 24 rows.** In these measurements, the row over budget is yin-yang I at 2×, with intermittent outliers up to 3.5 ms. GC pauses can affect any row, so another row may show them in another run.
+
+This is accepted:
+- The outliers do not depend on the substep count: at 4× yin-yang I does more work per frame (the cap's 1,100 substeps against 962) and stays within budget.
+- 10 of the 16 outliers traced coincide with GC pauses; the other 6 have an unknown cause (see below).
+- The worst spike, 3.5 ms, is about a fifth of a 60 Hz frame.
+
+The cap stays at 1,100. Lowering it below 962 would slow yin-yang I at 2× without removing the outliers.
+
+Output of `pnpm bench:playback`'s second table (`advanceAnimation` with the app's cap, speeds and trail, correction on, 60 Hz frames, 300 warm-up and 1,000 timed frames, three runs, lowest–highest), 2026-10-23, Apple M2 Pro, Node 24.14.0:
+
+| Orbit | Speed | Substeps per frame | Plays at | Frame mean | Frame p99 | Within budget |
+|---|---|---|---|---|---|---|
+| Lagrange | 0.5× | 2 | 0.5× | 0.005 ms | 0.013–0.015 ms | yes |
+| Lagrange | 1× | 5 | 1.0× | 0.006–0.009 ms | 0.016–0.023 ms | yes |
+| Lagrange | 2× | 9 | 2.0× | 0.012–0.013 ms | 0.019–0.028 ms | yes |
+| Lagrange | 4× | 18 | 4.0× | 0.023–0.024 ms | 0.039–0.055 ms | yes |
+| Figure-eight | 0.5× | 1 | 0.5× | 0.002 ms | 0.006–0.008 ms | yes |
+| Figure-eight | 1× | 3 | 1.0× | 0.004 ms | 0.008–0.010 ms | yes |
+| Figure-eight | 2× | 5 | 2.0× | 0.007 ms | 0.012–0.018 ms | yes |
+| Figure-eight | 4× | 11 | 4.0× | 0.013–0.014 ms | 0.024–0.028 ms | yes |
+| Butterfly I | 0.5× | 134 | 0.5× | 0.163–0.164 ms | 0.309–0.338 ms | yes |
+| Butterfly I | 1× | 267 | 1.0× | 0.346–0.359 ms | 0.918–1.048 ms | yes |
+| Butterfly I | 2× | 535 | 2.0× | 0.639–0.658 ms | 0.922–0.972 ms | yes |
+| Butterfly I | 4× | 1069 | 4.0× | 1.263–1.284 ms | 1.597–1.614 ms | yes |
+| Goggles | 0.5× | 80 | 0.5× | 0.095–0.100 ms | 0.298–0.331 ms | yes |
+| Goggles | 1× | 159 | 1.0× | 0.192–0.195 ms | 0.440–0.453 ms | yes |
+| Goggles | 2× | 319 | 2.0× | 0.380–0.397 ms | 0.634–1.047 ms | yes |
+| Goggles | 4× | 637 | 4.0× | 0.752–0.762 ms | 1.032–1.052 ms | yes |
+| Moth I | 0.5× | 11 | 0.5× | 0.016 ms | 0.024–0.031 ms | yes |
+| Moth I | 1× | 22 | 1.0× | 0.029–0.030 ms | 0.041–0.056 ms | yes |
+| Moth I | 2× | 45 | 2.0× | 0.055–0.060 ms | 0.184–0.247 ms | yes |
+| Moth I | 4× | 90 | 4.0× | 0.108–0.111 ms | 0.286–0.309 ms | yes |
+| Yin-yang I | 0.5× | 240 | 0.5× | 0.278–0.280 ms | 0.394–0.404 ms | yes |
+| Yin-yang I | 1× | 481 | 1.0× | 0.555–0.558 ms | 0.699–0.718 ms | yes |
+| Yin-yang I | 2× | 962 | 2.0× | 1.109–1.146 ms | 1.280–2.256 ms | **no** |
+| Yin-yang I | 4× | 1100 | 2.3× | 1.273–1.284 ms | 1.436–1.506 ms | yes |
+
+Yin-yang I at 2× over three invocations of the script: p99 1.280–2.256 ms, 1.341–3.503 ms and 1.309–1.743 ms, with the mean at 1.11–1.27 ms in all of them.
+
+**What the outliers are.** A one-off trace of that row (`node --trace-gc`, with a `PerformanceObserver` on `gc` entries; 10 runs of 1,000 timed frames, three times) found 16 frames over 2 ms.
+- 10 of them contain a GC pause of 0.97–2.29 ms (a scavenge, or a mark-compact), enough on its own to push a frame of about 1.2 ms past the budget.
+- The other 6 contain no GC pause, or only scavenges of 0.25 ms or less, which do not account for them. Their cause is unknown.
+- Scavenges run about every other frame, so a frame that merely overlaps a short one is not evidence of GC.
+
 ## Out of scope
 
 - The Part A lesson, the cannon and the tutor (the `/learn` page is a placeholder).
