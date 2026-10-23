@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { Card, CardLink } from "@/components/card";
 import { Container } from "@/components/container";
+import { OrbitThumbnail } from "@/components/orbit-thumbnail";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
-import { OrbitThumbnail } from "@/gallery/orbit-thumbnail";
-import { CannonThumbnail } from "@/home/cannon-thumbnail";
-import { HeroOrbit } from "@/home/hero-orbit";
 import { getOrbit } from "@/orbits";
+import { CannonThumbnail } from "./cannon-thumbnail";
+import { HeroOrbit } from "./hero-orbit";
 
 // A plate beside the text from 640 px, so both cards stay short.
 const PLATE_CLASSES = "sm:w-56 sm:shrink-0";

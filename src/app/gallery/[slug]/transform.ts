@@ -1,12 +1,5 @@
+import type { Bounds } from "@/drawing/orbit-path";
 import type { Vec2 } from "@/physics";
-
-/** A rectangle in simulation units, with y pointing up. */
-export type Bounds = {
-  readonly minX: number;
-  readonly minY: number;
-  readonly maxX: number;
-  readonly maxY: number;
-};
 
 /** From simulation units to canvas pixels: x' = offsetX + x·scale, y' = offsetY − y·scale. */
 export type CanvasTransform = {

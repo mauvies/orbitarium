@@ -151,33 +151,31 @@ Output of `pnpm measure:stability` (`scripts/measure-stability.mjs`, on the bund
 
 ### File layout
 
+Code used by one route lives in that route's folder in `src/app/`, with its tests. Code shared by more than one route lives outside every route: components in `src/components/`, everything else in the folder of its domain: `src/physics`, `src/orbits`, or `src/drawing` for turning simulated positions into pictures. The gallery's detail page shares a few files with the gallery page; they sit in the parent segment, `src/app/gallery/`, beside the layout that wraps both.
+
 | File | Responsibility |
 |---|---|
-| `src/app/globals.css` | Tailwind import, colour tokens (`@theme static`, default palette removed), font tokens (`@theme inline`), background gradient, focus ring |
-| `src/app/layout.tsx` | `lang="es"`, fonts, title template, skip link, site header, `main` |
-| `src/app/page.tsx` | Home |
-| `src/app/not-found.tsx` | Spanish 404 |
+| `src/app/layout.tsx`, `globals.css`, `not-found.tsx`, `icon.svg` | The whole app: `lang="es"`, fonts, theme tokens, skip link, site header, `main`; the Spanish 404; the icon |
+| `src/app/(home)/page.tsx` | Home (a route group, so its components sit beside it without changing the URL) |
+| `src/app/(home)/hero-orbit.tsx`, `cannon-thumbnail.tsx`, `newton-cannon.ts` | The figure-eight hero; Newton's cannon, computed with the engine at build time |
 | `src/app/learn/page.tsx` | Placeholder until the Part A spec |
-| `src/app/gallery/layout.tsx` | Keeps the detail preferences (Decision 10) |
+| `src/app/gallery/layout.tsx`, `gallery-session.tsx` | What the gallery section remembers while browsing: the last filter, the detail preferences (Decisions 8 and 10) |
 | `src/app/gallery/page.tsx` | Static gallery: thumbnails built at build time, the filter in Suspense |
+| `src/app/gallery/filter.ts`, `filter-controls.tsx`, `filtered-gallery.tsx` | Parsing, showing and writing the filter in the URL |
+| `src/app/gallery/orbit-card.tsx`, `orbit-grid.tsx` | The gallery's cards and grid |
+| `src/app/gallery/stability-status.tsx` | The stability label, shared by the gallery and the detail page |
 | `src/app/gallery/[slug]/page.tsx` | Static detail page: params, metadata, facts, back link, player |
+| `src/app/gallery/[slug]/orbit-facts.tsx`, `back-to-gallery-link.tsx` | The facts list; the link back to the filtered gallery |
+| `src/app/gallery/[slug]/speed.ts`, `orbit-frame.ts`, `transform.ts`, `trail.ts` | Speeds and the frame cap; one frame of the animation, pure; the world-to-canvas transform; the trail |
+| `src/app/gallery/[slug]/` (steps 12 and 13) | The player, its controls and canvas, the loop, sizing, drawing, theme colours and reduced motion |
+| `src/components/` | Shared components: container, page header, card, plate, orbit thumbnail, site header and navigation, logo |
+| `src/drawing/orbit-path.ts`, `simplify.ts` | Shared drawing geometry: an orbit's simplified path, its bounds and SVG data |
 | `src/content/es.ts` | Every UI string, the per-orbit content and Spanish number formatting |
-| `src/components/site-header.tsx` | App name and navigation |
-| `src/gallery/filter.ts` | Parsing and matching the gallery filter |
-| `src/gallery/simplify.ts` | Simplifying a closed path to a tolerance (Ramer–Douglas–Peucker) |
-| `src/gallery/orbit-path.ts` | The path of each body for a drawing size, its bounds and SVG path data |
-| `src/gallery/speed.ts` | Speeds, `maxSubsteps` per frame, speed to simulation time |
-| `src/gallery/orbit-frame.ts` | One frame of the animation, pure: capped advance in slices, trail samples, trail cleared on a snap, collision |
-| `src/gallery/orbit-card.tsx`, `orbit-thumbnail.tsx`, `orbit-grid.tsx` | Gallery cards with static SVG thumbnails |
-| `src/gallery/filtered-gallery.tsx` | Reads and writes the filter in the URL |
-| `src/gallery/detail-preferences.tsx` | Preferences context and the last gallery URL |
-| `src/gallery/orbit-player.tsx`, `player-controls.tsx`, `orbit-canvas.tsx` | The detail player: play state, controls, canvas element |
-| `src/gallery/orbit-animation.ts` | The animation's side effects: loop, sizing, drawing |
-| `src/canvas/transform.ts`, `trail.ts`, `draw.ts` | World-to-canvas transform, trail, drawing |
-| `src/canvas/canvas-size.ts`, `animation-loop.ts`, `theme-colors.ts`, `use-prefers-reduced-motion.ts` | Sizing with the pixel ratio, the `requestAnimationFrame` loop, reading the colour tokens, reduced motion |
 | `e2e/*.spec.ts`, `playwright.config.ts` | End-to-end tests against the production build |
 | `scripts/measure-stability.mjs` | Decision 9's measurement (G7) |
 | `scripts/bench-playback.mjs` | Gains a table of frame cost at every speed with the app's settings (G10) |
+
+Decision 5's pieces for Part A (the transform, the trail, the loop and the drawing) stay in the detail page's folder until Part A uses them, and move to `src/drawing/` then.
 
 Unit tests sit next to the code. Vitest runs only `src/**/*.test.ts`, so it does not pick up the Playwright files.
 

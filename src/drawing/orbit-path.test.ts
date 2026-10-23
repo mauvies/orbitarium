@@ -9,7 +9,7 @@ import {
   svgPathData,
   svgUnitsPerPixel,
 } from "./orbit-path";
-import { largestDistanceToClosedPath } from "./testing/support";
+import { largestDistanceToClosedPath } from "./testing/geometry";
 
 // Spec 03, Decision 4: simplified to a quarter of a pixel at the drawn size.
 const PIXEL_TOLERANCE = 0.25;

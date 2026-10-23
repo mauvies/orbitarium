@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Vec2 } from "@/physics";
 import { simplifyClosedPath } from "./simplify";
-import { largestDistanceToClosedPath } from "./testing/support";
+import { largestDistanceToClosedPath } from "./testing/geometry";
 
 const UNIT_CIRCLE_SAMPLES = 1_000;
 const TOLERANCE = 1e-3;

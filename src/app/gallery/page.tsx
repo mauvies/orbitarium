@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
-import { FilteredGallery, GalleryView } from "@/gallery/filtered-gallery";
-import { OrbitCard } from "@/gallery/orbit-card";
 import { orbits } from "@/orbits";
+import { FilteredGallery, GalleryView } from "./filtered-gallery";
+import { OrbitCard } from "./orbit-card";
 
 export const metadata: Metadata = {
   title: es.gallery.metaTitle,

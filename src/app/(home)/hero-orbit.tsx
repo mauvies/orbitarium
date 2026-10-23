@@ -3,7 +3,7 @@ import {
   svgFrame,
   svgPathData,
   svgUnitsPerPixel,
-} from "@/gallery/orbit-path";
+} from "@/drawing/orbit-path";
 import { getOrbit } from "@/orbits";
 
 // The hero is at most this wide (beside the title on a wide screen, capped

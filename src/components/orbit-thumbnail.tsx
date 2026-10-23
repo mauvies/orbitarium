@@ -4,8 +4,8 @@ import {
   type PlateShape,
   plateUnitsPerPixel,
 } from "@/components/plate";
+import { orbitPath, svgFrame, svgPathData } from "@/drawing/orbit-path";
 import type { OrbitPreset } from "@/orbits";
-import { orbitPath, svgFrame, svgPathData } from "./orbit-path";
 
 const START_DOT_RADIUS_PX = 2;
 

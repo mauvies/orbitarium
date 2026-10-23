@@ -1,7 +1,7 @@
 import { Card, CardLink } from "@/components/card";
+import { OrbitThumbnail } from "@/components/orbit-thumbnail";
 import { es } from "@/content/es";
 import type { OrbitPreset } from "@/orbits";
-import { OrbitThumbnail } from "./orbit-thumbnail";
 import { StabilityStatus } from "./stability-status";
 
 export function OrbitCard({ orbit }: { orbit: OrbitPreset }) {

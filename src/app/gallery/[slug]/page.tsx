@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/container";
+import { OrbitThumbnail } from "@/components/orbit-thumbnail";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
-import { BackToGalleryLink } from "@/gallery/back-to-gallery-link";
-import { OrbitFacts } from "@/gallery/orbit-facts";
-import { OrbitThumbnail } from "@/gallery/orbit-thumbnail";
 import { getOrbit, type OrbitPreset, orbits } from "@/orbits";
+import { BackToGalleryLink } from "./back-to-gallery-link";
+import { OrbitFacts } from "./orbit-facts";
 
 // Spec 03, Decision 1: one page per orbit, built ahead of time; any other
 // slug is a 404.

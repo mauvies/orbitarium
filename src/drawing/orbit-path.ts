@@ -1,4 +1,3 @@
-import type { Bounds } from "@/canvas/transform";
 import { type OrbitPreset, tracePeriod } from "@/orbits";
 import type { Vec2 } from "@/physics";
 import { simplifyClosedPath } from "./simplify";
@@ -15,6 +14,14 @@ export const COORDINATE_DECIMALS = 4;
 
 /** Space around the orbit in a picture, as a fraction of its larger side. */
 const FRAME_MARGIN = 0.05;
+
+/** A rectangle in simulation units, with y pointing up. */
+export type Bounds = {
+  readonly minX: number;
+  readonly minY: number;
+  readonly maxX: number;
+  readonly maxY: number;
+};
 
 export type OrbitPath = {
   /** Each body's closed path over one period, starting at its initial position. */

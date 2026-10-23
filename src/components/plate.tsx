@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { type SvgFrame, svgUnitsPerPixel } from "@/gallery/orbit-path";
+import { type SvgFrame, svgUnitsPerPixel } from "@/drawing/orbit-path";
 
 // The widest a plate is drawn: one of two gallery cards at 768 px. Drawings
 // are simplified, and dots sized, for this width.
