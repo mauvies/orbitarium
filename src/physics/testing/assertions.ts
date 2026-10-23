@@ -1,5 +1,16 @@
 import type { SystemState, Vec2 } from "../types";
 
+/** Freezes an object and everything it references, so mutation throws. */
+export function deepFreeze<T>(value: T): T {
+  if (typeof value === "object" && value !== null) {
+    for (const nested of Object.values(value)) {
+      deepFreeze(nested);
+    }
+    Object.freeze(value);
+  }
+  return value;
+}
+
 function magnitude(vector: Vec2): number {
   return Math.sqrt(vector.x * vector.x + vector.y * vector.y);
 }

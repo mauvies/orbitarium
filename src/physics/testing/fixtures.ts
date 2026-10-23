@@ -45,6 +45,15 @@ export const overflowingPair: SystemState = {
   ],
 };
 
+/** Two unit masses at rest that fall straight into each other (E13). */
+export const headOnPair: SystemState = {
+  time: 0,
+  bodies: [
+    { mass: 1, position: { x: -1, y: 0 }, velocity: { x: 0, y: 0 } },
+    { mass: 1, position: { x: 1, y: 0 }, velocity: { x: 0, y: 0 } },
+  ],
+};
+
 /** Two unit masses on a circular orbit: period 4π, E = −0.25, L = 1. */
 export const circularBinary: SystemState = {
   time: 0,

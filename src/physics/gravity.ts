@@ -1,9 +1,13 @@
 import { PhysicsError } from "./errors";
 import type { Body, ForceOptions, SystemState, Vec2 } from "./types";
-import { resolveForceOptions, validateState } from "./validate";
+import {
+  type ResolvedForceOptions,
+  resolveForceOptions,
+  validateState,
+} from "./validate";
 import { add, isFiniteVec, lengthSquared, scale, sub, ZERO } from "./vec2";
 
-type ForceParameters = {
+export type ForceParameters = {
   readonly G: number;
   readonly softeningSquared: number;
 };
@@ -14,14 +18,21 @@ export function accelerations(
   options?: ForceOptions,
 ): readonly Vec2[] {
   validateState(state);
-  const { G, softening } = resolveForceOptions(options);
-  const parameters = { G, softeningSquared: softening * softening };
+  const parameters = forceParameters(resolveForceOptions(options));
   return state.bodies.map((body, index) =>
     accelerationOf(index, body, state.bodies, parameters),
   );
 }
 
-function accelerationOf(
+export function forceParameters({
+  G,
+  softening,
+}: ResolvedForceOptions): ForceParameters {
+  return { G, softeningSquared: softening * softening };
+}
+
+/** Unvalidated: for callers that already validated the state. */
+export function accelerationOf(
   index: number,
   body: Body,
   bodies: readonly Body[],
