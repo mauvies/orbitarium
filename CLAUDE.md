@@ -41,7 +41,7 @@ Code is reviewed line by line by the hiring team, so optimise for a reader joini
 - Names say what something is in domain terms (`position`, `orbitPeriod`, `learnerProfile`). Standard physics symbols (`G`, `dt`, `r`) are fine inside formulas.
 - Exported functions have explicit parameter and return types. Inside a function, let TypeScript infer.
 - Fail loudly: invalid input throws an error that names the field. Never swallow an error or return a silent default.
-- Comments explain why, not what. When a rule comes from a spec, cite it (`spec 01, E12`).
+- Comments are rare. Good names and small functions should make the code readable without them. Add one only when a reader would otherwise ask "why?" (a non-obvious choice, a workaround, a rule from a spec, cited as `spec 01, E12`). Never comment what the code already says.
 - No dead code, no commented-out code and no abstractions for needs we do not have yet.
 - Follow the patterns already in the codebase. If a new pattern is needed, flag it in the step summary.
 - Tests read as documentation: the name states the behaviour, one concept per test, named fixtures instead of magic numbers.
