@@ -11,8 +11,50 @@ export function deepFreeze<T>(value: T): T {
   return value;
 }
 
-function magnitude(vector: Vec2): number {
+export function magnitude(vector: Vec2): number {
   return Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+}
+
+/** Σ|mᵢ·vᵢ|: the scale for relative linear momentum tolerances (spec 01). */
+export function momentumScale(state: SystemState): number {
+  return state.bodies.reduce(
+    (sum, body) => sum + body.mass * magnitude(body.velocity),
+    0,
+  );
+}
+
+/** Σ|rᵢ|·|mᵢ·vᵢ|: the scale for relative angular momentum tolerances (spec 01). */
+export function angularMomentumScale(state: SystemState): number {
+  return state.bodies.reduce(
+    (sum, body) =>
+      sum + magnitude(body.position) * body.mass * magnitude(body.velocity),
+    0,
+  );
+}
+
+/** maxᵢ|rᵢ|: the size of the system, measured from the origin. */
+export function systemSize(state: SystemState): number {
+  return state.bodies.reduce(
+    (largest, body) => Math.max(largest, magnitude(body.position)),
+    0,
+  );
+}
+
+/** The smallest distance between any two bodies. */
+export function closestApproach(state: SystemState): number {
+  let closest = Number.POSITIVE_INFINITY;
+  for (const [index, body] of state.bodies.entries()) {
+    for (const [otherIndex, other] of state.bodies.entries()) {
+      if (otherIndex > index) {
+        const offset = {
+          x: other.position.x - body.position.x,
+          y: other.position.y - body.position.y,
+        };
+        closest = Math.min(closest, magnitude(offset));
+      }
+    }
+  }
+  return closest;
 }
 
 /** mᵢ·aᵢ for each body. */

@@ -92,7 +92,7 @@ Named initial states used by the criteria. G = 1 and ε = 0 unless stated otherw
 | `circularBinary` | (1, (1, 0), (0, 0.5)) and (1, (−1, 0), (0, −0.5)) | T = 4π, E = −0.25, L = 1 |
 | `eccentricBinary` | (1, (1, 0), (0, s)) and (1, (−1, 0), (0, −s)), with s = √0.5 / 2 ≈ 0.3536; e = 0.5, starting at apoapsis | T = 2π·√(32/27) ≈ 6.840, E₀ = −0.375, L = √0.5 |
 | `lagrangeTriangle` | three masses of 1 on an equilateral triangle of side L = 1, with R = 1/√3: positions (0, R), (−1/2, −R/2) and (1/2, −R/2); velocities (−1, 0), (1/2, −√3/2) and (1/2, √3/2), speed 1/√L = 1 | T = 2π·L^(3/2)/√3 = 2π/√3 ≈ 3.628 |
-| `driftingTriple` | masses 1, 2 and 3 at (1, 0), (−0.5, 0.8) and (−0.3, −1.1); velocities (0.1, 0.6), (−0.4, 0.2) and (0.3, −0.25) | total momentum (0.2, 0.25), so the centre of mass moves. Tests assert that no pair comes closer than 0.05 during the run. |
+| `driftingTriple` | a tight binary with a lighter body orbiting it, all drifting together: masses 3, 2 and 1 at (0, 0), (0.6, 0) and (−2.5, 0); velocities (0.1, −1.1), (0.1, 1.8) and (0.1, −1.4) | total momentum (0.6, −1.1), so the centre of mass moves. Tests assert that no pair comes closer than 0.05 during the run; the measured closest approach over t = 0 to 5 is 0.600 (at t = 0), with both integrators at dt = 1e-3, sampled every substep. |
 
 ### Criteria
 
@@ -114,6 +114,16 @@ Named initial states used by the criteria. G = 1 and ε = 0 unless stated otherw
 | E14 | `src/physics` imports nothing from React, Next.js or Node, and uses no DOM globals (Decision 7). | Decision 7 | Biome rules in CI; `environment.test.ts`: "loads the public entry point without DOM globals"; plus a one-off manual probe when the rules are added, with its output in the step summary (flagged cases: `react`, `react/jsx-runtime`, `react-dom/client`, `next`, `next/link`, `next/dist/…`, `node:fs`, `path`, `window`, `document`, `requestAnimationFrame` in `src/physics`; clean cases: a relative import in `src/physics`, `react` in `src/app`, `node:fs` in a test file in `src/physics`) |
 | E15 | Advancing three bodies by 1,000 substeps (`lagrangeTriangle`, `advance(state, 1, { dt: 0.001 })`, Yoshida) takes under 2 ms on average in Node. Measured with a local benchmark on the bundled engine, as the app runs it (see "Benchmark"), not a CI test, because timings are noisy on shared runners. The result is recorded with p99, CPU and Node version; p99 is recorded because garbage-collection pauses, not the average, are the real risk for a smooth animation. **Result:** passes, mean 1.012 ms and worst p99 1.232 ms over three runs (Apple M2 Pro, Node 24.14.0). **Real need:** at dt = T/1000 a frame needs 1000 / (f · P) substeps (f the refresh rate, P the seconds of playback per period), about 17 in the worst realistic case (P = 1 s at 60 Hz), around 1/60 of this load. | §09 (UX: smooth animation) | `pnpm bench:physics` (`scripts/bench-physics.mjs`), result noted here |
 | E16 | Forces are the negative gradient of the potential used by `totalEnergy`. `scatteredFour`, ε ∈ {0, 0.05}: central finite differences of `totalEnergy` (step 1e-6 per coordinate) match −mᵢ·aᵢ within 1e-6 relative. This is the only check that forces and energy agree, which Decision 4 relies on. | Decision 4 | `gravity.test.ts`: "forces are the negative gradient of the potential" |
+
+### Measured values
+
+What the tests observe for the fixed tolerances, so their margins are known. Each value is the worst over the run, relative to the scale the criterion names (Node 24.14.0, arm64).
+
+| ID | Quantity | Verlet | Yoshida | Tolerance |
+|---|---|---|---|---|
+| E3 | Linear momentum | 3.1e-15 | 7.6e-15 | 1e-12 |
+| E3 | Centre of mass, off its straight line | 2.4e-15 | 9.6e-15 | 1e-12 |
+| E4 | Angular momentum | 6.9e-15 | 6.0e-15 | 1e-10 |
 
 ## Out of scope
 
