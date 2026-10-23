@@ -74,18 +74,7 @@ The display names are exactly the brief's, untranslated, because they are the na
 
 Measured in memory on the bundled code of spec 02 (Apple M2 Pro on AC power, Node 24.14.0, the machine of spec 02's measurements). The committed scripts measure these again in their steps, and their output replaces this section's numbers in "Results".
 
-**Drift without correction (Decision 9).** Distance as defined in Decision 9, over 30 periods without re-anchoring.
-
-| Orbit | First period over 0.1 | At period boundaries only | Largest over 30 periods | Label |
-|---|---|---|---|---|
-| Lagrange | 8 | 8 | — | Se deshace sin corrección |
-| Figura de ocho | none | none | 7.7e-6 | Se mantiene sola |
-| Butterfly I | 11 | 13 | — | Se deshace sin corrección |
-| Goggles | 3 | 4 | — | Se deshace sin corrección |
-| Moth I | none | none | 3.1e-4 | Se mantiene sola |
-| Yin-Yang I | 15 | 17 | — | Se deshace sin corrección |
-
-Both metrics give the same labels, with a margin of 300 times or more for the two orbits that hold. Spec 02 Decision 4 says moth I stays within 1e-4 of its path for 10 periods without re-anchoring; that holds at period boundaries, but mid-period it reaches 1.5e-4 in period 2.
+**Drift without correction (Decision 9).** Planning gave the same table as `pnpm measure:stability`; see "Results".
 
 **Frame cost against substeps per frame (Decision 7).** Yin-yang I with re-anchoring, 300 warm-up and 1,000 timed calls, three runs; each range runs from the lowest to the highest p99.
 
@@ -117,6 +106,25 @@ Substeps per 60 Hz frame at 1× = one unit of simulation time per second (spec 0
 | Moth I | 1.1 px | 0.0 px | 243–352 |
 | Yin-Yang I | 5.5 px | 0.4 px | 255–428 |
 
+## Results
+
+### Stability without correction (G7)
+
+Output of `pnpm measure:stability` (`scripts/measure-stability.mjs`, on the bundled code), 2026-10-23, Apple M2 Pro, Node 24.14.0, arm64. Distance as defined in Decision 9: the largest distance of any body from where it was at the same phase of the first period, sampled 1,000 times per period, over 30 periods without re-anchoring. The script fails if a preset's `holdsWithoutCorrection` disagrees, which was checked once by flipping yin-yang I's value. It takes about 14 s.
+
+| Orbit | First period over 0.1 | At period boundaries only | Largest over 30 periods | Label |
+|---|---|---|---|---|
+| Lagrange | 8 | 8 | — | Se deshace sin corrección |
+| Figure-eight | none | none | 7.7e-6 | Se mantiene sola |
+| Butterfly I | 11 | 13 | — | Se deshace sin corrección |
+| Goggles | 3 | 4 | — | Se deshace sin corrección |
+| Moth I | none | none | 3.1e-4 | Se mantiene sola |
+| Yin-yang I | 15 | 17 | — | Se deshace sin corrección |
+
+- **The labels do not depend on the metric.** Sampling only at period boundaries gives the same labels, and the two orbits that hold stay 300 times or more inside the tolerance.
+- **Spec 02 Decision 4's claim about moth I** ("within 1e-4 for at least 10 periods") holds at period boundaries only: mid-period, moth I reaches 1.5e-4 in period 2.
+- **`src/orbits/stability.test.ts` covers figure-eight, moth I, Lagrange and goggles,** in 2.7 s. Butterfly I and yin-yang I are left to the script, because they would add about 3 s and 20 s to the unit suite.
+
 ## Out of scope
 
 - The Part A lesson, the cannon and the tutor (the `/learn` page is a placeholder).
@@ -137,7 +145,7 @@ Substeps per 60 Hz frame at 1× = one unit of simulation time per second (spec 0
 ## Change to spec 02
 
 - **`OrbitPreset` gains `holdsWithoutCorrection: boolean`:** measured data for Decision 9, verified by `src/orbits/stability.test.ts` and `pnpm measure:stability`.
-- **Decision 4's claim about moth I** ("within 1e-4 for at least 10 periods") holds at period boundaries only; see "Measured during planning".
+- **Decision 4's claim about moth I** ("within 1e-4 for at least 10 periods") holds at period boundaries only; see "Results".
 
 ## Decided in the plan
 

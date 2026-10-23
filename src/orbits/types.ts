@@ -22,6 +22,12 @@ export type OrbitPreset = {
   readonly stepsPerPeriod: StepsPerPeriod;
   /** Where the values start from (spec 02, Decision 1). */
   readonly source: string;
+  /**
+   * Whether it stays within 0.1 of its path for 30 periods without
+   * re-anchoring, at its stepsPerPeriod: measured, not a formal stability
+   * result (spec 03, Decision 9).
+   */
+  readonly holdsWithoutCorrection: boolean;
 };
 
 export type Playback = {

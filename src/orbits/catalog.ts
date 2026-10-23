@@ -2,7 +2,8 @@ import type { SystemState } from "@/physics";
 import type { OrbitPreset } from "./types";
 
 // The values the app uses: the refined values of docs/research/orbits.md,
-// with G = 1 and unit masses (spec 02, Decision 2).
+// with G = 1 and unit masses (spec 02, Decision 2). holdsWithoutCorrection is
+// measured by `pnpm measure:stability` and recorded in spec 03's results.
 
 const REFINED = "refined in docs/research/orbits.md";
 const SUVAKOV_TABLE =
@@ -57,6 +58,7 @@ const lagrange: OrbitPreset = {
   period: (2 * Math.PI) / Math.sqrt(3),
   stepsPerPeriod: 1_000,
   source: "Lagrange (1772); analytic equilateral solution of side 1",
+  holdsWithoutCorrection: false,
 };
 
 const figureEight: OrbitPreset = {
@@ -66,6 +68,7 @@ const figureEight: OrbitPreset = {
   period: 6.325913982923,
   stepsPerPeriod: 1_000,
   source: `Chenciner and Montgomery (2000); Šuvakov's convention, ${REFINED}`,
+  holdsWithoutCorrection: true,
 };
 
 const butterflyI: OrbitPreset = {
@@ -75,6 +78,7 @@ const butterflyI: OrbitPreset = {
   period: 6.234674838629,
   stepsPerPeriod: 100_000,
   source: `${SUVAKOV_TABLE}; ${REFINED}`,
+  holdsWithoutCorrection: false,
 };
 
 const goggles: OrbitPreset = {
@@ -84,6 +88,7 @@ const goggles: OrbitPreset = {
   period: 10.464849525803,
   stepsPerPeriod: 100_000,
   source: `${SUVAKOV_TABLE}; ${REFINED}`,
+  holdsWithoutCorrection: false,
 };
 
 const mothI: OrbitPreset = {
@@ -93,6 +98,7 @@ const mothI: OrbitPreset = {
   period: 14.894305175019,
   stepsPerPeriod: 20_000,
   source: `${SUVAKOV_TABLE}; ${REFINED}`,
+  holdsWithoutCorrection: true,
 };
 
 const yinYangI: OrbitPreset = {
@@ -102,6 +108,7 @@ const yinYangI: OrbitPreset = {
   period: 17.328834018431,
   stepsPerPeriod: 500_000,
   source: `${SUVAKOV_TABLE}, variant (a); ${REFINED}`,
+  holdsWithoutCorrection: false,
 };
 
 /** The six orbits of the brief, in its order (spec 02, O1). */
