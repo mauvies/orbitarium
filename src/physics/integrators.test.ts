@@ -7,9 +7,16 @@ import {
   circularBinaryPeriod,
   eccentricBinary,
   eccentricBinaryPeriod,
+  lagrangeTriangle,
+  lagrangeTrianglePeriod,
 } from "./testing/fixtures";
 import type { IntegratorName, SystemState, Vec2 } from "./types";
 import { scale } from "./vec2";
+
+// Spec 01, E6 and E7: measured with the default integrator at dt = T/1000.
+const CLOSURE_STEPS_PER_PERIOD = 1000;
+const CIRCULAR_CLOSURE_TOLERANCE = 1e-7;
+const LAGRANGE_CLOSURE_TOLERANCE = 1e-7;
 
 // Spec 01, E8.
 const REVERSIBILITY_TOLERANCE = 1e-10;
@@ -59,6 +66,29 @@ describe("Yoshida weights", () => {
       Math.abs(INNER_WEIGHT - -cubeRootOfTwo / (2 - cubeRootOfTwo)),
     ).toBeLessThanOrEqual(LITERAL_TOLERANCE);
   });
+});
+
+/** How far each body ends from its start after one period (absolute). */
+function closureError(state: SystemState, period: number): number {
+  const dt = period / CLOSURE_STEPS_PER_PERIOD;
+  return maxDistance(
+    positions(advance(state, period, { dt })),
+    positions(state),
+  );
+}
+
+// Spec 01, E6.
+it("closes a circular two-body orbit", () => {
+  expect(
+    closureError(circularBinary, circularBinaryPeriod),
+  ).toBeLessThanOrEqual(CIRCULAR_CLOSURE_TOLERANCE);
+});
+
+// Spec 01, E7.
+it("closes Lagrange's triangle after one period", () => {
+  expect(
+    closureError(lagrangeTriangle, lagrangeTrianglePeriod),
+  ).toBeLessThanOrEqual(LAGRANGE_CLOSURE_TOLERANCE);
 });
 
 // Spec 01, E8.
