@@ -1,5 +1,5 @@
 import { Plate, plateUnitsPerPixel } from "@/components/plate";
-import { boundsOf, svgFrame, svgOpenPathData } from "@/gallery/orbit-path";
+import { boundsOf, svgFrame, svgOpenPathData } from "@/drawing/orbit-path";
 import {
   cannonTrajectory,
   circularSpeed,

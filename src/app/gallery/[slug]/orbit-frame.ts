@@ -1,4 +1,3 @@
-import { extendTrail, type Trail, type TrailSample } from "@/canvas/trail";
 import {
   advancePlayback,
   type OrbitPreset,
@@ -11,6 +10,7 @@ import {
   type PlaybackSpeed,
   simulationTimeFor,
 } from "./speed";
+import { extendTrail, type Trail, type TrailSample } from "./trail";
 
 // Spec 03, Decision 6: the trail is sampled from positions the simulation
 // passes through, every T/5,000, so it stays within 0.9 px of the path at the

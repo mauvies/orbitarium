@@ -1,6 +1,6 @@
 import { es } from "@/content/es";
 import type { OrbitPreset } from "@/orbits";
-import { StabilityStatus } from "./stability-status";
+import { StabilityStatus } from "../stability-status";
 
 /** Who found the orbit, its period, its stability label and its source. */
 export function OrbitFacts({ orbit }: { orbit: OrbitPreset }) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { es } from "@/content/es";
-import { useGallerySession } from "./gallery-session";
+import { useGallerySession } from "../gallery-session";
 
 /** Back to the gallery with the filter the reader left it with (spec 03, Decision 8). */
 export function BackToGalleryLink() {
