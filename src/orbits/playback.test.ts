@@ -1,9 +1,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { advance, type SystemState, type Vec2 } from "@/physics";
+import { advance, type SystemState } from "@/physics";
 import { deepFreeze, maxDistance } from "@/physics/testing/assertions";
-import { getOrbit } from "./catalog";
 import { advancePlayback, startPlayback } from "./playback";
-import type { OrbitPreset, OrbitSlug, PlaybackOptions } from "./types";
+import { HEAVY_TEST_TIMEOUT_MS, positions, presetOf } from "./testing/support";
+import type { OrbitPreset, PlaybackOptions } from "./types";
 
 // Spec 02, O7.
 const CARRY_TOLERANCE = 1e-12;
@@ -15,18 +15,6 @@ const BOUNDARIES = 10;
 const VISIBLE_DRIFT = 0.1;
 const MAX_DRIFT_PERIODS = 10;
 
-// Goggles runs 100,000 substeps per period. Shared CI runners are about twice
-// as slow as a laptop, and Vitest's default is 5 s per test.
-const HEAVY_TEST_TIMEOUT_MS = 30_000;
-
-function presetOf(slug: OrbitSlug): OrbitPreset {
-  const preset = getOrbit(slug);
-  if (preset === undefined) {
-    throw new RangeError(`no orbit with slug "${slug}"`);
-  }
-  return preset;
-}
-
 function substepOf({ period, stepsPerPeriod }: OrbitPreset): number {
   return period / stepsPerPeriod;
 }
@@ -34,10 +22,6 @@ function substepOf({ period, stepsPerPeriod }: OrbitPreset): number {
 /** Enough substeps for any call in these tests to run uncapped. */
 function uncapped(orbit: OrbitPreset, reanchor: boolean): PlaybackOptions {
   return { reanchor, maxSubsteps: 10 * orbit.stepsPerPeriod };
-}
-
-function positions(state: SystemState): readonly Vec2[] {
-  return state.bodies.map((body) => body.position);
 }
 
 const lagrange = presetOf("lagrange");

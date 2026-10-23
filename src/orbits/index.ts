@@ -1,6 +1,7 @@
 export { getOrbit, orbits } from "./catalog";
 export { STEPS_PER_PERIOD_LADDER } from "./ladder";
 export { advancePlayback, startPlayback } from "./playback";
+export { tracePeriod } from "./trace";
 export type {
   OrbitPreset,
   OrbitSlug,
