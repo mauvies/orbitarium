@@ -10,10 +10,10 @@ Format: **decision.** Why. Cost.
   - `noUncheckedIndexedAccess`: reading an array or record by index returns `T | undefined`. It catches real bugs, such as an unknown orbit slug in the URL, which must become a 404 instead of a crash.
   - `noImplicitReturns`: every code path of a function that returns a value must return one.
   - `noFallthroughCasesInSwitch`: a `case` cannot fall into the next one by a missing `break`.
-  Cost: every indexed read may be `undefined`, which is why the engine uses plain objects iterated without indexes (spec 01). `exactOptionalPropertyTypes` stays off because it clashes with library types, and `noUnused*` because Biome already reports unused code.
+  Cost: every indexed read may be `undefined`, which weighs on the engine's state representation (spec 01). `exactOptionalPropertyTypes` stays off because it clashes with library types, and `noUnused*` because Biome already reports unused code.
 ## Process
  
-- **Light spec-driven development with plan mode.** A short spec per block, committed before code, whose criteria name their tests; Claude Code plans in plan mode and I approve each plan and commit.
+- **Light spec-driven development with plan mode.** A short spec per block, committed before code, whose criteria name their tests; Claude Code plans in plan mode, and I approve each plan and commit each step. Why: every criterion traces to a test, and every change is reviewed by a human. Cost: planning and review time on every step.
 ## Considered and discarded
  
 - **OpenSpec.** Built for evolving existing systems; with a closed scope and one week, light specs plus plan mode give the same traceability with fewer files.
