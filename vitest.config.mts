@@ -6,6 +6,8 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    // The Playwright specs in e2e/ match Vitest's default pattern too.
+    include: ["src/**/*.test.ts"],
     environment: "node",
     globals: false,
   },

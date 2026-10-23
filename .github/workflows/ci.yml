@@ -35,3 +35,15 @@ jobs:
       - run: pnpm test
 
       - run: pnpm build
+
+      # End-to-end tests run against the build above (spec 03, Decision 13).
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm test:e2e
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

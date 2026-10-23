@@ -12,5 +12,21 @@ export const es = {
   home: {
     title: APP_NAME,
     lead: "La gravedad, explicada con simulaciones que puedes tocar.",
+    lesson: {
+      link: "Aprende la gravitación universal",
+      description:
+        "Descubre por qué cae una manzana y por qué la Luna no, con un cañón de Newton y un tutor que se adapta a ti.",
+    },
+    gallery: {
+      link: "Explora la galería de órbitas",
+      description:
+        "Seis soluciones periódicas del problema de los tres cuerpos, animadas paso a paso.",
+    },
+  },
+  learn: {
+    title: "Aprende",
+    comingSoon:
+      "La lección sobre la ley de la gravitación universal está en preparación.",
+    galleryLink: "Mientras tanto, explora la galería de órbitas",
   },
 } as const;
