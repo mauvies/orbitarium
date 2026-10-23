@@ -23,3 +23,20 @@ export type OrbitPreset = {
   /** Where the values start from (spec 02, Decision 1). */
   readonly source: string;
 };
+
+export type Playback = {
+  readonly orbit: OrbitPreset;
+  readonly state: SystemState;
+  /** Substeps run in the current period: 0 … stepsPerPeriod − 1. */
+  readonly substepInPeriod: number;
+  readonly periodsCompleted: number;
+  /** Simulation time not yet run: less than one substep. */
+  readonly carry: number;
+};
+
+export type PlaybackOptions = {
+  /** Replace the bodies by the initial bodies at every period boundary (spec 02, Decision 4). */
+  readonly reanchor: boolean;
+  /** The most substeps one call runs; any excess time is dropped (spec 02, Decision 6). */
+  readonly maxSubsteps: number;
+};
