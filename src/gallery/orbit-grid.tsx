@@ -3,6 +3,7 @@ import type { OrbitSlug } from "@/orbits";
 
 export type GalleryCard = {
   readonly slug: OrbitSlug;
+  readonly holdsWithoutCorrection: boolean;
   /** Rendered on the server, where the thumbnail's path is traced. */
   readonly card: ReactNode;
 };

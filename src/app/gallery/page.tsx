@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
+import { FilteredGallery, GalleryView } from "@/gallery/filtered-gallery";
 import { OrbitCard } from "@/gallery/orbit-card";
-import { OrbitGrid } from "@/gallery/orbit-grid";
 import { orbits } from "@/orbits";
 
 export const metadata: Metadata = {
@@ -12,17 +13,21 @@ export const metadata: Metadata = {
 };
 
 export default function GalleryPage() {
+  const header = <PageHeader title={es.gallery.title} lead={es.gallery.lead} />;
   const cards = orbits.map((orbit) => ({
     slug: orbit.slug,
+    holdsWithoutCorrection: orbit.holdsWithoutCorrection,
     card: <OrbitCard orbit={orbit} />,
   }));
 
   return (
     <Container className="pb-16">
-      <PageHeader title={es.gallery.title} lead={es.gallery.lead} />
-      <div className="mt-8">
-        <OrbitGrid cards={cards} />
-      </div>
+      {/* Spec 03, Decision 8: until the URL is read, every orbit is shown. */}
+      <Suspense
+        fallback={<GalleryView header={header} cards={cards} filter="all" />}
+      >
+        <FilteredGallery header={header} cards={cards} />
+      </Suspense>
     </Container>
   );
 }
