@@ -14,6 +14,11 @@ export function scale(vector: Vec2, factor: number): Vec2 {
   return { x: vector.x * factor, y: vector.y * factor };
 }
 
+/** z-component of the 3D cross product of two vectors in the plane. */
+export function cross(a: Vec2, b: Vec2): number {
+  return a.x * b.y - a.y * b.x;
+}
+
 export function lengthSquared(vector: Vec2): number {
   return vector.x * vector.x + vector.y * vector.y;
 }

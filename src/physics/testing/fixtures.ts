@@ -33,12 +33,39 @@ export const coincidentTriple: SystemState = {
   ],
 };
 
-/** Masses so large that, with G = 10, their pull overflows to infinity (E13). */
+/**
+ * Masses so large that energy, momenta and centre of mass overflow, and so
+ * does the pull with G = 10 (E13).
+ */
 export const overflowingPair: SystemState = {
   time: 0,
   bodies: [
-    { mass: 1e308, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 } },
-    { mass: 1e308, position: { x: 2, y: 0 }, velocity: { x: 0, y: 0 } },
+    { mass: 1e308, position: { x: 0, y: 0 }, velocity: { x: 0, y: 2 } },
+    { mass: 1e308, position: { x: 2, y: 0 }, velocity: { x: 0, y: -2 } },
+  ],
+};
+
+/** Two unit masses on a circular orbit: period 4π, E = −0.25, L = 1. */
+export const circularBinary: SystemState = {
+  time: 0,
+  bodies: [
+    { mass: 1, position: { x: 1, y: 0 }, velocity: { x: 0, y: 0.5 } },
+    { mass: 1, position: { x: -1, y: 0 }, velocity: { x: 0, y: -0.5 } },
+  ],
+};
+
+const apoapsisSpeed = Math.sqrt(0.5) / 2;
+
+/** e = 0.5 orbit starting at apoapsis: period 2π·√(32/27), E = −0.375, L = √0.5. */
+export const eccentricBinary: SystemState = {
+  time: 0,
+  bodies: [
+    { mass: 1, position: { x: 1, y: 0 }, velocity: { x: 0, y: apoapsisSpeed } },
+    {
+      mass: 1,
+      position: { x: -1, y: 0 },
+      velocity: { x: 0, y: -apoapsisSpeed },
+    },
   ],
 };
 

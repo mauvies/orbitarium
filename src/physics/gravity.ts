@@ -54,6 +54,23 @@ function pullFrom(
   { G, softeningSquared }: ForceParameters,
 ): Vec2 {
   const offset = sub(source.position, target.position);
+  const distanceSquared = softenedDistanceSquared(
+    offset,
+    softeningSquared,
+    targetIndex,
+    sourceIndex,
+  );
+  const distance = Math.sqrt(distanceSquared);
+  return scale(offset, (G * source.mass) / (distanceSquared * distance));
+}
+
+/** r² + ε² for the offset between two bodies, shared by forces and energy. */
+export function softenedDistanceSquared(
+  offset: Vec2,
+  softeningSquared: number,
+  firstIndex: number,
+  secondIndex: number,
+): number {
   // Spec 01, E13: distanceSquared is zero for coincident bodies without
   // softening, and also for distinct bodies closer than ~1e-154, where r²
   // underflows.
@@ -61,10 +78,9 @@ function pullFrom(
   if (distanceSquared === 0) {
     throw new PhysicsError(
       "coincident-bodies",
-      [targetIndex, sourceIndex],
-      `bodies ${targetIndex} and ${sourceIndex} are at the same position; gravity between them is undefined without softening`,
+      [firstIndex, secondIndex],
+      `bodies ${firstIndex} and ${secondIndex} are at the same position; gravity between them is undefined without softening`,
     );
   }
-  const distance = Math.sqrt(distanceSquared);
-  return scale(offset, (G * source.mass) / (distanceSquared * distance));
+  return distanceSquared;
 }

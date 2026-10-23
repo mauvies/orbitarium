@@ -1,16 +1,59 @@
 import { describe, expect, it } from "vitest";
 import { PhysicsError } from "./errors";
 import { accelerations } from "./gravity";
-import { forceScale, netForceMagnitude } from "./testing/assertions";
+import { totalEnergy } from "./invariants";
+import {
+  forceScale,
+  forces,
+  maxDistance,
+  netForceMagnitude,
+} from "./testing/assertions";
 import {
   coincidentTriple,
   handPair,
   overflowingPair,
   scatteredFour,
 } from "./testing/fixtures";
+import type { ForceOptions, SystemState, Vec2 } from "./types";
+import { add, scale } from "./vec2";
 
 // Spec 01, E2.
 const THIRD_LAW_TOLERANCE = 1e-12;
+
+// Spec 01, E16.
+const GRADIENT_STEP = 1e-6;
+const GRADIENT_TOLERANCE = 1e-6;
+
+function moveBody(
+  state: SystemState,
+  index: number,
+  offset: Vec2,
+): SystemState {
+  return {
+    ...state,
+    bodies: state.bodies.map((body, i) =>
+      i === index ? { ...body, position: add(body.position, offset) } : body,
+    ),
+  };
+}
+
+/** ∂E/∂rᵢ by central finite differences. */
+function energyGradient(
+  state: SystemState,
+  index: number,
+  options: ForceOptions,
+): Vec2 {
+  const slopeAlong = (direction: Vec2) => {
+    const step = scale(direction, GRADIENT_STEP);
+    const ahead = totalEnergy(moveBody(state, index, step), options);
+    const behind = totalEnergy(
+      moveBody(state, index, scale(step, -1)),
+      options,
+    );
+    return (ahead - behind) / (2 * GRADIENT_STEP);
+  };
+  return { x: slopeAlong({ x: 1, y: 0 }), y: slopeAlong({ x: 0, y: 1 }) };
+}
 
 it("matches a hand-calculated two-body case", () => {
   const [lighter, heavier] = accelerations(handPair);
@@ -32,6 +75,20 @@ it.each([
   expect(netForceMagnitude(scatteredFour, result)).toBeLessThanOrEqual(
     THIRD_LAW_TOLERANCE * forceScale(scatteredFour, result),
   );
+});
+
+it.each([
+  { softening: 0 },
+  { softening: 0.05 },
+])("forces are the negative gradient of the potential (softening = $softening)", (options) => {
+  const result = accelerations(scatteredFour, options);
+  const forcesFromEnergy = scatteredFour.bodies.map((_, index) =>
+    scale(energyGradient(scatteredFour, index, options), -1),
+  );
+
+  expect(
+    maxDistance(forcesFromEnergy, forces(scatteredFour, result)),
+  ).toBeLessThanOrEqual(GRADIENT_TOLERANCE * forceScale(scatteredFour, result));
 });
 
 describe("handles coincident bodies", () => {
