@@ -3,43 +3,50 @@
 import { useLayoutEffect, useRef } from "react";
 import type { OrbitPath } from "@/drawing/orbit-path";
 import type { OrbitPreset } from "@/orbits";
+import type { DetailPreferences } from "./detail-preferences";
 import {
   type OrbitAnimation,
   type PlayerControls,
   startOrbitAnimation,
 } from "./orbit-animation";
-import type { PlaybackSpeed } from "./speed";
 import { canvasAspectRatio } from "./transform";
 
 /**
  * The canvas and the animation on it. React renders it only when a control
  * changes; the frames never go through React (spec 03, Decision 5).
+ * `onCollision` must keep its identity, or the animation starts over.
  */
 export function OrbitCanvas({
   orbit,
   path,
   label,
   playing,
-  speed,
-  correction,
+  preferences: { speed, showPath, showTrail, correction },
+  onCollision,
 }: {
   orbit: OrbitPreset;
   path: OrbitPath;
   label: string;
   playing: boolean;
-  speed: PlaybackSpeed;
-  correction: boolean;
+  preferences: DetailPreferences;
+  onCollision: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<OrbitAnimation | null>(null);
-  const controlsRef = useRef<PlayerControls>({ playing, speed, correction });
+  const controlsRef = useRef<PlayerControls>({
+    playing,
+    speed,
+    showPath,
+    showTrail,
+    correction,
+  });
 
   // Layout effects, so the controls are in place before the first paint.
   // This one comes first, so an animation started below gets the latest.
   useLayoutEffect(() => {
-    controlsRef.current = { playing, speed, correction };
+    controlsRef.current = { playing, speed, showPath, showTrail, correction };
     animationRef.current?.setControls(controlsRef.current);
-  }, [playing, speed, correction]);
+  }, [playing, speed, showPath, showTrail, correction]);
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -51,13 +58,14 @@ export function OrbitCanvas({
       orbit,
       path,
       controlsRef.current,
+      onCollision,
     );
     animationRef.current = animation;
     return () => {
       animation.stop();
       animationRef.current = null;
     };
-  }, [orbit, path]);
+  }, [orbit, path, onCollision]);
 
   return (
     <canvas

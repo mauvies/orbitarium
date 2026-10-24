@@ -90,3 +90,84 @@ test("reduced motion starts paused", async ({ page }) => {
 
   expect(await canvasSnapshot(canvas)).toBe(before);
 });
+
+const { player } = es.detail;
+
+// Spec 03, G5 and Decision 11: every control works from the keyboard.
+test("controls work with the keyboard", async ({ page }) => {
+  // Reduced motion starts paused, at the orbit's initial positions.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(`/gallery/${lagrange.slug}`);
+  const canvas = orbitCanvas(page, lagrange);
+  await waitForFrames(page, FRAMES_TO_DRAW);
+  const atStart = await canvasSnapshot(canvas);
+
+  await page.getByRole("button", { name: player.play }).focus();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: player.pause })).toBeFocused();
+  await expect.poll(() => canvasSnapshot(canvas)).not.toBe(atStart);
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: player.play })).toBeFocused();
+
+  await page.getByRole("button", { name: player.restart }).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => canvasSnapshot(canvas)).toBe(atStart);
+
+  await page.getByRole("radio", { name: player.speedOption(1) }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page.getByRole("radio", { name: player.speedOption(2) }),
+  ).toBeChecked();
+
+  for (const name of [player.showPath, player.showTrail, player.correction]) {
+    const checkbox = page.getByRole("checkbox", { name });
+    await checkbox.focus();
+    await page.keyboard.press("Space");
+    await expect(checkbox).not.toBeChecked();
+  }
+  await expect.poll(() => canvasSnapshot(canvas)).not.toBe(atStart);
+});
+
+// Spec 03, Decision 10 and G6.
+test("detail preferences persist across orbits and reset on reload", async ({
+  page,
+}) => {
+  const otherOrbit = orbits.at(-1);
+  if (otherOrbit === undefined || otherOrbit === lagrange) {
+    throw new Error("the catalog needs a second orbit");
+  }
+  const speedTwo = page.getByRole("radio", { name: player.speedOption(2) });
+  const trail = page.getByRole("checkbox", { name: player.showTrail });
+  const correction = page.getByRole("checkbox", { name: player.correction });
+  await page.goto(`/gallery/${lagrange.slug}`);
+  await speedTwo.check();
+  await trail.uncheck();
+  await correction.uncheck();
+
+  await page.getByRole("link", { name: es.detail.backLink }).click();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: es.orbits[otherOrbit.slug].name })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: es.orbits[otherOrbit.slug].name,
+    }),
+  ).toBeVisible();
+
+  await expect(speedTwo).toBeChecked();
+  await expect(trail).not.toBeChecked();
+  await expect(correction).not.toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: player.showPath }),
+  ).toBeChecked();
+
+  await page.reload();
+
+  await expect(
+    page.getByRole("radio", { name: player.speedOption(1) }),
+  ).toBeChecked();
+  await expect(trail).toBeChecked();
+  await expect(correction).toBeChecked();
+});
