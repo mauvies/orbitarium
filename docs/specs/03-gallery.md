@@ -172,6 +172,10 @@ Yin-yang I at 2× over three invocations of the script: p99 1.280–2.256 ms, 1.
 - The other 6 contain no GC pause, or only scavenges of 0.25 ms or less, which do not account for them. Their cause is unknown.
 - Scavenges run about every other frame, so a frame that merely overlaps a short one is not evidence of GC.
 
+### Collisions (Decision 12)
+
+The collision message, the disabled play button and restarting after a collision are not exercised in the browser, because no catalog orbit collides. Lagrange, goggles, butterfly I and yin-yang I each ran for 2 minutes at 4× without correction, 2026-10-24, and their bodies separated instead of meeting. Collision detection itself, a `PhysicsError` turned into `collided`, is covered by `orbit-frame.test.ts`.
+
 ## Out of scope
 
 - The Part A lesson, the cannon and the tutor (the `/learn` page is a placeholder).

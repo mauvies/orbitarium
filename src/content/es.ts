@@ -70,6 +70,8 @@ const twoDecimals = new Intl.NumberFormat("es", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+// "0,5×", "1×".
+const speedFormat = new Intl.NumberFormat("es", { maximumFractionDigits: 1 });
 
 export const es = {
   site: {
@@ -140,6 +142,15 @@ export const es = {
     player: {
       play: "Reproducir",
       pause: "Pausar",
+      restart: "Reiniciar",
+      speed: "Velocidad",
+      speedOption: (speed: number) => `${speedFormat.format(speed)}×`,
+      showPath: "Mostrar la trayectoria",
+      showTrail: "Mostrar la estela",
+      correction: "Corregir la deriva",
+      // Spec 03, Decision 12.
+      collision:
+        "Dos cuerpos han chocado y la simulación se ha detenido. Pulsa «Reiniciar» para empezar de nuevo.",
       // Spec 03, Decision 11: the canvas's text alternative.
       canvasLabel: (name: string) =>
         `Animación de la órbita ${name}: los tres cuerpos recorren su trayectoria, dibujada en trazo tenue, y cada uno deja una estela corta.`,
