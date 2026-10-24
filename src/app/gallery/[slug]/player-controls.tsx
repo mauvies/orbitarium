@@ -33,7 +33,11 @@ export function PlayerControls({
   onPreferencesChange: (preferences: DetailPreferences) => void;
 }) {
   return (
-    <fieldset disabled={!hydrated} className="grid gap-4">
+    <fieldset
+      disabled={!hydrated}
+      aria-label={player.controls}
+      className="grid gap-4"
+    >
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
