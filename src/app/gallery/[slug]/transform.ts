@@ -21,13 +21,7 @@ export function fitTransform(
 ): CanvasTransform {
   requirePositive(width, "width");
   requirePositive(height, "height");
-  const boundsWidth = bounds.maxX - bounds.minX;
-  const boundsHeight = bounds.maxY - bounds.minY;
-  if (!(boundsWidth > 0 && boundsHeight > 0)) {
-    throw new RangeError(
-      `bounds must have a positive width and height, got ${boundsWidth} × ${boundsHeight}`,
-    );
-  }
+  const { boundsWidth, boundsHeight } = sizeOf(bounds);
   if (!(padding >= 0 && 2 * padding < Math.min(width, height))) {
     throw new RangeError(
       `padding must be at least 0 and leave room to draw, got ${padding}`,
@@ -49,6 +43,34 @@ export function toCanvas(
   { scale, offsetX, offsetY }: CanvasTransform,
 ): Vec2 {
   return { x: offsetX + x * scale, y: offsetY - y * scale };
+}
+
+// Spec 03, Decision 5: flat orbits fill a wide canvas, and none is drawn
+// taller than it is wide.
+const MIN_ASPECT_RATIO = 1;
+const MAX_ASPECT_RATIO = 2;
+
+/** The canvas's width : height for `bounds`, between 1:1 and 2:1. */
+export function canvasAspectRatio(bounds: Bounds): number {
+  const { boundsWidth, boundsHeight } = sizeOf(bounds);
+  return Math.min(
+    MAX_ASPECT_RATIO,
+    Math.max(MIN_ASPECT_RATIO, boundsWidth / boundsHeight),
+  );
+}
+
+function sizeOf(bounds: Bounds): {
+  boundsWidth: number;
+  boundsHeight: number;
+} {
+  const boundsWidth = bounds.maxX - bounds.minX;
+  const boundsHeight = bounds.maxY - bounds.minY;
+  if (!(boundsWidth > 0 && boundsHeight > 0)) {
+    throw new RangeError(
+      `bounds must have a positive width and height, got ${boundsWidth} × ${boundsHeight}`,
+    );
+  }
+  return { boundsWidth, boundsHeight };
 }
 
 function requirePositive(value: number, field: string): void {
