@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/container";
-import { OrbitThumbnail } from "@/components/orbit-thumbnail";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
+import { orbitPath } from "@/drawing/orbit-path";
 import { getOrbit, type OrbitPreset, orbits } from "@/orbits";
 import { BackToGalleryLink } from "./back-to-gallery-link";
+import { CANVAS_MAX_WIDTH_PX } from "./orbit-animation";
 import { OrbitFacts } from "./orbit-facts";
+import { OrbitPlayer } from "./orbit-player";
 
 // Spec 03, Decision 1: one page per orbit, built ahead of time; any other
 // slug is a 404.
@@ -32,8 +34,10 @@ export default async function OrbitPage({
     <Container className="pb-16">
       <PageHeader title={content.name} />
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        {/* The orbit's path until the animation replaces it (spec 03, step 12). */}
-        <OrbitThumbnail orbit={orbit} />
+        <OrbitPlayer
+          orbit={orbit}
+          path={orbitPath(orbit, CANVAS_MAX_WIDTH_PX)}
+        />
         <div className="max-w-[60ch]">
           <p>{content.description}</p>
           <div className="mt-6">

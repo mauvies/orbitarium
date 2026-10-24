@@ -137,6 +137,13 @@ export const es = {
     },
     period: (period: number) =>
       `${twoDecimals.format(period)} unidades de tiempo`,
+    player: {
+      play: "Reproducir",
+      pause: "Pausar",
+      // Spec 03, Decision 11: the canvas's text alternative.
+      canvasLabel: (name: string) =>
+        `Animación de la órbita ${name}: los tres cuerpos recorren su trayectoria, dibujada en trazo tenue, y cada uno deja una estela corta.`,
+    },
   },
   learn: {
     title: "Aprende",
