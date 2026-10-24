@@ -9,6 +9,7 @@ import {
   startOrbitAnimation,
 } from "./orbit-animation";
 import type { PlaybackSpeed } from "./speed";
+import { canvasAspectRatio } from "./transform";
 
 /**
  * The canvas and the animation on it. React renders it only when a control
@@ -63,7 +64,9 @@ export function OrbitCanvas({
       ref={canvasRef}
       role="img"
       aria-label={label}
-      className="aspect-square w-full max-w-160 rounded-xl bg-bg-bottom"
+      className="w-full max-w-160 rounded-xl bg-bg-bottom"
+      // Each orbit's own ratio, so Tailwind cannot generate the class.
+      style={{ aspectRatio: canvasAspectRatio(path.bounds) }}
     />
   );
 }
