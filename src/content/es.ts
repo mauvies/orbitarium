@@ -140,6 +140,7 @@ export const es = {
     period: (period: number) =>
       `${twoDecimals.format(period)} unidades de tiempo`,
     player: {
+      controls: "Controles de la animación",
       play: "Reproducir",
       pause: "Pausar",
       restart: "Reiniciar",
