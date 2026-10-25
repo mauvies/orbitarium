@@ -15,6 +15,10 @@ pnpm install
 pnpm dev        # http://localhost:3000
 ```
 
+## Known limitations
+
+- **Yin-yang I plays at about 2.3× when 4× is chosen,** on a 60 Hz display. Each frame runs at most 1,100 simulation substeps, to keep within its time budget, and yin-yang I at 4× needs 1,924. On a 120 Hz display it plays at 4×. See [spec 03, Decision 7](docs/specs/03-gallery.md).
+
 ## Checks
 
 ```bash

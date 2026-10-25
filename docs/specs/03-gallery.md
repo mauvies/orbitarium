@@ -1,6 +1,6 @@
 # Spec 03: Orbit gallery (Part B)
 
-Status: approved (2026-10-23) and amended after the implementation plan review, before any gallery code.
+Status: implemented (2026-10-24). Approved on 2026-10-23 and amended after the implementation plan review, before any gallery code.
 
 ## Goal
 
@@ -172,6 +172,26 @@ Yin-yang I at 2× over three invocations of the script: p99 1.280–2.256 ms, 1.
 - The other 6 contain no GC pause, or only scavenges of 0.25 ms or less, which do not account for them. Their cause is unknown.
 - Scavenges run about every other frame, so a frame that merely overlaps a short one is not evidence of GC.
 
+**In the browser, with the CPU throttled ×4.** A one-off run of yin-yang I at 4× on the production build, in headless Chromium (Playwright 1.64.1) with `Emulation.setCPUThrottlingRate` at 4, recording `requestAnimationFrame` intervals for 15 s, 2026-10-24, Apple M2 Pro:
+
+| CPU | Frames | Median interval | p99 | Longest | Over 25 ms |
+|---|---|---|---|---|---|
+| Not throttled | 900 | 16.7 ms | 16.8 ms | 16.8 ms | 0 |
+| Throttled ×4 | 900 | 16.7 ms | 16.8 ms | 33.3 ms | 1 |
+
+On a device four times slower, the heaviest row still keeps 60 Hz, with one dropped frame in 15 s. Headless Chromium paces frames on its own, without a display, so this checks the budget's headroom, not real-device smoothness.
+
+### End-to-end tests
+
+70 tests, all in Chromium against the production build, 2026-10-24.
+
+| Where | Workers | Build | Install Chromium | `pnpm test:e2e` | Whole CI job |
+|---|---|---|---|---|---|
+| Local (Apple M2 Pro, 10 cores) | 5 | 6 s | — | 7.0–7.7 s (three runs) | — |
+| CI (`ubuntu-latest`, run 40069107871) | 2 | 15 s | 20 s | 28 s | 1 min 34 s |
+
+The plan estimated about 35 tests, 15–25 s locally and 1.5–2 min more on CI. There are twice as many tests (the axe and focus sweeps cover 11 pages each), and they take a third of the estimated time; on CI, E2E adds about 50 s.
+
 ### Collisions (Decision 12)
 
 The collision message, the disabled play button and restarting after a collision are not exercised in the browser, because no catalog orbit collides. Lagrange, goggles, butterfly I and yin-yang I each ran for 2 minutes at 4× without correction, 2026-10-24, and their bodies separated instead of meeting. Collision detection itself, a `PhysicsError` turned into `collided`, is covered by `orbit-frame.test.ts`.
@@ -218,7 +238,8 @@ Code used by one route lives in that route's folder in `src/app/`, with its test
 | `src/app/gallery/[slug]/page.tsx` | Static detail page: params, metadata, facts, back link, player |
 | `src/app/gallery/[slug]/orbit-facts.tsx`, `back-to-gallery-link.tsx` | The facts list; the link back to the filtered gallery |
 | `src/app/gallery/[slug]/speed.ts`, `orbit-frame.ts`, `transform.ts`, `trail.ts` | Speeds and the frame cap; one frame of the animation, pure; the world-to-canvas transform; the trail |
-| `src/app/gallery/[slug]/` (steps 12 and 13) | The player, its controls and canvas, the loop, sizing, drawing, theme colours and reduced motion |
+| `src/app/gallery/[slug]/orbit-player.tsx`, `player-controls.tsx`, `orbit-canvas.tsx`, `detail-preferences.ts` | The player: play state, restart and the collision message; the controls; the canvas element; the preferences the gallery layout keeps |
+| `src/app/gallery/[slug]/orbit-animation.ts`, `animation-loop.ts`, `canvas-size.ts`, `draw.ts`, `theme-colors.ts`, `use-prefers-reduced-motion.ts` | The animation's side effects: wiring, the `requestAnimationFrame` loop, sizing with the pixel ratio, drawing, the colour tokens, reduced motion |
 | `src/components/` | Shared components: container, page header, card, plate, orbit thumbnail, site header and navigation, logo |
 | `src/drawing/orbit-path.ts`, `simplify.ts` | Shared drawing geometry: an orbit's simplified path, its bounds and SVG data |
 | `src/content/es.ts` | Every UI string, the per-orbit content and Spanish number formatting |
