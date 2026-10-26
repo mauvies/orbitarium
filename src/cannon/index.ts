@@ -1,3 +1,5 @@
+export { launchOutcome } from "./outcome";
+export type { CannonOutcome, CannonSettings } from "./types";
 export {
   EARTH_GM_KM3_PER_SECOND2,
   EARTH_RADIUS_KM,

@@ -3,6 +3,16 @@
 export const EARTH_RADIUS_KM = 6_371;
 export const EARTH_GM_KM3_PER_SECOND2 = 398_600;
 
+/** The Earth's radius in engine units. */
+export const EARTH_RADIUS = 1;
+
+/** A mountain a little taller than Everest, as in Newton's drawing (spec 04, Decision 8). */
+export const LAUNCH_ALTITUDE_KM = 10;
+
+/** The launch point's distance from the Earth's centre, in engine units. */
+export const LAUNCH_RADIUS =
+  EARTH_RADIUS + LAUNCH_ALTITUDE_KM / EARTH_RADIUS_KM;
+
 /** One engine speed unit: the circular speed at the surface, √(GM/R). */
 export const SPEED_UNIT_KM_PER_SECOND = Math.sqrt(
   EARTH_GM_KM3_PER_SECOND2 / EARTH_RADIUS_KM,
