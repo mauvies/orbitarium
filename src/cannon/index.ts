@@ -5,6 +5,11 @@ export {
 } from "./controls";
 export { circularSpeed, launchState } from "./launch";
 export { launchOutcome } from "./outcome";
+export {
+  CANNON_PRESETS,
+  REFERENCE_SPEEDS,
+  type ReferenceSpeeds,
+} from "./presets";
 export { type Trace, type TraceEnd, traceLaunch } from "./trajectory";
 export type {
   Applied,
@@ -22,6 +27,7 @@ export {
   EARTH_RADIUS_KM,
   engineToKmPerSecond,
   kmPerSecondToEngine,
+  kmPerSecondToKmPerHour,
   SPEED_UNIT_KM_PER_SECOND,
   TIME_UNIT_SECONDS,
 } from "./units";
