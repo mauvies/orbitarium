@@ -1,5 +1,18 @@
+export {
+  CANNON_LIMITS,
+  type ResolvedRequest,
+  resolveRequest,
+} from "./controls";
 export { launchOutcome } from "./outcome";
-export type { CannonOutcome, CannonSettings } from "./types";
+export type {
+  Applied,
+  CannonField,
+  CannonOutcome,
+  CannonRequest,
+  CannonSettings,
+  FieldLimits,
+  Rejected,
+} from "./types";
 export {
   EARTH_GM_KM3_PER_SECOND2,
   EARTH_RADIUS_KM,
