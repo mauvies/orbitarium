@@ -6,6 +6,7 @@ import {
   type CannonSettings,
   type FieldLimits,
 } from "@/cannon";
+import { type LearnerProfile, learnerProfile } from "./learner-profile";
 import {
   goToStep,
   type LaunchResult,
@@ -41,6 +42,8 @@ export type LessonControls = {
     readonly current: () => StepId;
     readonly goToStep: (step: unknown) => NavigationResult;
   };
+  /** Read-only: the tutor adapts to it, and only the learner's answers change it. */
+  readonly learnerProfile: () => LearnerProfile;
 };
 
 /** `navigate` pushes a history entry for a step, as a link does. */
@@ -83,5 +86,6 @@ export function createLessonControls(
       current: () => store.getSession().step,
       goToStep: (step) => apply(goToStep(store.getSession(), step)),
     },
+    learnerProfile: () => learnerProfile(store.getSession().answers),
   };
 }

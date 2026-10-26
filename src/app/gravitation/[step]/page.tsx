@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
+import { questionsFor } from "../questions";
 import { parseStep, STEP_IDS, type StepId } from "../steps";
+import { CheckQuestion } from "./check-question";
 import { StepList, StepPager } from "./step-navigation";
 
 // Spec 04, Decision 1: one page per step, built ahead of time; any other step
@@ -28,6 +30,12 @@ export default async function StepPage({
     <Container className="pb-16">
       <StepList current={step} />
       <PageHeader title={es.gravitation.steps[step].title} />
+      {questionsFor(step)
+        // The prediction waits for the cannon, which comes with step 4's page.
+        .filter(({ feedback }) => feedback === "on-answer")
+        .map((question) => (
+          <CheckQuestion key={question.id} question={question} />
+        ))}
       <StepPager current={step} />
     </Container>
   );

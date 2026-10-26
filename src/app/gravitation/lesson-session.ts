@@ -12,6 +12,7 @@ import {
   traceLaunch,
 } from "@/cannon";
 import { CANNON_VIEW_RADIUS } from "./cannon-view";
+import { type Answers, grade, type QuestionId } from "./questions";
 import { parseStep, STEP_IDS, type StepId } from "./steps";
 
 // Spec 04, Decision 11: the current path and up to four faint ones.
@@ -35,6 +36,7 @@ export type LessonSession = {
   /** Oldest first. */
   readonly launches: readonly Launch[];
   readonly nextLaunchId: number;
+  readonly answers: Answers;
 };
 
 export type SetResult = ({ readonly status: "set" } & Applied) | Rejected;
@@ -66,6 +68,7 @@ export function initialSession(step: StepId): LessonSession {
     cannon: CANNON_PRESETS.ballistic,
     launches: [],
     nextLaunchId: 1,
+    answers: {},
   };
 }
 
@@ -141,6 +144,7 @@ export function launchCannon(
   };
   return {
     session: {
+      ...session,
       step: "cannon",
       cannon: settings,
       launches: [...session.launches, launch].slice(-RECENT_LAUNCHES),
@@ -148,5 +152,24 @@ export function launchCannon(
     },
     result: { status: "launched", ...settings, clamped, outcome },
     navigateTo: session.step === "cannon" ? null : "cannon",
+  };
+}
+
+/**
+ * Records the learner's first answer; later ones are ignored, because the
+ * first tells us what they believed (spec 04, Decision 5).
+ */
+export function answerQuestion(
+  session: LessonSession,
+  questionId: QuestionId,
+  optionId: string,
+): LessonSession {
+  grade(questionId, optionId);
+  if (session.answers[questionId] !== undefined) {
+    return session;
+  }
+  return {
+    ...session,
+    answers: { ...session.answers, [questionId]: optionId },
   };
 }

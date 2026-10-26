@@ -172,5 +172,140 @@ export const es = {
       previous: (title: string) => `Anterior: ${title}`,
       next: (title: string) => `Siguiente: ${title}`,
     },
+    question: {
+      answer: "Responder",
+      correct: "Correcto.",
+      wrong: "No exactamente.",
+    },
+    // Spec 04, Decisions 5 and 18: the design note's questions. Each wrong
+    // option's feedback answers the belief it reveals.
+    questions: {
+      "two-falls": {
+        prompt: "¿Qué tienen en común estas dos caídas?",
+        options: {
+          centre: {
+            label: "Las dos van hacia el centro de la Tierra.",
+            feedback:
+              "En una Tierra redonda, «abajo» significa «hacia el centro de la Tierra»: todo lo que cae, cae hacia el centro.",
+          },
+          "screen-bottom": {
+            label: "Las dos van hacia la parte de abajo de la pantalla.",
+            feedback:
+              "La manzana de Nueva Zelanda cae hacia arriba en la pantalla. «Abajo» no es una dirección fija: es hacia el centro de la Tierra.",
+          },
+          "south-pole": {
+            label: "Las dos van hacia el polo sur.",
+            feedback:
+              "Ninguna va hacia el polo sur. «Abajo» no es una dirección fija del planeta: cada manzana cae hacia el centro de la Tierra.",
+          },
+          "different-directions": {
+            label: "Nada: caen en direcciones distintas.",
+            feedback:
+              "Sus direcciones son distintas, pero apuntan al mismo sitio: el centro de la Tierra. Esa es la causa común.",
+          },
+        },
+      },
+      "who-pulls-harder": {
+        prompt: "¿Quién tira más fuerte, la manzana o la Tierra?",
+        options: {
+          earth: {
+            label: "La Tierra.",
+            feedback:
+              "Parece lógico, pero no: la manzana atrae a la Tierra con la misma fuerza con que la Tierra atrae a la manzana.",
+          },
+          "only-earth": {
+            label: "Solo tira la Tierra; la manzana no tira.",
+            feedback:
+              "La atracción siempre es mutua: la manzana también atrae a la Tierra, y con la misma fuerza.",
+          },
+          equal: {
+            label: "Tiran exactamente igual de fuerte.",
+            feedback:
+              "Las dos fuerzas son iguales. La Tierra apenas se mueve porque tiene muchísima más masa.",
+          },
+        },
+      },
+      "twice-as-far": {
+        prompt: "Si la Luna estuviera el doble de lejos, la atracción sería…",
+        options: {
+          half: {
+            label: "La mitad.",
+            feedback:
+              "Sería menos que la mitad: la atracción se debilita con el cuadrado de la distancia, así que al doble de distancia baja a la cuarta parte.",
+          },
+          quarter: {
+            label: "La cuarta parte.",
+            feedback: "El doble de lejos, 2 × 2 = 4 veces más débil.",
+          },
+          same: {
+            label: "La misma.",
+            feedback:
+              "La distancia sí importa: al doble de distancia, la atracción baja a la cuarta parte.",
+          },
+        },
+      },
+      "launch-at-12": {
+        prompt: "¿Qué crees que pasará si lanzas a 12 km/s?",
+        options: {
+          "falls-back": {
+            label: "Vuelve a caer a la Tierra.",
+            feedback:
+              "No vuelve: a 12 km/s la bala supera la velocidad de escape, unos 11,2 km/s, así que se aleja para siempre.",
+          },
+          orbit: {
+            label: "Entra en órbita.",
+            feedback:
+              "Va demasiado rápido para quedarse en órbita: a partir de unos 11,2 km/s, la bala escapa de la Tierra.",
+          },
+          escapes: {
+            label: "Escapa y no vuelve.",
+            feedback:
+              "A 12 km/s la bala supera la velocidad de escape, unos 11,2 km/s, así que se aleja para siempre.",
+          },
+        },
+      },
+      "why-the-moon-does-not-fall": {
+        prompt: "¿Por qué no cae la Luna sobre la Tierra?",
+        options: {
+          "no-gravity": {
+            label: "Porque en el espacio no hay gravedad.",
+            feedback:
+              "Sí la hay: a la altura de la Estación Espacial, la gravedad es casi el 90 % de la de la superficie. Los astronautas flotan porque caen a la vez que la estación.",
+          },
+          "falls-sideways": {
+            label:
+              "Sí cae, pero se mueve de lado tan deprisa que nunca llega al suelo.",
+            feedback:
+              "La Luna cae hacia la Tierra, pero se mueve de lado tan deprisa, alrededor de 1 km/s, que nunca llega al suelo.",
+          },
+          pushed: {
+            label: "Porque la Tierra la empuja hacia fuera.",
+            feedback:
+              "La Tierra no empuja a la Luna: solo la atrae. No hace falta ninguna fuerza hacia fuera; basta con que se mueva de lado.",
+          },
+        },
+      },
+      "twice-the-mass": {
+        prompt:
+          "Si la manzana tuviera el doble de masa, la fuerza entre ella y la Tierra sería…",
+        options: {
+          double: {
+            label: "El doble.",
+            feedback:
+              "La fuerza se duplica, pero también la masa que hay que mover, así que la manzana cae igual de deprisa.",
+          },
+          quadruple: {
+            label: "Cuatro veces mayor.",
+            feedback:
+              "Solo la distancia va al cuadrado. Cada masa cuenta una vez: el doble de masa, el doble de fuerza.",
+          },
+          same: {
+            label: "La misma.",
+            feedback:
+              "Es verdad que caería igual de deprisa, pero porque la fuerza se duplica a la vez que la masa que hay que mover. La fuerza es el doble.",
+          },
+        },
+      },
+    },
   },
 } as const;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CANNON_LIMITS, CANNON_PRESETS } from "@/cannon";
 import { createLessonControls } from "./lesson-controls";
-import { initialSession } from "./lesson-session";
+import { answerQuestion, initialSession } from "./lesson-session";
 import { createLessonStore } from "./lesson-store";
 import type { StepId } from "./steps";
 
@@ -50,6 +50,20 @@ describe("createLessonControls", () => {
     controls.navigation.goToStep("nowhere");
 
     expect(visited).toEqual(["law"]);
+  });
+
+  it("reads the learner profile, read-only", () => {
+    const visited: StepId[] = [];
+    const store = createLessonStore(
+      answerQuestion(initialSession("moon"), "twice-as-far", "quarter"),
+    );
+    const controls = createLessonControls(store, (next) => visited.push(next));
+
+    expect(
+      controls
+        .learnerProfile()
+        .find(({ question }) => question === "twice-as-far")?.result,
+    ).toEqual({ status: "correct" });
   });
 
   it("exposes the limits and the steps the tutor may ask for", () => {

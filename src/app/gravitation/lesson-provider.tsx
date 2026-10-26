@@ -11,13 +11,21 @@ import {
   useSyncExternalStore,
 } from "react";
 import { createLessonControls, type LessonControls } from "./lesson-controls";
-import { initialSession, type LessonSession, syncStep } from "./lesson-session";
+import {
+  answerQuestion,
+  initialSession,
+  type LessonSession,
+  syncStep,
+} from "./lesson-session";
 import { createLessonStore, type LessonStore } from "./lesson-store";
+import type { QuestionId } from "./questions";
 import { parseStep, type StepId, stepPath } from "./steps";
 
 type Lesson = {
   readonly store: LessonStore;
   readonly controls: LessonControls;
+  /** Answering is the learner's alone, so it is not one of the tutor's controls. */
+  readonly answer: (questionId: QuestionId, optionId: string) => void;
 };
 
 const LessonContext = createContext<Lesson | null>(null);
@@ -37,12 +45,24 @@ export function LessonProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     store.replace(syncStep(store.getSession(), step));
   }, [store, step]);
-  const lesson = useMemo(() => ({ store, controls }), [store, controls]);
+  const lesson = useMemo(
+    () => ({
+      store,
+      controls,
+      answer: (questionId: QuestionId, optionId: string) =>
+        store.replace(answerQuestion(store.getSession(), questionId, optionId)),
+    }),
+    [store, controls],
+  );
   return <LessonContext value={lesson}>{children}</LessonContext>;
 }
 
 export function useLessonControls(): LessonControls {
   return useLesson().controls;
+}
+
+export function useAnswerQuestion(): Lesson["answer"] {
+  return useLesson().answer;
 }
 
 export function useLessonSession(): LessonSession {

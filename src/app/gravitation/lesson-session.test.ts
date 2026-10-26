@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CANNON_PRESETS, type CannonSettings } from "@/cannon";
 import {
+  answerQuestion,
   goToStep,
   initialSession,
   type LessonSession,
@@ -151,5 +152,26 @@ describe("launchCannon", () => {
       speeds.slice(-RECENT_LAUNCHES),
     );
     expect(new Set(kept.map((launch) => launch.id)).size).toBe(RECENT_LAUNCHES);
+  });
+});
+
+describe("answerQuestion", () => {
+  it("records the answer", () => {
+    const session = answerQuestion(AT_FALLING, "two-falls", "centre");
+
+    expect(session.answers).toEqual({ "two-falls": "centre" });
+  });
+
+  it("a question keeps its first answer", () => {
+    const first = answerQuestion(AT_FALLING, "two-falls", "south-pole");
+
+    expect(answerQuestion(first, "two-falls", "centre")).toBe(first);
+    expect(first.answers["two-falls"]).toBe("south-pole");
+  });
+
+  it("rejects an option the question does not have", () => {
+    expect(() => answerQuestion(AT_FALLING, "two-falls", "quarter")).toThrow(
+      RangeError,
+    );
   });
 });
