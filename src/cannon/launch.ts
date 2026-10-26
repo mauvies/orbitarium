@@ -34,3 +34,13 @@ export function launchState(settings: CannonSettings): LaunchState {
     velocity: { x: speed * Math.cos(angle), y: speed * Math.sin(angle) },
   };
 }
+
+/** The speed that keeps a shot at `radius` from the Earth's centre: √(GM/r), in engine units. */
+export function circularSpeed(radius: number): number {
+  if (!(Number.isFinite(radius) && radius > 0)) {
+    throw new RangeError(
+      `radius must be a positive finite number, got ${radius}`,
+    );
+  }
+  return Math.sqrt(1 / radius);
+}

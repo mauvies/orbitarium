@@ -3,7 +3,7 @@ export {
   type ResolvedRequest,
   resolveRequest,
 } from "./controls";
-export { launchState } from "./launch";
+export { circularSpeed, launchState } from "./launch";
 export { launchOutcome } from "./outcome";
 export { type Trace, type TraceEnd, traceLaunch } from "./trajectory";
 export type {
@@ -18,6 +18,7 @@ export type {
 } from "./types";
 export {
   EARTH_GM_KM3_PER_SECOND2,
+  EARTH_RADIUS,
   EARTH_RADIUS_KM,
   engineToKmPerSecond,
   kmPerSecondToEngine,

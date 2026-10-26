@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Vec2 } from "@/physics";
-import { launchState } from "./launch";
+import { circularSpeed, launchState } from "./launch";
 import { launchOutcome } from "./outcome";
 import { type Trace, traceLaunch } from "./trajectory";
 import type { CannonOutcome, CannonSettings } from "./types";
@@ -26,6 +26,10 @@ const CIRCULAR_SPREAD = 0.01;
 // Spec 01, "Measured tolerances": measured 2.0e-7 radii at 11.0 km/s, 4th
 // order (1.3e-8 at half the step); Verlet at the same step: 2.1e-5 at 8 km/s.
 const RETURN_TOLERANCE = 2e-6;
+// The home page's thumbnail fires from a taller, illustrative mountain.
+const THUMBNAIL_LAUNCH_RADIUS = 1.35;
+// Far above Yoshida's error at 2,000 steps per turn, far below a pixel.
+const CIRCLE_TOLERANCE = 1e-4;
 // Far below the 10 km (1.6e-3 radii) between the launch point and the ground.
 const RADIUS_TOLERANCE = 1e-9;
 
@@ -120,6 +124,23 @@ describe("traceLaunch", () => {
     expect(
       traceLaunch(launch, { stopRadius: BOUND_STOP_RADIUS }).points[0],
     ).toEqual(launch.position);
+  });
+
+  it("a shot at the circular speed stays at its launch height", () => {
+    const launch = {
+      position: { x: 0, y: THUMBNAIL_LAUNCH_RADIUS },
+      velocity: { x: circularSpeed(THUMBNAIL_LAUNCH_RADIUS), y: 0 },
+    };
+    const { points, end } = traceLaunch(launch, {
+      stopRadius: 2 * THUMBNAIL_LAUNCH_RADIUS,
+    });
+
+    expect(end).toBe("period");
+    for (const point of points) {
+      expect(Math.abs(radius(point) - THUMBNAIL_LAUNCH_RADIUS)).toBeLessThan(
+        CIRCLE_TOLERANCE,
+      );
+    }
   });
 
   it("7.90 km/s horizontal reaches the ground in the engine", () => {
