@@ -1,10 +1,10 @@
 # Spec 04: Lesson (Part A)
 
-Status: approved on 2026-10-26; amended on 2026-10-26 after a review of the running lesson (the flow inside each step, shorter texts, questions 3 and 4b).
+Status: approved on 2026-10-26; amended the same day after reviews of the running lesson: shorter texts, then one page in sections instead of a route per step, then a prototype of that page (the layout, the animations, one-click questions) whose decisions are recorded here.
 
 ## Goal
 
-The Part A lesson at `/gravitation`: the five steps of `docs/design/part-a-learning-experience.md`, each with its visual or interaction and its check question, the learner profile those questions build, and Newton's cannon simulator. It also exposes the lesson's controls (the cannon and the navigation between steps) as one typed API that the page's own buttons use and that the tutor will use in spec 05. This spec contains no LLM code; it builds only the shell of the tutor's panel and makes the controls ready for it.
+The Part A lesson at `/gravitation`: one page whose sections follow the five steps of `docs/design/part-a-learning-experience.md`, each with its visual or interaction and its check question, the learner profile those questions build, and Newton's cannon simulator. It also exposes the lesson's controls (the cannon and the navigation between the page's parts) as one typed API that the page's own buttons use and that the tutor will use in spec 05. This spec contains no LLM code; it builds only the shell of the tutor's panel and makes the controls ready for it.
 
 ## Why it exists (from the brief)
 
@@ -18,36 +18,38 @@ Builds on spec 01 (`@/physics`), spec 03 (layout, strings, the canvas pieces of 
 
 ### The lesson
 
-1. **One route per step.** `/gravitation/[step]`, with the steps `falling`, `mutual`, `moon`, `cannon` and `law`, generated at build time, each with its own title. `/gravitation` redirects to `/gravitation/falling`, so the home and header links keep working. An unknown step returns the Spanish 404. A step can be shared by its URL, and the browser's Back button goes to the previous step.
-2. **The lesson session lives in the `/gravitation` layout.** The answers, the cannon's settings and its recent paths are kept in the layout, so they survive moving between steps, and they reset on reload, as the gallery's preferences do (spec 03, Decision 10). The tutor's panel sits in the same layout in spec 05, so a conversation survives moving between steps too.
-3. **Free navigation, with a guided path.** Every step has "previous" and "next" links and a list of the five steps, and the learner can always move on without answering. Answering is the guided path:
-   - **«Continuar».** After an answer, its feedback is followed by a primary «Continuar» link to the next step. It is a link, not a button, because it navigates. Step 5 has none. On step 4 it follows the second question, since the prediction's feedback waits for a launch.
-   - **Focus.** Recording the answer removes the «Responder» button, so focus moves to the feedback, which is then read; «Continuar» follows it in the tab order. Otherwise a keyboard user's focus would fall back to the start of the page.
-   - **Answered steps.** The step list marks a step once all its questions are answered, with a visible mark and an accessible text («respondido»).
+1. **One page, four sections.** The lesson is one static page at `/gravitation`, laid out like an explanatory article: a title, a lead of two lines and four sections that follow Newton's reasoning, each separated from the next by a hairline and the same space above and below.
+   1. **«La manzana cae»** (`#falling`).
+   2. **«La atracción es mutua»** (`#mutual`).
+   3. **«¿Llega hasta la Luna?»**, in two parts: the attraction at the Moon's distance (`#moon`), then «¿Por qué no cae la Luna?», with the cannon (`#cannon`). Both are laid out like the other sections, with the hairline between them.
+   4. **«La ley completa»** (`#law`).
 
-   Routes, the tutor's `goToStep` and L1 and L2 are unchanged.
-4. **Each step: illustration, intro, question.** The intro is one or two lines. Facts that do not fit go into a short caption of the illustration or into the questions' feedback, so a step reads at a glance. The Spanish text of every sentence that states a fact is in "Physics accuracy review (L19)".
-   - **Step 1:** an SVG with two apples falling towards the centre from nearly opposite points of the globe: Madrid at the top and New Zealand at the bottom, as question 1's feedback says ("cae hacia arriba en la pantalla").
-   - **Step 2:** an SVG with equal force arrows on the apple and the Earth, only the apple moving, and a caption: two equal forces, about 1 newton each for a 100 g apple.
-   - **Step 3:** an SVG of the Earth, the apple and the Moon at scale distance (60 radii). Below the question, for exploring, a distance slider from 1 to 60 Earth radii in whole steps, measured from the Earth's centre, showing the pull relative to the surface as 1/d² (twice the distance, a quarter of the pull; at 60 radii, 1/3600).
-   - **Step 4:** the cannon (Decisions 7 to 11), with a caption: a 10 km mountain, a little taller than Everest, and no air. Order: intro, the prediction, the cannon, the question after experimenting.
-   - **Step 5:** no illustration; the law takes its place. Intro, then F = G · m₁ · m₂ / r² as styled text with a spoken form for screen readers, its symbols linked to the steps where the learner saw them (m₁, m₂ and F to step 2, r² to step 3; G is new and has no link). Then one line on G, a caption with its value, and the question, which applies the law. No math library.
+   The lead reads «La fuerza que hace caer una manzana es la misma que mantiene a la Luna en su órbita. Aquí verás cómo llegó Newton a esa idea y a la ley que la describe.» Each part has a heading and an anchor, so it can be shared by its URL. There are no routes per step and no redirect; any path below `/gravitation` is the Spanish 404. Cost: the whole lesson is visible at once, so the headings and the order carry the reasoning, and the texts stay short (Decision 4).
+2. **The lesson session lives in the page.** The answers, the cannon's settings and its recent paths are kept by a provider around the page, and they reset on reload, as the gallery's preferences do (spec 03, Decision 10). The tutor's panel sits inside the same provider in spec 05.
+3. **Free reading order.** The learner scrolls freely and can answer the questions in any order, or not at all; the page has no step list, no previous and next links and no «Continuar». Answering has its own interaction (Decision 5).
+4. **Each part: text and question on one side, the picture on the other.** From 1,024 px the two sit side by side, alternating sides from one part to the next; narrower, the picture comes first, followed by the heading, the text and the question. A part's text is one or two lines; facts that do not fit go into a short caption or into the questions' feedback. The question box is compact: a tight border, the options close together. The Spanish text of every sentence that states a fact is in "Physics accuracy review (L19)".
+   - **`#falling`:** an SVG of the Earth with two large apple trees about 117° apart along its surface, Madrid and Bali. Each tree is drawn on top and turned about the centre, so its apple falls along its own "down". The animation loops every 7 s: Madrid's tree appears and its apple falls, then Bali's, then two dashed yellow lines draw from the apples to the Earth's centre; everything fades out at the end and the loop starts again. The apples are red and small, the lines yellow.
+   - **`#mutual`:** an SVG of a red apple above the Earth with two thin force arrows of the same size, one on the apple and one on the Earth, and a caption: two equal forces, about 1 newton each for a 100 g apple. The animation loops every 5 s: the apple and its arrow fade in above, wait, fall in 0.8 s, wait on the ground and fade out; the jump back up happens while they are invisible. The arrow on the Earth stays.
+   - **`#moon`:** an SVG of the Earth, drawn large, and the Moon at the same scale (its radius is 0.27 of the Earth's), joined by a dashed line cut by a break mark, labelled «60 radios terrestres»; the caption says the distance is shortened. Below the text, the question. There is no slider: the explanation and the question carry the inverse square.
+   - **`#cannon`:** the text and the question after experimenting, beside the cannon, which sits in the picture's column like in every other part (Decisions 7 to 11), with a caption: a 10 km mountain, a little taller than Everest, and no air. The prediction question precedes the cannon in the text column.
+   - **`#law`:** the law as a fraction, as on paper: F = G ·, then m₁ · m₂ over a horizontal line, over r², all in white, with a caption giving G's value. Screen readers get the formula as a sentence and the drawn one is hidden from them. The symbols do not link anywhere. Beside it, the text, the line on G and the question, which applies the law. No math library.
 
-   With `prefers-reduced-motion: reduce`, the SVG animations show their final frame.
-5. **Check questions as in the design note.** Single choice, one per step except step 4, which has two (a prediction before firing and a question after experimenting). Every wrong option names the misconception it reveals. The app grades them deterministically, because the correct option is known in advance. The first answer is recorded, and the question then shows its feedback and locks, because the first answer is what tells us what the learner believed. The prediction's feedback appears once a launch at 12.00 km/s and 0° has played, fired from a button beside the question, the controls or the tutor; if one has already played when the learner answers, the feedback shows at once (predict, observe, explain).
+   **Pause.** The two looping animations have a button, «Pausar»/«Reanudar», at the corner of their own drawing: bottom right in `#falling`, top left in `#mutual`. WCAG 2.2.2 requires it for moving content that starts by itself and lasts over 5 s. With `prefers-reduced-motion: reduce` nothing moves and there is no button: the pictures show their final frame.
+5. **Check questions as in the design note.** Single choice, one per part, except `#cannon`, which has two: a prediction before firing and a question after experimenting. Every wrong option names the misconception it reveals. The app grades them deterministically, because the correct option is known in advance. The prediction's feedback appears once a launch at 12.00 km/s and 0° has played, fired from a button beside the question, the controls or the tutor; if one has already played when the learner answers, the feedback shows at once (predict, observe, explain).
+
+   **One click answers.** The options are buttons, not radio buttons: with radio buttons the arrow keys select as they move, so a keyboard user would answer by accident; with buttons, Tab and Enter do it. Answering swaps the options for the explanation in the same box: the verdict («Correcto.» or «No exactamente. La correcta: …»), why, and «Ver opciones» at the bottom right. «Ver opciones» brings the options back with the learner's answer marked «(Tu respuesta)»; clicking another one shows its explanation, so the learner can read them all. The learner profile keeps the first answer only, because it is what tells us what they believed. Focus moves to the explanation, and to the first option when «Ver opciones» is used, so a keyboard user's focus never falls back to the start of the page.
+
+   **Nothing moves when answering.** The box reserves, from the start, the height of the longest explanation it can show, so answering, going back to the options and choosing another answer change neither the box, nor the picture beside it, nor anything below. Cost: before answering, some boxes have empty space under their options (at 1,280 px, from 0 to 25 px; at 360 px, one or two lines).
 
    Changes from the design note's questions, which leave four wrong options without a misconception:
-   - **Step 2:** "The apple" maps to no known belief, so it is replaced by "Only the Earth pulls; the apple does not pull at all" (one-way attraction).
-   - **Step 4, prediction:** "It falls back to Earth" records "everything that goes up comes down"; "It goes into orbit" records "more speed always means an orbit".
-   - **Step 4, after experimenting:** "The Earth pushes it away" records "an outward force balances gravity".
-   - **Step 5:** "The same" records "the same fall means the same force", because it usually comes from the correct fact that everything falls equally fast; its feedback separates force from acceleration.
+   - **`#mutual`:** «La manzana» records "a bigger effect means a bigger force": the apple moves far more, so it seems to feel more force. A fourth option is added, «Solo tira la Tierra; la manzana no tira», recording "one-way attraction".
+   - **`#cannon`, prediction:** "It falls back to Earth" records "everything that goes up comes down"; "It goes into orbit" records "more speed always means an orbit".
+   - **`#cannon`, after experimenting:** "The Earth pushes it away" records "an outward force balances gravity". A fourth option, «Porque a esa distancia la gravedad ya no llega», records "gravity does not reach"; its feedback recalls `#moon`: the attraction is weaker there, but it reaches.
+   - **`#moon` asks «Si la Luna estuviera el doble de lejos, la atracción sería…»,** with «La cuarta parte» correct and three wrong options: «La mitad» (linear with distance), «La misma» (distance does not matter) and «El doble» (farther means stronger). Fractions are easier to picture than the 3600 of the real Moon. Newton's Moon test goes in the correct option's feedback only, which keeps the others short: 2 × 2 = 4 times weaker, and the Moon, 60 times farther, gets 3600 times less, which in one second is the 1,4 mm it falls against the 4,9 m of the apple. The wrong options correct themselves and give the 3600 in one sentence.
+   - **`#law`:** "The same" records "the same fall means the same force", because it usually comes from the correct fact that everything falls equally fast; its feedback separates force from acceleration.
 
-   And two changes from the review of the running lesson:
-   - **Step 3 asks about the real Moon,** Newton's own test, instead of "twice as far": «¿Cuánto más débil es la atracción allí?», with «Unas 3600 veces» correct, «Unas 60 veces» recording "linear with distance" and «Igual de fuerte» recording "distance does not matter". Every option's feedback carries 60 × 60 = 3600 and the comparison in one second: the apple falls 4,9 m, the Moon about 1,4 mm. The slider below it then generalises the rule (L14).
-   - **Step 4's question after experimenting gains a fourth option,** «Porque a esa distancia la gravedad ya no llega», recording "gravity does not reach"; its feedback recalls step 3: the attraction is weaker there, but it reaches. There is no "none of the above": every wrong option names a misconception.
-
-   The questions, their options and what each records are in "Questions and misconceptions".
-6. **The learner profile is per question.** For each question, the profile records "correct", the misconception chosen, or "unknown" (not answered). Each question names its concept (fall direction, mutual attraction, inverse square, orbit as falling, the full law), so step 4's two questions both inform "orbit as falling" without losing which one was missed. The profile is pure data, built by a pure function from the answers, and is available read-only through the lesson's controls for spec 05.
+   There is no "none of the above": every wrong option names a misconception. The questions, their options and what each records are in "Questions and misconceptions".
+6. **The learner profile is per question.** For each question, the profile records "correct", the misconception chosen, or "unknown" (not answered). Each question names its concept (fall direction, mutual attraction, inverse square, orbit as falling, the full law), so the two questions of `#cannon` both inform "orbit as falling" without losing which one was missed. The profile is pure data, built by a pure function from the answers, and is available read-only through the lesson's controls for spec 05.
 
 ### Newton's cannon
 
@@ -72,9 +74,9 @@ Builds on spec 01 (`@/physics`), spec 03 (layout, strings, the canvas pieces of 
    The outcome is therefore known at once, the same for every caller, and testable without the canvas. A criterion (L8) checks that the simulated trajectory agrees with it.
 10. **Simulated with the engine, one screen second per unit of time.** The shot is a body of mass 1e-9 (spec 01 requires positive masses), so the Earth's motion is invisible. Its path is computed relative to the Earth, at 2,000 steps per low-orbit period, and ends when it reaches the surface. One second on screen is one unit of engine time (13.4 minutes), the same rule as the gallery (spec 03, Decision 7): a low orbit takes 6.3 s and the elliptical preset 10.7 s. The view is fixed and centred on the Earth, and shows at least the elliptical preset's farthest point (1.85 radii from the centre). A shot that leaves the view stops being animated; its outcome label still applies.
 
-    The path is traced when the shot is fired, not frame by frame. The trace stops at the first of: reaching the ground, one period (2π·a^1.5, for bound orbits), or passing a stop radius (the view's, 2.0 radii, in the UI), with the engine's limit of 1,000,000 steps as a backstop. Inside the view a trace takes at most about 4,000 steps. The canvas reveals it at one screen second per unit of time; a closed orbit then loops its traced period. A launch animates once: coming back to step 4 shows it complete. Because the trace is stored in the session, a launch fired from another step plays when the canvas mounts.
+    The path is traced when the shot is fired, not frame by frame. The trace stops at the first of: reaching the ground, one period (2π·a^1.5, for bound orbits), or passing a stop radius (the view's, 2.0 radii, in the UI), with the engine's limit of 1,000,000 steps as a backstop. Inside the view a trace takes at most about 4,000 steps. The canvas reveals it at one screen second per unit of time; a closed orbit then loops its traced period. A launch fired from elsewhere on the page, by the tutor, first scrolls the cannon into view (Decision 14) and plays there.
 11. **Presets, reference speeds and paths.**
-    - **Presets:** ballistic 7.00 km/s at 45°, circular orbit 7.91 km/s at 0°, elliptical orbit 9.00 km/s at 0°, escape 12.00 km/s at 0° (the speed of step 4's prediction question). The values may be tuned in visual review as long as each still gives its outcome (L9).
+    - **Presets:** ballistic 7.00 km/s at 45°, circular orbit 7.91 km/s at 0°, elliptical orbit 9.00 km/s at 0°, escape 12.00 km/s at 0° (the speed of the prediction question in `#cannon`). The values may be tuned in visual review as long as each still gives its outcome (L9).
     - **Reference speeds:** shown next to the speed control and computed from the model, not typed: circular ≈ 7.9 km/s (≈ 28,000 km/h) and escape ≈ 11.2 km/s, formatted in Spanish ("7,9 km/s", "28.000 km/h").
     - **Paths:** the current launch's path is drawn bright, and up to the last four earlier paths stay faint until the learner clears them, so speeds can be compared as in Newton's drawing.
     - **Outcome label:** it appears when the outcome becomes visible (on landing, after one full turn, or on leaving the view), and a polite live region announces it. With reduced motion, the path is drawn complete at once, with its label.
@@ -94,22 +96,22 @@ Builds on spec 01 (`@/physics`), spec 03 (layout, strings, the canvas pieces of 
     In that order per field: reject, round, clamp. Speed is checked before angle, and a rejection changes nothing. Rounding is `Math.round(value * steps) / steps` with `steps = 1 / resolution` as an integer (100 and 1), and −0 becomes 0; `Math.round(value / resolution) * resolution` leaves float noise (0.35 becomes 0.35000000000000003, and 201 of the 1,501 speeds come out wrong). A field is clamped only when its rounded value is outside the range, so 15.004 becomes 15.00 without being clamped.
 
     The controller returns a rejection instead of throwing, because spec 05 sends the result back to the model, which has to read it. The pure cannon functions below it throw a `RangeError` naming the field, as everywhere else (spec 01, Decision 8).
-14. **The navigation is a controller too.** `goToStep` moves to a step (validated at runtime, because the tutor's input is untyped), pushes a history entry as the links do, and returns the step reached or a rejection. A launch requested from another step first moves to the cannon step, so the learner sees what they asked for.
+14. **The navigation is a controller too.** `goToSection` scrolls to one of the page's parts (validated at runtime, because the tutor's input is untyped), smoothly unless the learner asked for reduced motion, and moves focus to its heading, so a screen reader follows. It replaces the URL's anchor without a history entry, so Back still leaves the lesson. It returns the part reached or a rejection. `current()` is the part at the top of the viewport. A launch requested while the cannon is out of view first scrolls to it, so the learner sees what they asked for.
 15. **The tutor's panel is only a shell.** This spec builds its placement, its opening and closing, and a short Spanish placeholder text, and nothing else: no messages, no input and no state that spec 05 would redo.
-    - **Placement:** a fixed column next to the lesson, always open, at 1,024 px and wider. Narrower, a button opens it as a sheet. Visual review checks the cannon step at exactly 1,024 px: if the canvas is cramped beside the panel, the breakpoint moves to 1,280 px and this decision records it.
-    - **Opening and closing:** the sheet is a native `<dialog>`, opened by the button; it closes with its close button or Escape and returns focus to the button.
+    - **Placement:** a floating button, fixed at the bottom right at every width, opens the panel at the right edge. The panel is a non-modal `<dialog>` (`show()`, not `showModal()`), so the page beside it stays visible and usable: when the tutor launches the cannon, the learner sees it. Narrower than 640 px, the panel takes the full width.
+    - **Opening and closing:** the button opens it; its close button or Escape closes it and returns focus to the button.
     - **Spec 05** replaces the placeholder with the conversation.
 
 ### The whole page
 
-16. **Strings, colours and accessibility as in spec 03.** Every string lives in `src/content/es.ts`, numbers use Spanish formatting, and colours come from the theme tokens. All controls are native elements with Spanish labels and visible focus. The sliders have value texts with units ("7,91 km/s, 28.476 km/h"; "el doble de lejos: 1/4 de la fuerza"), and the canvas has a text alternative describing the last launch.
+16. **Strings, colours and accessibility as in spec 03.** Every string lives in `src/content/es.ts`, numbers use Spanish formatting, and colours come from the theme tokens. All controls are native elements with Spanish labels and visible focus. The cannon's sliders have value texts with units ("7,91 km/s, 28.476 km/h"), and the canvas has a text alternative describing the last launch.
 17. **`src/cannon` is pure, like `src/orbits`.** Units, the launch state, the outcome, the trajectory, the presets and the controller's validation live in a new domain folder with the same boundary rules (spec 02, Decision 8). It is shared by the lesson and by the home page's cannon thumbnail (see "Changes to spec 03"). The React wiring of the controller lives in the `/gravitation` route.
-18. **The lesson's text follows the design note's physics accuracy notes.** Equal forces are never described as unequal: step 2's text never says that one body pulls harder or more weakly, although its question asks who pulls harder and a wrong option answers it. The apple is presented as Newton's own story; fall distances are "in one second", never "per second"; distances in the inverse square are from the Earth's centre, never heights above the surface.
+18. **The lesson's text follows the design note's physics accuracy notes.** Equal forces are never described as unequal: the text of `#mutual` never says that one body pulls harder or more weakly, although its question asks who pulls harder and a wrong option answers it. The apple is presented as Newton's own story; fall distances are "in one second", never "per second"; distances in the inverse square are from the Earth's centre, never heights above the surface.
 
 ## The lesson's controls (shape, not final code)
 
 ```ts
-type StepId = "falling" | "mutual" | "moon" | "cannon" | "law";
+type SectionId = "falling" | "mutual" | "moon" | "cannon" | "law";
 
 type CannonOutcome = "ballistic" | "circular-orbit" | "elliptical-orbit" | "escape";
 
@@ -142,8 +144,8 @@ type LaunchResult =
   | Rejected;
 
 type NavigationResult =
-  | { readonly status: "moved"; readonly step: StepId }
-  | { readonly status: "rejected"; readonly field: "step"; readonly reason: string };
+  | { readonly status: "moved"; readonly section: SectionId }
+  | { readonly status: "rejected"; readonly field: "section"; readonly reason: string };
 
 type LessonControls = {
   readonly cannon: {
@@ -156,23 +158,23 @@ type LessonControls = {
     };
   };
   readonly navigation: {
-    readonly steps: readonly StepId[];
-    current(): StepId;
-    goToStep(step: string): NavigationResult;
+    readonly sections: readonly SectionId[];
+    current(): SectionId;
+    goToSection(section: unknown): NavigationResult;
   };
   learnerProfile(): LearnerProfile;
 };
 ```
 
-The controls reach the `/gravitation` layout's components through one React context. The rules (validation, clamping, rounding, the outcome, the session's state changes) are pure functions with unit tests; the context only wires them to the store and the router. The session lives in a small external store read with `useSyncExternalStore`, not in `useState` as the gallery's does, so that `current()` right after `launch()` already returns the new state, as the tutor needs. `goToStep` rejects an unknown step with the reason "must be one of falling, mutual, moon, cannon, law", and moving to the current step adds no history entry.
+The controls reach the page's components through one React context. The rules (validation, clamping, rounding, the outcome, the session's state changes) are pure functions with unit tests; the context only wires them to the store and the router. The session lives in a small external store read with `useSyncExternalStore`, not in `useState` as the gallery's does, so that `current()` right after `launch()` already returns the new state, as the tutor needs. `goToSection` rejects an unknown part with the reason "must be one of falling, mutual, moon, cannon, law".
 
 ## Acceptance criteria
 
 | ID | Criterion | Source | Verification |
 |---|---|---|---|
-| L1 | `/gravitation` redirects to the first step; each step loads directly from its URL with its own title; an unknown step is a 404; the home page and the header still link to the lesson. | §02, Decision 1 | E2E: "each step loads from its URL", "an unknown step is a 404", "/gravitation opens the first step"; spec 03 G1 |
-| L2 | The learner moves between steps with the previous and next links and the step list, by mouse and keyboard, without answering; Back returns to the previous step; answers and cannon settings survive moving between steps and reset on reload. | Decisions 2 and 3 | E2E: "steps navigate by keyboard", "the lesson keeps its state across steps and resets on reload" |
-| L3 | The six questions are those of "Questions and misconceptions"; every wrong option names a misconception; the correct option is graded correct; the first answer locks the question and shows its feedback; the prediction's feedback waits for the 12 km/s launch. | Decision 5 | `questions.test.ts`: "every wrong option names a misconception", "grades each option"; E2E: "answering shows feedback and locks the question", "the launch reveals the prediction" |
+| L1 | `/gravitation` is one static page with its title, its lead and the four sections in order, each part with its heading and anchor; a URL with an anchor opens at that part; any path below `/gravitation` is a 404; the home page and the header link to the lesson. | §02, Decision 1 | E2E: "the lesson is one page with its sections in order", "an anchor opens its part", "a path below /gravitation is a 404"; spec 03 G1 |
+| L2 | The learner answers in any order, or not at all, by mouse and keyboard; answers and cannon settings reset on reload. | Decisions 2 and 3 | E2E: "questions can be answered in any order", "the lesson's state resets on reload" |
+| L3 | The six questions are those of "Questions and misconceptions"; every wrong option names a misconception; the correct option is graded correct; one click on an option answers and shows its explanation; the first answer is the one recorded; the prediction's feedback waits for the 12 km/s launch. | Decision 5 | `questions.test.ts`: "every wrong option names a misconception", "grades each option"; `lesson-session.test.ts`: "a question keeps its first answer"; E2E: "one click answers and shows the explanation", "the launch reveals the prediction" |
 | L4 | The learner profile records, per question, "correct", the misconception chosen or "unknown", with the question's concept. | Decision 6 | `learner-profile.test.ts`: "an unanswered question is unknown", "records the misconception chosen", "names each question's concept" |
 | L5 | Unit conversion: one engine speed unit is 7.910 km/s (to 0.001) and one time unit 805.5 s (to 0.1); km/s to engine units and back returns the input within 1e-12 relative. | Decision 7 | `units.test.ts` |
 | L6 | The outcome follows Decision 9, launching from 10 km. Horizontal: 0 and 7.90 km/s ballistic, 7.91 and 7.94 km/s circular, 7.95 and 8.00 km/s elliptical, 11.17 km/s elliptical, 11.18 km/s escape. Straight up: 11.17 km/s ballistic, 11.18 km/s escape. From 3° up, nothing below 11.18 km/s orbits. | Decisions 8 and 9 | `outcome.test.ts`: one test per boundary, named by it, and "3° and up never orbit below escape" |
@@ -180,28 +182,33 @@ The controls reach the `/gravitation` layout's components through one React cont
 | L8 | The simulated trajectory agrees with the computed outcome, over speeds from 0 to 15 km/s in steps of 0.5 km/s and angles of 0°, 30°, 60° and 90°, plus 7.91 and 7.94 km/s at 0° (the grid has no circular launch). Ballistic shots reach the surface before one turn. Circular ones stay within 1 % of their mean radius for one period. Elliptical ones return to the launch point after one period, within a tolerance measured as in spec 01 ("Measured tolerances"; an independent integration at the same step gives 5.5e-8 radii at 11.0 km/s). Escaping ones pass 20 radii. Launches within 1 % of the escape speed are left out: the slowest kept, 11.0 km/s, already needs 127,000 steps for one period. In the engine, 7.90 km/s horizontal reaches the ground and 7.91 km/s completes a period above its launch radius. | Decisions 8, 9 and 10 | `trajectory.test.ts`: "the simulation agrees with the outcome", "7.90 km/s horizontal reaches the ground in the engine", "7.91 km/s horizontal completes a period above its launch radius"; the suite's time and the tolerance recorded in "Results" |
 | L9 | Each preset gives its outcome. | Decision 11 | `presets.test.ts`: "each preset gives its outcome"; E2E: "each preset shows its outcome label" |
 | L10 | The cannon controller validates its input. A non-finite speed or angle is rejected with the field named, and nothing changes. Out-of-range values are clamped and listed in `clamped`. Values are rounded to 0.01 km/s and 1°, with no float noise. An absent field keeps its current value. `set` applies without firing; a launch returns the applied values and the outcome. | Decisions 12 and 13 | `src/cannon/controls.test.ts`: one test per rule, including "50 km/s is clamped to 15", "7.9049 km/s is applied as 7.90" and "every rounded speed equals its two-decimal literal" (all 1,501 speeds) |
-| L11 | Navigation through the controller validates the step and moves like a link, and a launch from another step moves to the cannon step first. | Decision 14 | `lesson-session.test.ts`: "rejects an unknown step", "moving to the current step adds no history entry", "a launch from another step moves to the cannon"; E2E of the links in L2. Driving it from the tutor is covered by spec 05's E2E. |
+| L11 | Navigation through the controller validates the part, scrolls to it and focuses its heading without a history entry, and a launch while the cannon is out of view scrolls to it first. | Decision 14 | `lesson-session.test.ts`: "rejects an unknown part", "a launch from another part moves to the cannon"; `lesson-controls.test.ts`: "goToSection navigates for a valid part only". Driving it from the tutor is covered by spec 05's E2E. |
 | L12 | The launch button, the presets and the controls change the cannon only through the controller. | Decision 12 | Code review; E2E: "launching from the controls shows the outcome label" |
-| L13 | The cannon works by mouse and keyboard; in the speed field and the speed slider the arrow keys change the speed by 0.01 km/s, and a typed value is applied; the outcome label appears when the outcome is visible and is announced in a live region; the canvas has a text alternative; with reduced motion the path is drawn complete at once, and steps 1 and 2 show their final frame. | Decisions 4, 11 and 16 | E2E: "the cannon works with the keyboard", "the speed field adjusts by 0.01 km/s", "the outcome is announced", "reduced motion draws the path at once" |
-| L14 | Step 3's slider shows 1/4 at twice the distance and 1/3600 at 60 radii, in its text and its value text. | Decision 4 | `inverse-square.test.ts` for the fraction; E2E: "the distance slider shows the inverse square" |
-| L15 | Layout: from 1,024 px (or 1,280 px, if Decision 15's review moves it) the tutor panel is open beside the lesson; narrower, a button opens it as a sheet, and focus returns to the button when it closes. At 360 px, 768 px and 1,280 px there is no horizontal scroll, and the controls stay inside the viewport, not overlapping, with targets of at least 24 × 24 CSS px. | Decision 15, §04 | E2E at three viewports, as spec 03 G9; screenshots for visual review |
-| L16 | Accessibility: no axe violations on any step; every control has a label; focus is visible. | §04 | E2E with axe (WCAG 2.1 A and AA) on every step, added to spec 03's sweeps |
+| L13 | The cannon works by mouse and keyboard; in the speed field and the speed slider the arrow keys change the speed by 0.01 km/s, and a typed value is applied; the outcome label appears when the outcome is visible and is announced in a live region; the canvas has a text alternative; with reduced motion the path is drawn complete at once, and the pictures of `#falling` and `#mutual` show their final frame. | Decisions 4, 11 and 16 | E2E: "the cannon works with the keyboard", "the speed field adjusts by 0.01 km/s", "the outcome is announced", "reduced motion draws the path at once", "reduced motion shows the two pictures at rest" |
+| L14 | Dropped: the slider of `#moon` was removed (Decision 4). The inverse square is carried by the `#moon` question and its explanations (L19, sentence 7). | Decision 4 | — |
+| L15 | Layout: the tutor's button is visible at every width and opens the panel without blocking the page; focus returns to the button when it closes. From 1,024 px each part's text and picture sit side by side, alternating; narrower, the picture comes first. A hairline and equal space separate every pair of parts, `#moon` and `#cannon` included. At 360 px, 768 px and 1,280 px there is no horizontal scroll, and the controls stay inside the viewport, not overlapping, with targets of at least 24 × 24 CSS px. | Decisions 1, 4 and 15, §04 | E2E at three viewports, as spec 03 G9: "the tutor panel opens beside the page and returns focus"; screenshots for visual review |
+| L16 | Accessibility: no axe violations on the lesson page, before and after answering; every control has a label; focus is visible. | §04 | E2E with axe (WCAG 2.1 A and AA), added to spec 03's sweeps |
 | L17 | Every string comes from `src/content/es.ts`, and colours only from the theme tokens. | Decision 16 | spec 03 G11's checks, which already cover `src` |
 | L18 | `src/cannon` imports nothing from React, Next.js or Node, uses no DOM globals, and outside its own files imports only `@/physics`. | Decision 17 | Biome rules in CI, extended from spec 02 Decision 8; `environment.test.ts` |
 | L19 | The lesson's text respects the physics accuracy notes of the design note. | Decision 18 | Every sentence that states a physical fact is listed in "Physics accuracy review (L19)" with its check, reviewed by a human, and recorded in "Results"; `lesson-text.test.ts`: "no lesson text says 'por segundo'" (the other rules depend on meaning, so they stay in review) |
-| L20 | After an answer, «Continuar» opens the next step (none on step 5; on step 4, after its second question), and focus moves to the feedback. The step list marks a step once all its questions are answered, with a visible mark and an accessible text. Moving without answering still works (L2). | Decision 3 | E2E: "answering shows Continuar, which opens the next step", "answered steps are marked in the step list", "answering moves focus to the feedback" |
+| L20 | Answering moves focus to the explanation; «Ver opciones» shows the options again with the first answer marked «(Tu respuesta)» and moves focus to the first option; clicking another option shows its explanation without changing the recorded answer. | Decision 5 | E2E: "answering moves focus to the explanation", "Ver opciones shows the options and keeps the first answer"; `learner-profile.test.ts`: "browsing other options does not change the profile" |
+| L21 | The animations of `#falling` and `#mutual` loop, each has a «Pausar»/«Reanudar» button at the corner of its own drawing that stops only that animation, and with reduced motion there is no animation and no button. | Decision 4, WCAG 2.2.2 | E2E: "the animations loop", "pausing stops only its own animation", "reduced motion shows the two pictures at rest" |
+| L22 | Nothing moves when a question is answered, when «Ver opciones» is used or when another option is chosen: the box, the picture beside it and every section below keep their position and height, in every part, at 360 px and at 1,280 px. | Decision 5 | E2E: "answering moves nothing", measuring the boxes' position and height before and after, in document coordinates |
+
+## Changes to the visual style
+
+`docs/design/visual-style.md` gets one new colour token, `apple` (`#e5484d`, a red), used only for the apples of the lesson's illustrations. The palette had no red, and an apple that is not an apple is hard to read. It is defined in the theme like the others (spec 03, Decision 3), so no component hardcodes it, and it has a use only in `#falling` and `#mutual`. The design note's "Motion" section also changes: besides the home hero, the two looping illustrations of the lesson move on their own, with a pause button (Decision 4).
 
 ## Changes to spec 03
 
 - **The canvas pieces the cannon reuses move to `src/drawing`:** the world-to-canvas transform, the animation loop, the sizing and the theme colours, as spec 03 Decision 5 planned for when Part A uses them. The reduced-motion hook moves to `src/components`, since it is React. The trail and the drawing functions stay in the detail route: the cannon reveals a traced path instead of a trail, and draws open paths and the Earth.
 - **The home page's cannon thumbnail uses `src/cannon`.** `(home)/newton-cannon.ts` moves its trajectory into `src/cannon`, so there is one cannon simulation. The thumbnail keeps its taller, illustrative launch point (1.35 radii), which it passes as a parameter.
-- **`/gravitation` stops being a placeholder.** The E2E tests that expect the URL `/gravitation` (`home.spec.ts`, `site.spec.ts`, `accessibility.spec.ts`) follow the redirect to `/gravitation/falling`, and the header marks "Gravitación" as current on every step.
+- **`/gravitation` stops being a placeholder.** It becomes the lesson itself, so the E2E tests that expect the URL `/gravitation` (`home.spec.ts`, `site.spec.ts`, `accessibility.spec.ts`) keep it, and the header marks "Gravitación" as current there.
 
 ## Out of scope
 
 - The tutor itself, the LLM route, its tools and its error messages: spec 05. This spec provides the controls and the panel's shell.
 - The free-text "explain it in your own words" question: spec 05, since an LLM grades it.
-- Letting the tutor move step 3's distance slider; the design note asks only for the cannon and the navigation.
 - Keeping the lesson's state across reloads.
 - From the design note, to be stated in the README: atmospheric drag, CSV and PNG export, other central bodies (Moon, Mars) and a technical orbital data panel (apogee, perigee, eccentricity, period).
 - Zooming and panning the cannon's view, and following shots that leave it.
@@ -213,7 +220,8 @@ The controls reach the `/gravitation` layout's components through one React cont
 - **Long ellipses and escapes leave the view.** Shots near the escape speed spend minutes outside it (11.0 km/s reaches 31 radii). Mitigation: the outcome label is computed at launch (Decision 9), so the learner and the tutor get the answer anyway; the view's extent is set in visual review.
 - **Two units in one code path.** A value in km/s passed where an engine speed is expected would be wrong by a factor of 7.9 and still typecheck. Mitigation: conversion only at the cannon's boundary, units in every identifier (`speedKmPerSecond`), and L6 and L10 written in km/s.
 - **The controller is only half tested here.** The tutor's side, the tool calls, belongs to spec 05. Mitigation: the controller's rules are pure and unit-tested (L10, L11), and the page's own buttons use the same controller (L12), so every path the tutor will use already runs in E2E.
-- **State shared between the layout and the pages.** The cannon's state lives in the layout, but the canvas mounts only on step 4, so a launch from step 2 has to start once the canvas appears. Mitigation: the trace is computed when the shot is fired and kept in the session (Decision 10), so the canvas plays it whenever it mounts; L11 covers the session rule.
+- **A long page.** The whole lesson on one page can overwhelm a reader without a physics background. Mitigation: four sections with one or two lines of text each, the facts in captions and feedback, and visual review at 360 px.
+- **A launch out of view.** The tutor may launch while the learner reads another part. Mitigation: the launch scrolls the cannon into view first (Decision 14), and the trace is computed when the shot is fired (Decision 10), so nothing depends on when the canvas is seen.
 
 ## Decided in the plan
 
@@ -231,39 +239,41 @@ Code used by one route lives in that route's folder, with its tests; code shared
 | `src/cannon/presets.ts` | The presets and the reference speeds (Decision 11) |
 | `src/drawing/transform.ts`, `animation-loop.ts`, `canvas-size.ts`, `theme-colors.ts` | Moved from the detail route (see "Changes to spec 03") |
 | `src/components/use-prefers-reduced-motion.ts` | Moved from the detail route |
-| `src/app/gravitation/layout.tsx`, `tutor-panel.tsx` | The lesson column and the tutor panel's shell (Decision 15) |
-| `src/app/gravitation/lesson-session.ts`, `lesson-store.ts`, `lesson-controls.ts`, `lesson-provider.tsx` | The session's state and pure transitions; the external store; `LessonControls`; the React context that wires them to the router |
-| `src/app/gravitation/cannon-view.ts` | The view radius, shared by the session's traces and the canvas |
-| `src/app/gravitation/steps.ts`, `questions.ts`, `learner-profile.ts` | The step ids and order; the questions and their grading; the profile (Decisions 1, 5 and 6) |
-| `src/app/gravitation/[step]/page.tsx`, `step-navigation.tsx`, `check-question.tsx` | Static step pages with their titles; previous, next and the step list, which marks answered steps; a question with its feedback, lock and «Continuar» |
-| `src/app/gravitation/[step]/falling-step.tsx`, `mutual-step.tsx`, `moon-step.tsx`, `distance-slider.tsx`, `inverse-square.ts`, `law-step.tsx` | Steps 1, 2, 3 and 5 |
-| `src/app/gravitation/[step]/cannon-step.tsx`, `cannon-panel.tsx`, `cannon-canvas.tsx`, `cannon-animation.ts`, `cannon-draw.ts` | Step 4: the controls, the canvas and its animation, the drawing |
-| `next.config.ts` | The redirect from `/gravitation` to `/gravitation/falling` (307); `src/app/gravitation/page.tsx` is removed |
+| `src/app/gravitation/page.tsx` | The static lesson page: title, lead, the four sections in order, inside the lesson's provider |
+| `src/app/gravitation/lesson-session.ts`, `lesson-store.ts`, `lesson-controls.ts`, `lesson-provider.tsx` | The session's state and pure transitions; the external store; `LessonControls`; the React context that wires them to scrolling |
+| `src/app/gravitation/sections.ts`, `questions.ts`, `learner-profile.ts` | The parts' ids and order; the questions and their grading; the profile (Decisions 1, 5 and 6) |
+| `src/app/gravitation/section-layout.tsx`, `check-question.tsx`, `pausable-animation.tsx` | A part's two columns, its picture and its text; a question with its explanation, «Ver opciones» and reserved height; the pause button of a looping animation |
+| `src/app/gravitation/falling-section.tsx`, `mutual-section.tsx`, `moon-section.tsx`, `law-section.tsx` | The parts other than the cannon |
+| `src/app/gravitation/cannon-section.tsx`, `cannon-panel.tsx`, `cannon-canvas.tsx`, `cannon-animation.ts`, `cannon-draw.ts`, `cannon-view.ts` | `#cannon`: the controls, the canvas and its animation, the drawing, the view radius shared with the session's traces |
+| `src/app/gravitation/tutor-panel.tsx` | The tutor's button and panel (Decision 15) |
+| `src/app/gravitation/use-hydrated.ts`, `use-current-section.ts` | Controls disabled until the page hydrates; the part at the top of the viewport |
 
 ### Questions and misconceptions
 
-Spec 04, Decision 5. Ids are those of `questions.ts`. Question 3's id changes from `twice-as-far` to `moon-test` with its new stem.
+Spec 04, Decision 5. Ids are those of `questions.ts`.
 
-| Step | Question (id, concept) | Option | Records |
+| Part | Question (id, concept) | Option | Records |
 |---|---|---|---|
-| 1 | «¿Qué tienen en común estas dos caídas?» (`two-falls`, fall direction) | «Las dos van hacia el centro de la Tierra.» | correct |
+| `#falling` | «¿Qué tienen en común estas dos caídas?» (`two-falls`, fall direction) | «Las dos van hacia el centro de la Tierra.» | correct |
 | | | «Las dos van hacia la parte de abajo de la pantalla.» | `absolute-down` |
 | | | «Las dos van hacia el polo sur.» | `absolute-down` |
 | | | «Nada: caen en direcciones distintas.» | `no-common-cause` |
-| 2 | «¿Quién tira más fuerte, la manzana o la Tierra?» (`who-pulls-harder`, mutual attraction) | «La Tierra.» | `larger-body-pulls-harder` |
+| `#mutual` | «¿Quién tira más fuerte, la manzana o la Tierra?» (`who-pulls-harder`, mutual attraction) | «La Tierra.» | `larger-body-pulls-harder` |
+| | | «La manzana.» | `bigger-effect-means-bigger-force` |
 | | | «Solo tira la Tierra; la manzana no tira.» | `one-way-attraction` |
 | | | «Tiran exactamente igual de fuerte.» | correct |
-| 3 | «¿Cuánto más débil es la atracción allí?» (`moon-test`, inverse square) | «Unas 3600 veces.» | correct |
-| | | «Unas 60 veces.» | `linear-with-distance` |
-| | | «Igual de fuerte.» | `distance-does-not-matter` |
-| 4 | «¿Qué crees que pasará si lanzas a 12 km/s?» (`launch-at-12`, orbit as falling; feedback after a 12 km/s launch) | «Vuelve a caer a la Tierra.» | `everything-falls-back` |
+| `#moon` | «Si la Luna estuviera el doble de lejos, la atracción sería…» (`twice-as-far`, inverse square) | «La cuarta parte.» | correct |
+| | | «La mitad.» | `linear-with-distance` |
+| | | «La misma.» | `distance-does-not-matter` |
+| | | «El doble.» | `farther-means-stronger` |
+| `#cannon` | «¿Qué crees que pasará si lanzas a 12 km/s?» (`launch-at-12`, orbit as falling; feedback after a 12 km/s launch) | «Vuelve a caer a la Tierra.» | `everything-falls-back` |
 | | | «Entra en órbita.» | `faster-means-orbit` |
 | | | «Escapa y no vuelve.» | correct |
-| 4 | «¿Por qué no cae la Luna sobre la Tierra?» (`why-the-moon-does-not-fall`, orbit as falling) | «Porque en el espacio no hay gravedad.» | `no-gravity-in-space` |
+| `#cannon` | «¿Por qué no cae la Luna sobre la Tierra?» (`why-the-moon-does-not-fall`, orbit as falling) | «Porque en el espacio no hay gravedad.» | `no-gravity-in-space` |
 | | | «Sí cae, pero se mueve de lado tan deprisa que nunca llega al suelo.» | correct |
 | | | «Porque la Tierra la empuja hacia fuera.» | `outward-force-balances` |
 | | | «Porque a esa distancia la gravedad ya no llega.» | `gravity-does-not-reach` |
-| 5 | «Si la manzana tuviera el doble de masa, la fuerza entre ella y la Tierra sería…» (`twice-the-mass`, the full law) | «El doble.» | correct |
+| `#law` | «Si la manzana tuviera el doble de masa, la fuerza entre ella y la Tierra sería…» (`twice-the-mass`, the full law) | «El doble.» | correct |
 | | | «Cuatro veces mayor.» | `mass-squared` |
 | | | «La misma.» | `equal-fall-means-equal-force` |
 
@@ -273,28 +283,32 @@ Draft, to be reviewed by a human and recorded in "Results". Every sentence that 
 
 | # | Where | Sentence | Check |
 |---|---|---|---|
-| 1 | Step 1, intro | «Cuenta Newton que la idea se le ocurrió al ver caer una manzana. Aquí caen dos: una en Madrid y otra en Nueva Zelanda, casi al otro lado del planeta.» | Newton's own story, told late in life (accuracy note 2); Madrid's antipode is near Weber, New Zealand |
-| 2 | Question 1, correct feedback | «En una Tierra redonda, «abajo» significa «hacia el centro de la Tierra»: todo lo que cae, cae hacia el centro.» | A plumb line is off by at most about 0.2°, irrelevant here |
-| 3 | Step 2, intro | «Newton dio un paso más: todo lo que tiene masa atrae a todo lo demás. La Tierra atrae a la manzana, y la manzana también atrae a la Tierra.» | Universality and the third law (accuracy notes 1 and 3) |
-| 4 | Step 2, caption | «Dos fuerzas iguales: para una manzana de 100 g, de alrededor de 1 newton cada una.» | 0.1 kg × 9.8 m/s² = 0.98 N |
-| 5 | Question 2, correct feedback | «Las dos fuerzas son iguales. Esa fuerza acelera a la manzana 9,8 m/s² y a la Tierra unos 1,6 × 10⁻²⁵ m/s², porque la Tierra tiene muchísima más masa.» | 0.98 N / 5.97 × 10²⁴ kg = 1.6 × 10⁻²⁵ m/s² |
-| 6 | Step 3, intro | «Si la Tierra atrae a la manzana, ¿atrae también a la Luna? La Luna está unas 60 veces más lejos del centro de la Tierra que la manzana.» | 384,400 / 6,371 = 60.3, from the centre |
-| 7 | Question 3, every option's feedback | «60 × 60 = 3600. En un segundo, la manzana cae unos 4,9 m, y la Luna se desvía de la línea recta hacia la Tierra unos 4,9 m / 3600 ≈ 1,4 mm: justo lo que necesita para recorrer su órbita.» | ½ · 9.8 · 1² = 4.9 m; 4.9 / 3600 = 1.36 mm, which matches the orbit: 4π²r/T²/2 = 1.36 mm; "en un segundo", never "por segundo"; 60.3² = 3636, hence «unas 3600» |
-| 8 | Step 3, slider value text | «A 2 veces la distancia al centro de la Tierra: 1/4 de la atracción en la superficie.» | From the centre: twice as high would be false |
-| 9 | Step 4, intro | «Entonces, si la Tierra atrae a la Luna, ¿por qué no se cae? Newton lo pensó con un cañón en lo alto de una montaña.» | Newton's thought experiment (*A Treatise of the System of the World*); the question is rhetorical, and the lesson's answer is that the Moon does fall |
-| 10 | Step 4, caption | «El cañón dispara desde una montaña de 10 km, algo más alta que el Everest, y aquí no hay aire que frene la bala.» | Everest is 8.849 km; drag is out of scope and the caption says so |
-| 11 | Step 4, reference speeds | «≈ 7,9 km/s (≈ 28.000 km/h)», «≈ 11,2 km/s» | L7: 7.904 km/s and 28,453 km/h; 11.177 km/s at 10 km |
-| 12 | Question 4a, feedback | «A 12 km/s la bala supera la velocidad de escape, unos 11,2 km/s, así que se aleja para siempre.» | Within the model (no Moon, no Sun); 12 > 11.18 |
-| 13 | Question 4b, "no gravity" feedback | «Sí la hay: a la altura de la Estación Espacial, la gravedad es casi el 90 % de la de la superficie. Los astronautas flotan porque caen a la vez que la estación.» | (6,371 / 6,791)² = 0.88 at 420 km |
-| 14 | Question 4b, correct feedback | «La Luna cae hacia la Tierra, pero se mueve de lado tan deprisa, alrededor de 1 km/s, que nunca llega al suelo.» | Orbital speed 1.02 km/s |
-| 15 | Question 4b, "pushed" feedback | «La Tierra no empuja a la Luna: solo la atrae. No hace falta ninguna fuerza hacia fuera; basta con que se mueva de lado.» | In an inertial frame there is no outward force |
-| 16 | Question 4b, "does not reach" feedback | «Sí llega: en el paso 3 viste que allí la atracción es unas 3600 veces más débil, pero no desaparece. Esa atracción es la que curva su camino.» | Gravity has no cutoff; 1/60.3² |
-| 17 | Step 5, intro | «Todo junto: la fuerza crece con cada masa y se debilita con el cuadrado de la distancia entre sus centros.» | "Centres" holds for spheres (shell theorem) |
-| 18 | Step 5, line on G | «G es la constante de gravitación universal, la misma en la Tierra y en el cielo.» | Universality (accuracy note 3) |
-| 19 | Step 5, caption | «Su valor es de unos 6,67 × 10⁻¹¹ N·m²/kg².» | CODATA 2018: 6.674 × 10⁻¹¹ |
-| 20 | Question 5, feedback | «La fuerza se duplica, pero también la masa que hay que mover, así que la manzana cae igual de deprisa.» | a = F/m, neglecting the Earth's acceleration |
+| 0 | Page lead | «La fuerza que hace caer una manzana es la misma que mantiene a la Luna en su órbita. Aquí verás cómo llegó Newton a esa idea y a la ley que la describe.» | Universality, the point of the lesson (accuracy note 3) |
+| 1 | `#falling`, text | «Cuenta Newton que la idea se le ocurrió al ver caer una manzana: ¿por qué cae siempre hacia el suelo, y nunca de lado? Fíjate en dos manzanas que caen lejos una de otra: una en Madrid y otra en Bali.» | Newton's own question, as he told it to Stukeley in 1726: why the apple descends perpendicularly to the ground, never sideways or upwards (accuracy note 2). The question about the two falls is the lesson's, not attributed to him. Madrid and Bali are 117° apart along the surface (great-circle distance), which the drawing shows |
+| 2 | `#falling` question, correct feedback | «En una Tierra redonda, «abajo» significa «hacia el centro de la Tierra»: todo lo que cae, cae hacia el centro.» | A plumb line is off by at most about 0.2°, irrelevant here |
+| 3 | `#mutual`, text | «Newton dio un paso más: todo lo que tiene masa atrae a todo lo demás. La Tierra atrae a la manzana, y la manzana también atrae a la Tierra.» | Universality and the third law (accuracy notes 1 and 3) |
+| 4 | `#mutual`, caption | «Dos fuerzas iguales: para una manzana de 100 g, de alrededor de 1 newton cada una.» | 0.1 kg × 9.8 m/s² = 0.98 N |
+| 5 | `#mutual` question, correct feedback | «Las dos fuerzas son iguales. Esa fuerza acelera a la manzana 9,8 m/s² y a la Tierra unos 1,6 × 10⁻²⁵ m/s², porque la Tierra tiene muchísima más masa.» | 0.98 N / 5.97 × 10²⁴ kg = 1.6 × 10⁻²⁵ m/s² |
+| 5b | `#mutual` question, «La manzana» feedback | «La manzana se mueve mucho más, pero no porque sufra más fuerza: las dos fuerzas son iguales, y la manzana tiene muchísima menos masa.» | a = F/m: the same force, very different masses |
+| 6 | `#moon`, text | «Si todo lo que tiene masa se atrae, la Tierra también atrae a la Luna. Pero la Luna está unas 60 veces más lejos del centro de la Tierra que la manzana.» | Universality; 384,400 / 6,371 = 60.3, from the centre |
+| 6b | `#moon`, caption | «La Tierra y la Luna, a escala entre sí. La distancia está acortada: en realidad es de unos 60 radios terrestres.» | The Moon's radius is 1,737 / 6,371 = 0.27 of the Earth's; 60.3 radii |
+| 7 | `#moon` question, correct feedback | «El doble de lejos, 2 × 2 = 4 veces más débil. La Luna, 60 veces más lejos, recibe 3600 veces menos: en un segundo se desvía hacia la Tierra 1,4 mm, frente a los 4,9 m que cae la manzana.» | ½ · 9.8 · 1² = 4.9 m; 4.9 / 3600 = 1.36 mm, which matches the orbit: 4π²r/T²/2 = 1.36 mm; "en un segundo", never "por segundo"; 60.3² = 3636, hence «unas 3600»; distances from the centre |
+| 8 | `#moon` question, wrong options' feedback | «…la atracción baja con el cuadrado de la distancia. El doble de lejos, 4 veces más débil; la Luna, 60 veces más lejos, recibe 3600 veces menos.» | Inverse square; the three wrong options (half, same, double) share this correction, adapted to what each believed |
+| 9 | `#cannon`, text | «Entonces, si la Tierra atrae a la Luna, ¿por qué no se cae? Newton lo pensó con un cañón en lo alto de una montaña.» | Newton's thought experiment (*A Treatise of the System of the World*); the question is rhetorical, and the lesson's answer is that the Moon does fall |
+| 10 | `#cannon`, caption | «El cañón dispara desde una montaña de 10 km, algo más alta que el Everest, y aquí no hay aire que frene la bala.» | Everest is 8.849 km; drag is out of scope and the caption says so |
+| 11 | `#cannon`, reference speeds | «≈ 7,9 km/s (≈ 28.000 km/h)», «≈ 11,2 km/s» | L7: 7.904 km/s and 28,453 km/h; 11.177 km/s at 10 km |
+| 12 | `#cannon` prediction, feedback | «A 12 km/s la bala supera la velocidad de escape, unos 11,2 km/s, así que se aleja para siempre.» | Within the model (no Moon, no Sun); 12 > 11.18 |
+| 13 | `#cannon` question, "no gravity" feedback | «Sí la hay: a la altura de la Estación Espacial, la gravedad es casi el 90 % de la de la superficie. Los astronautas flotan porque caen a la vez que la estación.» | (6,371 / 6,791)² = 0.88 at 420 km |
+| 14 | `#cannon` question, correct feedback | «La Luna cae hacia la Tierra, pero se mueve de lado tan deprisa, alrededor de 1 km/s, que nunca llega al suelo.» | Orbital speed 1.02 km/s |
+| 15 | `#cannon` question, "pushed" feedback | «La Tierra no empuja a la Luna: solo la atrae. No hace falta ninguna fuerza hacia fuera; basta con que se mueva de lado.» | In an inertial frame there is no outward force |
+| 16 | `#cannon` question, "does not reach" feedback | «Sí llega: más arriba viste que allí la atracción es unas 3600 veces más débil, pero no desaparece. Esa atracción es la que curva su camino.» | Gravity has no cutoff; 1/60.3² |
+| 17 | `#law`, text | «Todo junto: la fuerza crece con cada masa y se debilita con el cuadrado de la distancia entre sus centros.» | "Centres" holds for spheres (shell theorem) |
+| 18 | `#law`, line on G | «G es la constante de gravitación universal, la misma en la Tierra y en el cielo.» | Universality (accuracy note 3) |
+| 19 | `#law`, caption | «Su valor es de unos 6,67 × 10⁻¹¹ N·m²/kg².» | CODATA 2018: 6.674 × 10⁻¹¹ |
+| 20 | `#law` question, correct feedback | «La fuerza se duplica, pero también la masa que hay que mover, así que la manzana cae igual de deprisa.» | a = F/m, neglecting the Earth's acceleration |
+| 21 | `#law`, spoken form | «La fuerza es igual a G por la masa de la manzana por la masa de la Tierra, dividido entre el cuadrado de la distancia entre sus centros.» | Reads F = G · m₁ · m₂ / r² as the law states it, centres of spheres |
 
 ### Left to visual review
 
 - The cannon view's extent (at least 1.85 radii, 2.0 to start with), the path colours and the number of faint paths (Decision 11).
-- The tutor panel's breakpoint at 1,024 px or 1,280 px (Decision 15).
+- The timing of `#falling`'s sequence, and whether 1,024 px leaves each part's text and picture enough room side by side (Decision 4).
