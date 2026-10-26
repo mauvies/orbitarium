@@ -13,13 +13,16 @@ export type Misconception =
   | "absolute-down"
   | "no-common-cause"
   | "larger-body-pulls-harder"
+  | "bigger-effect-means-bigger-force"
   | "one-way-attraction"
   | "linear-with-distance"
   | "distance-does-not-matter"
+  | "farther-means-stronger"
   | "everything-falls-back"
   | "faster-means-orbit"
   | "no-gravity-in-space"
   | "outward-force-balances"
+  | "gravity-does-not-reach"
   | "mass-squared"
   | "equal-fall-means-equal-force";
 
@@ -68,7 +71,7 @@ const QUESTION_TEXT: Readonly<
   >
 > = es.gravitation.questions;
 
-// Spec 04, Decision 5: the design note's questions, in the lesson's order.
+// Spec 04, Decision 5 and "Questions and misconceptions", in the lesson's order.
 export const QUESTIONS: readonly Question[] = [
   {
     id: "two-falls",
@@ -89,6 +92,7 @@ export const QUESTIONS: readonly Question[] = [
     feedback: "on-answer",
     options: [
       { id: "earth", misconception: "larger-body-pulls-harder" },
+      { id: "apple", misconception: "bigger-effect-means-bigger-force" },
       { id: "only-earth", misconception: "one-way-attraction" },
       { id: "equal", misconception: null },
     ],
@@ -102,6 +106,7 @@ export const QUESTIONS: readonly Question[] = [
       { id: "half", misconception: "linear-with-distance" },
       { id: "quarter", misconception: null },
       { id: "same", misconception: "distance-does-not-matter" },
+      { id: "double", misconception: "farther-means-stronger" },
     ],
   },
   {
@@ -124,6 +129,7 @@ export const QUESTIONS: readonly Question[] = [
       { id: "no-gravity", misconception: "no-gravity-in-space" },
       { id: "falls-sideways", misconception: null },
       { id: "pushed", misconception: "outward-force-balances" },
+      { id: "does-not-reach", misconception: "gravity-does-not-reach" },
     ],
   },
   {
@@ -141,6 +147,11 @@ export const QUESTIONS: readonly Question[] = [
 
 export function questionsFor(step: StepId): readonly Question[] {
   return QUESTIONS.filter((question) => question.step === step);
+}
+
+/** A step counts as answered once all its questions are (spec 04, Decision 3). */
+export function isStepAnswered(step: StepId, answers: Answers): boolean {
+  return questionsFor(step).every(({ id }) => answers[id] !== undefined);
 }
 
 /** Graded by the app, because the correct option is known (spec 04, Decision 5). */

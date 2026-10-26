@@ -82,10 +82,7 @@ function useLesson(): Lesson {
   return lesson;
 }
 
+// Prototype: one page, so the step is not in the path.
 function stepFromPathname(pathname: string): StepId {
-  const step = parseStep(pathname.split("/").at(-1) ?? "");
-  if (step === null) {
-    throw new RangeError(`pathname is not a lesson step: ${pathname}`);
-  }
-  return step;
+  return parseStep(pathname.split("/").at(-1) ?? "") ?? "falling";
 }

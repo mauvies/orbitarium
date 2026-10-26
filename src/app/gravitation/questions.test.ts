@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { grade, QUESTIONS, questionText } from "./questions";
+import { grade, isStepAnswered, QUESTIONS, questionText } from "./questions";
 
-// Spec 04, L3 and Decision 5: the design note's six questions.
+// Spec 04, L3 and Decision 5: the six questions of "Questions and misconceptions".
 const DESIGN_NOTE_QUESTIONS = [
   { id: "two-falls", step: "falling", concept: "fall-direction" },
   { id: "who-pulls-harder", step: "mutual", concept: "mutual-attraction" },
@@ -20,7 +20,7 @@ const allOptions = QUESTIONS.flatMap((question) =>
 );
 
 describe("questions", () => {
-  it("are the design note's six, in order, with their steps and concepts", () => {
+  it("are the spec's six, in order, with their steps and concepts", () => {
     expect(
       QUESTIONS.map(({ id, step, concept }) => ({ id, step, concept })),
     ).toEqual(DESIGN_NOTE_QUESTIONS);
@@ -39,8 +39,9 @@ describe("questions", () => {
       ({ option }) => option.misconception !== null,
     );
 
-    // Three in the first question, two in each of the other five.
-    expect(wrong).toHaveLength(13);
+    // Three in each of the four-option questions (falling, mutual, moon and
+    // the cannon's second), two in the prediction and in the law's.
+    expect(wrong).toHaveLength(16);
     for (const { option } of wrong) {
       expect(option.misconception).toMatch(/^[a-z]+(-[a-z]+)*$/);
     }
@@ -58,8 +59,8 @@ describe("questions", () => {
   });
 
   it("rejects an option the question does not have", () => {
-    expect(() => grade("two-falls", "quarter")).toThrow(RangeError);
-    expect(() => grade("two-falls", "quarter")).toThrow("option");
+    expect(() => grade("two-falls", "half")).toThrow(RangeError);
+    expect(() => grade("two-falls", "half")).toThrow("option");
   });
 
   it.each(
@@ -73,5 +74,23 @@ describe("questions", () => {
     expect(text.prompt).not.toBe("");
     expect(text.option(option.id).label).not.toBe("");
     expect(text.option(option.id).feedback).not.toBe("");
+  });
+});
+
+// Spec 04, Decision 3: the step list marks a step once all its questions are answered.
+describe("isStepAnswered", () => {
+  it("a step with one question is answered once it is", () => {
+    expect(isStepAnswered("falling", {})).toBe(false);
+    expect(isStepAnswered("falling", { "two-falls": "centre" })).toBe(true);
+  });
+
+  it("step 4 needs both of its questions", () => {
+    expect(isStepAnswered("cannon", { "launch-at-12": "escapes" })).toBe(false);
+    expect(
+      isStepAnswered("cannon", {
+        "launch-at-12": "escapes",
+        "why-the-moon-does-not-fall": "falls-sideways",
+      }),
+    ).toBe(true);
   });
 });

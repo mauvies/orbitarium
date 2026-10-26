@@ -170,7 +170,7 @@ describe("answerQuestion", () => {
   });
 
   it("rejects an option the question does not have", () => {
-    expect(() => answerQuestion(AT_FALLING, "two-falls", "quarter")).toThrow(
+    expect(() => answerQuestion(AT_FALLING, "two-falls", "half")).toThrow(
       RangeError,
     );
   });

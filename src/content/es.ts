@@ -73,6 +73,13 @@ const twoDecimals = new Intl.NumberFormat("es", {
 // "0,5×", "1×".
 const speedFormat = new Intl.NumberFormat("es", { maximumFractionDigits: 1 });
 
+// Spec 04, "Physics accuracy review (L19)", sentence 7: Newton's Moon test,
+// in the correct option's feedback.
+const MOON_TEST =
+  "El doble de lejos, 2 × 2 = 4 veces más débil. La Luna, 60 veces más lejos, recibe 3600 veces menos: en un segundo se desvía hacia la Tierra 1,4 mm, frente a los 4,9 m que cae la manzana.";
+// "3600", "28.000": Spanish groups thousands only from five digits.
+const wholeNumber = new Intl.NumberFormat("es");
+
 export const es = {
   site: {
     name: APP_NAME,
@@ -157,16 +164,70 @@ export const es = {
     },
   },
   gravitation: {
-    // Spec 04, Decision 1: the design note's five steps.
+    title: "La ley de gravitación universal",
+    lead: "La fuerza que hace caer una manzana es la misma que mantiene a la Luna en su órbita. Aquí verás cómo llegó Newton a esa idea y a la ley que la describe.",
+    animation: {
+      pause: "Pausar",
+      resume: "Reanudar",
+    },
+    // Prototype: stands in for the interactive cannon.
+    cannonPlaceholder:
+      "Prototipo: aquí irá el cañón interactivo. El cañón dispara desde una montaña de 10 km, algo más alta que el Everest, y aquí no hay aire que frene la bala.",
+    // Spec 04, Decision 4: an illustration, an intro of one or two lines,
+    // then the question.
     steps: {
-      falling: { title: "La manzana cae" },
-      mutual: { title: "La atracción es mutua" },
-      moon: { title: "¿Llega hasta la Luna?" },
-      cannon: { title: "¿Por qué no cae la Luna?" },
-      law: { title: "La ley completa" },
+      falling: {
+        title: "La manzana cae",
+        intro:
+          "Cuenta Newton que la idea se le ocurrió al ver caer una manzana: ¿por qué cae siempre hacia el suelo, y nunca de lado? Fíjate en dos manzanas que caen lejos una de otra: una en Madrid y otra en Bali.",
+        illustration: {
+          label:
+            "La Tierra con dos manzanos muy separados, uno en Madrid y otro en Bali. Cae la manzana de Madrid, luego la de Bali, y al final una línea une cada una con el centro de la Tierra: las dos caídas apuntan allí.",
+          madrid: "Madrid",
+          bali: "Bali",
+        },
+      },
+      mutual: {
+        title: "La atracción es mutua",
+        intro:
+          "Newton dio un paso más: todo lo que tiene masa atrae a todo lo demás. La Tierra atrae a la manzana, y la manzana también atrae a la Tierra.",
+        illustration: {
+          label:
+            "Una manzana sobre la Tierra, con dos flechas del mismo tamaño: una sobre la manzana, hacia la Tierra, y otra sobre la Tierra, hacia la manzana. Solo la manzana se mueve.",
+          caption:
+            "Dos fuerzas iguales: para una manzana de 100 g, de alrededor de 1 newton cada una.",
+        },
+      },
+      moon: {
+        title: "¿Llega hasta la Luna?",
+        intro:
+          "Si todo lo que tiene masa se atrae, la Tierra también atrae a la Luna. Pero la Luna está unas 60 veces más lejos del centro de la Tierra que la manzana.",
+        illustration: {
+          label:
+            "La Tierra y la Luna, dibujadas a escala entre sí. La línea que las une está cortada: en realidad las separan unos 60 radios terrestres.",
+          caption:
+            "La Tierra y la Luna, a escala entre sí. La distancia está acortada: en realidad es de unos 60 radios terrestres.",
+          earth: "Tierra",
+          moon: "Luna",
+          distance: "60 radios terrestres",
+        },
+      },
+      cannon: {
+        title: "¿Por qué no cae la Luna?",
+        intro:
+          "Entonces, si la Tierra atrae a la Luna, ¿por qué no se cae? Newton lo pensó con un cañón en lo alto de una montaña.",
+      },
+      law: {
+        title: "La ley completa",
+        intro:
+          "Todo junto: la fuerza crece con cada masa y se debilita con el cuadrado de la distancia entre sus centros.",
+      },
     },
     navigation: {
       label: "Pasos de la lección",
+      // Spec 04, Decision 3: a visible mark and an accessible text.
+      answeredMark: "✓",
+      answered: "(respondido)",
       // Visual only: the list is ordered, so screen readers announce it.
       number: (position: number) => `${position}. `,
       previous: (title: string) => `Anterior: ${title}`,
@@ -176,6 +237,12 @@ export const es = {
       answer: "Responder",
       correct: "Correcto.",
       wrong: "No exactamente.",
+      correctAnswer: (label: string) => `La correcta: ${label}`,
+      // Spec 04, Decision 5: the first answer stays recorded; the options
+      // can be seen again to read the other explanations.
+      showOptions: "Ver opciones",
+      yourAnswer: "Tu respuesta",
+      continue: "Continuar",
     },
     // Spec 04, Decisions 5 and 18: the design note's questions. Each wrong
     // option's feedback answers the belief it reveals.
@@ -191,7 +258,7 @@ export const es = {
           "screen-bottom": {
             label: "Las dos van hacia la parte de abajo de la pantalla.",
             feedback:
-              "La manzana de Nueva Zelanda cae hacia arriba en la pantalla. «Abajo» no es una dirección fija: es hacia el centro de la Tierra.",
+              "Fíjate en las líneas: las dos caídas no son paralelas, se cruzan en el centro de la Tierra. «Abajo» no es una dirección fija: es hacia el centro.",
           },
           "south-pole": {
             label: "Las dos van hacia el polo sur.",
@@ -213,6 +280,11 @@ export const es = {
             feedback:
               "Parece lógico, pero no: la manzana atrae a la Tierra con la misma fuerza con que la Tierra atrae a la manzana.",
           },
+          apple: {
+            label: "La manzana.",
+            feedback:
+              "La manzana se mueve mucho más, pero no porque sufra más fuerza: las dos fuerzas son iguales, y la manzana tiene muchísima menos masa.",
+          },
           "only-earth": {
             label: "Solo tira la Tierra; la manzana no tira.",
             feedback:
@@ -221,7 +293,7 @@ export const es = {
           equal: {
             label: "Tiran exactamente igual de fuerte.",
             feedback:
-              "Las dos fuerzas son iguales. La Tierra apenas se mueve porque tiene muchísima más masa.",
+              "Las dos fuerzas son iguales. Esa fuerza acelera a la manzana 9,8 m/s² y a la Tierra unos 1,6 × 10⁻²⁵ m/s², porque la Tierra tiene muchísima más masa.",
           },
         },
       },
@@ -231,16 +303,21 @@ export const es = {
           half: {
             label: "La mitad.",
             feedback:
-              "Sería menos que la mitad: la atracción se debilita con el cuadrado de la distancia, así que al doble de distancia baja a la cuarta parte.",
+              "Menos aún: la atracción baja con el cuadrado de la distancia. El doble de lejos, 4 veces más débil; la Luna, 60 veces más lejos, recibe 3600 veces menos.",
           },
           quarter: {
             label: "La cuarta parte.",
-            feedback: "El doble de lejos, 2 × 2 = 4 veces más débil.",
+            feedback: MOON_TEST,
           },
           same: {
             label: "La misma.",
             feedback:
-              "La distancia sí importa: al doble de distancia, la atracción baja a la cuarta parte.",
+              "La distancia sí importa: la atracción baja con su cuadrado. El doble de lejos, 4 veces más débil; la Luna, 60 veces más lejos, recibe 3600 veces menos.",
+          },
+          double: {
+            label: "El doble.",
+            feedback:
+              "Al contrario: cuanto más lejos, más débil. El doble de lejos, 4 veces más débil; la Luna, 60 veces más lejos, recibe 3600 veces menos.",
           },
         },
       },
@@ -283,6 +360,11 @@ export const es = {
             feedback:
               "La Tierra no empuja a la Luna: solo la atrae. No hace falta ninguna fuerza hacia fuera; basta con que se mueva de lado.",
           },
+          "does-not-reach": {
+            label: "Porque a esa distancia la gravedad ya no llega.",
+            feedback:
+              "Sí llega: más arriba viste que allí la atracción es unas 3600 veces más débil, pero no desaparece. Esa atracción es la que curva su camino.",
+          },
         },
       },
       "twice-the-mass": {
@@ -306,6 +388,34 @@ export const es = {
           },
         },
       },
+    },
+    // Spec 04, Decision 4 and L14: distances from the Earth's centre.
+    distance: {
+      label: "Distancia al centro de la Tierra",
+      valueText: (radii: number, denominator: number) =>
+        radii === 1
+          ? "En la superficie: toda la atracción."
+          : `A ${radii} veces la distancia al centro de la Tierra: 1/${wholeNumber.format(denominator)} de la atracción en la superficie.`,
+    },
+    // Spec 04, Decision 4: each symbol names what it is and the step where the
+    // learner saw it; the operators are read as words.
+    law: {
+      formula: {
+        force: "F",
+        constant: "G",
+        mass: "m",
+        first: "1",
+        second: "2",
+        distance: "r",
+        squared: "2",
+        equals: "=",
+        times: "·",
+      },
+      spokenFormula:
+        "La fuerza es igual a G por la masa de la manzana por la masa de la Tierra, dividido entre el cuadrado de la distancia entre sus centros.",
+      constant:
+        "G es la constante de gravitación universal, la misma en la Tierra y en el cielo.",
+      constantValue: "Su valor es de unos 6,67 × 10⁻¹¹ N·m²/kg².",
     },
   },
 } as const;

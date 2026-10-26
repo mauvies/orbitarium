@@ -22,7 +22,7 @@ export function PageHeader({
         {title}
       </h1>
       {lead !== undefined && (
-        <p className="mt-3 max-w-[60ch] text-lead">{lead}</p>
+        <p className="mt-3 max-w-[70ch] text-lead">{lead}</p>
       )}
     </div>
   );
