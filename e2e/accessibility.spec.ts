@@ -18,7 +18,7 @@ type CheckedPage = {
 
 const galleryReady = (page: Page) =>
   expect(
-    page.getByRole("radio", { name: es.gallery.filter.all }),
+    page.getByRole("radio", { name: es.threeBody.filter.all }),
   ).toBeEnabled();
 const detailReady = (page: Page) =>
   expect(
@@ -27,18 +27,18 @@ const detailReady = (page: Page) =>
 
 const PAGES: readonly CheckedPage[] = [
   { name: "the home page", path: "/" },
-  { name: "the gallery", path: "/gallery", ready: galleryReady },
+  { name: "the gallery", path: "/three-body", ready: galleryReady },
   {
     name: "a filtered gallery",
-    path: "/gallery?filter=holds",
+    path: "/three-body?filter=holds",
     ready: galleryReady,
   },
   ...orbits.map((orbit) => ({
     name: `the ${orbit.slug} page`,
-    path: `/gallery/${orbit.slug}`,
+    path: `/three-body/${orbit.slug}`,
     ready: detailReady,
   })),
-  { name: "the lesson placeholder", path: "/learn" },
+  { name: "the lesson placeholder", path: "/gravitation" },
   { name: "the 404 page", path: "/no-such-page" },
 ];
 

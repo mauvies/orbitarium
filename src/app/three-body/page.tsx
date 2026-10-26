@@ -8,12 +8,14 @@ import { FilteredGallery, GalleryView } from "./filtered-gallery";
 import { OrbitCard } from "./orbit-card";
 
 export const metadata: Metadata = {
-  title: es.gallery.metaTitle,
-  description: es.gallery.description,
+  title: es.threeBody.title,
+  description: es.threeBody.description,
 };
 
 export default function GalleryPage() {
-  const header = <PageHeader title={es.gallery.title} lead={es.gallery.lead} />;
+  const header = (
+    <PageHeader title={es.threeBody.title} lead={es.threeBody.lead} />
+  );
   const cards = orbits.map((orbit) => ({
     slug: orbit.slug,
     holdsWithoutCorrection: orbit.holdsWithoutCorrection,

@@ -16,7 +16,7 @@ export function FilterControls({
 }) {
   return (
     <fieldset>
-      <legend className="sr-only">{es.gallery.filter.legend}</legend>
+      <legend className="sr-only">{es.threeBody.filter.legend}</legend>
       <div className="flex flex-wrap gap-2">
         {GALLERY_FILTERS.map((option) => (
           <label
@@ -34,7 +34,7 @@ export function FilterControls({
               className="absolute inset-0 cursor-pointer appearance-none rounded-[10px]"
             />
             {option !== "all" && <StatusDot holds={option === "holds"} />}
-            {es.gallery.filter[option]}
+            {es.threeBody.filter[option]}
           </label>
         ))}
       </div>

@@ -9,7 +9,7 @@ export function BackToGalleryLink() {
   const { gallerySearch } = useGallerySession();
   return (
     <Link
-      href={`/gallery${gallerySearch}`}
+      href={`/three-body${gallerySearch}`}
       className="text-accent underline underline-offset-4"
     >
       {es.detail.backLink}

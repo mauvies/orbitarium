@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { es } from "@/content/es";
 
 const sections = [
-  { href: "/gallery", label: es.site.navigation.gallery },
-  { href: "/learn", label: es.site.navigation.learn },
+  { href: "/gravitation", label: es.site.navigation.gravitation },
+  { href: "/three-body", label: es.site.navigation.threeBody },
 ] as const;
 
 /** A section is current on its own page and on every page below it. */

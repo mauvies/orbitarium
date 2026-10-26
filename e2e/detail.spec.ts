@@ -19,7 +19,7 @@ for (const orbit of orbits) {
   test(`each orbit page loads from its URL: ${orbit.slug}`, async ({
     page,
   }) => {
-    const response = await page.goto(`/gallery/${orbit.slug}`);
+    const response = await page.goto(`/three-body/${orbit.slug}`);
 
     expect(response?.status()).toBe(200);
     await expect(page).toHaveTitle(
@@ -34,14 +34,14 @@ for (const orbit of orbits) {
     );
     await expect(page.getByRole("main")).toContainText(
       orbit.holdsWithoutCorrection
-        ? es.gallery.stability.holds
-        : es.gallery.stability.drifts,
+        ? es.threeBody.stability.holds
+        : es.threeBody.stability.drifts,
     );
   });
 }
 
 test("an unknown orbit is a 404", async ({ page }) => {
-  const response = await page.goto("/gallery/no-such-orbit");
+  const response = await page.goto("/three-body/no-such-orbit");
 
   expect(response?.status()).toBe(404);
   await expect(
@@ -52,7 +52,7 @@ test("an unknown orbit is a 404", async ({ page }) => {
 // Spec 03, G4.
 for (const orbit of orbits) {
   test(`the bodies move: ${orbit.slug}`, async ({ page }) => {
-    await page.goto(`/gallery/${orbit.slug}`);
+    await page.goto(`/three-body/${orbit.slug}`);
     const canvas = orbitCanvas(page, orbit);
     await expect(canvas).toBeVisible();
     await waitForFrames(page, FRAMES_TO_DRAW);
@@ -70,14 +70,14 @@ if (lagrange === undefined) {
 }
 
 test("the canvas has a text alternative", async ({ page }) => {
-  await page.goto(`/gallery/${lagrange.slug}`);
+  await page.goto(`/three-body/${lagrange.slug}`);
 
   await expect(orbitCanvas(page, lagrange)).toBeVisible();
 });
 
 test("reduced motion starts paused", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(`/gallery/${lagrange.slug}`);
+  await page.goto(`/three-body/${lagrange.slug}`);
   const canvas = orbitCanvas(page, lagrange);
   await expect(
     page.getByRole("button", { name: es.detail.player.play }),
@@ -97,7 +97,7 @@ const { player } = es.detail;
 test("controls work with the keyboard", async ({ page }) => {
   // Reduced motion starts paused, at the orbit's initial positions.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(`/gallery/${lagrange.slug}`);
+  await page.goto(`/three-body/${lagrange.slug}`);
   const canvas = orbitCanvas(page, lagrange);
   await waitForFrames(page, FRAMES_TO_DRAW);
   const atStart = await canvasSnapshot(canvas);
@@ -139,7 +139,7 @@ test("detail preferences persist across orbits and reset on reload", async ({
   const speedTwo = page.getByRole("radio", { name: player.speedOption(2) });
   const trail = page.getByRole("checkbox", { name: player.showTrail });
   const correction = page.getByRole("checkbox", { name: player.correction });
-  await page.goto(`/gallery/${lagrange.slug}`);
+  await page.goto(`/three-body/${lagrange.slug}`);
   await speedTwo.check();
   await trail.uncheck();
   await correction.uncheck();

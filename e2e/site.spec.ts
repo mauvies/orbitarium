@@ -13,8 +13,8 @@ test("an unknown page shows the Spanish 404", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: es.notFound.title }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: es.notFound.galleryLink }),
-  ).toHaveAttribute("href", "/gallery");
+    page.getByRole("link", { name: es.notFound.threeBodyLink }),
+  ).toHaveAttribute("href", "/three-body");
 });
 
 test("the skip link moves keyboard focus past the header", async ({ page }) => {
@@ -28,16 +28,18 @@ test("the skip link moves keyboard focus past the header", async ({ page }) => {
   await page.keyboard.press("Enter");
   await page.keyboard.press("Tab");
   await expect(
-    page.getByRole("main").getByRole("link", { name: es.home.lesson.link }),
+    page
+      .getByRole("main")
+      .getByRole("link", { name: es.home.gravitation.link }),
   ).toBeFocused();
 });
 
 // docs/design/visual-style.md, "Header": a detail page marks the gallery.
 for (const { path, current } of [
   { path: "/", current: undefined },
-  { path: "/gallery", current: es.site.navigation.gallery },
-  { path: "/gallery/lagrange", current: es.site.navigation.gallery },
-  { path: "/learn", current: es.site.navigation.learn },
+  { path: "/three-body", current: es.site.navigation.threeBody },
+  { path: "/three-body/lagrange", current: es.site.navigation.threeBody },
+  { path: "/gravitation", current: es.site.navigation.gravitation },
 ]) {
   test(`the navigation marks the current section on ${path}`, async ({
     page,
@@ -57,7 +59,7 @@ for (const { path, current } of [
 }
 
 test("the header links to every section", async ({ page }) => {
-  await page.goto("/learn");
+  await page.goto("/gravitation");
   const navigation = page.getByRole("navigation", {
     name: es.site.navigation.label,
   });
@@ -66,9 +68,9 @@ test("the header links to every section", async ({ page }) => {
     page.getByRole("banner").getByRole("link", { name: es.site.name }),
   ).toHaveAttribute("href", "/");
   await expect(
-    navigation.getByRole("link", { name: es.site.navigation.gallery }),
-  ).toHaveAttribute("href", "/gallery");
+    navigation.getByRole("link", { name: es.site.navigation.threeBody }),
+  ).toHaveAttribute("href", "/three-body");
   await expect(
-    navigation.getByRole("link", { name: es.site.navigation.learn }),
-  ).toHaveAttribute("href", "/learn");
+    navigation.getByRole("link", { name: es.site.navigation.gravitation }),
+  ).toHaveAttribute("href", "/gravitation");
 });

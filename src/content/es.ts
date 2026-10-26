@@ -82,36 +82,35 @@ export const es = {
     skipToContent: "Saltar al contenido",
     navigation: {
       label: "Principal",
-      gallery: "Galería",
-      learn: "Aprende",
+      gravitation: "Gravitación",
+      threeBody: "Tres cuerpos",
     },
   },
   notFound: {
     title: "Página no encontrada",
     message: "La dirección que buscas no existe o ha cambiado.",
     homeLink: "Volver al inicio",
-    galleryLink: "Ir a la galería de órbitas",
+    threeBodyLink: "Ir al problema de los tres cuerpos",
   },
   home: {
     title: APP_NAME,
     lead: "La gravedad, explicada con simulaciones interactivas.",
-    lesson: {
-      link: "Aprende la gravitación universal",
+    gravitation: {
+      link: "La ley de gravitación universal",
       description:
-        "Descubre por qué la misma fuerza que hace caer una manzana mantiene a la Luna en órbita, con el cañón de Newton y un tutor que se adapta a ti.",
+        "La ley de Newton explica por qué la fuerza que hace caer una manzana mantiene a la Luna en órbita. Compruébalo con el cañón de Newton y un tutor que se adapta a ti.",
     },
-    gallery: {
-      link: "Explora la galería de órbitas",
+    threeBody: {
+      link: "El problema de los tres cuerpos",
       description:
-        "Seis órbitas periódicas de tres cuerpos, simuladas en tiempo real en tu navegador.",
+        "Tres cuerpos que se atraen no tienen una solución general, pero sí seis soluciones periódicas. Míralas moverse en tiempo real en tu navegador.",
     },
   },
-  gallery: {
-    title: "Galería de órbitas",
-    metaTitle: "Galería",
-    lead: "Seis soluciones periódicas del problema de los tres cuerpos.",
+  threeBody: {
+    title: "El problema de los tres cuerpos",
+    lead: "Seis soluciones periódicas: configuraciones en las que tres cuerpos se persiguen para siempre.",
     description:
-      "Seis soluciones periódicas del problema de los tres cuerpos. Elige una para verla en movimiento.",
+      "Seis soluciones periódicas del problema de los tres cuerpos. Elige una de la galería de soluciones para verla en movimiento.",
     // Spec 03, Decision 9: what the simulation shows, not a formal result.
     stability: {
       holds: "Se mantiene sola",
@@ -130,7 +129,7 @@ export const es = {
   },
   orbits: orbitContent,
   detail: {
-    backLink: "Volver a la galería",
+    backLink: "Volver a la galería de soluciones",
     facts: {
       discovery: "Descubierta por",
       period: "Período",
@@ -157,10 +156,9 @@ export const es = {
         `Animación de la órbita ${name}: los tres cuerpos recorren su trayectoria, dibujada en trazo tenue, y cada uno deja una estela corta.`,
     },
   },
-  learn: {
-    title: "Aprende",
-    comingSoon:
-      "La lección sobre la ley de la gravitación universal está en preparación.",
-    galleryLink: "Mientras tanto, explora la galería de órbitas",
+  gravitation: {
+    title: "La ley de gravitación universal",
+    comingSoon: "La lección sobre esta ley está en preparación.",
+    threeBodyLink: "Mientras tanto, explora el problema de los tres cuerpos",
   },
 } as const;

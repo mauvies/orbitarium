@@ -21,8 +21,8 @@ const ANIMATION_RUNS = 3;
 const { engine, catalog, frame, speed } = await bundleForNode("playback", {
   engine: "src/physics/index.ts",
   catalog: "src/orbits/index.ts",
-  frame: "src/app/gallery/[slug]/orbit-frame.ts",
-  speed: "src/app/gallery/[slug]/speed.ts",
+  frame: "src/app/three-body/[slug]/orbit-frame.ts",
+  speed: "src/app/three-body/[slug]/speed.ts",
 });
 const { advance } = engine;
 const { orbits, startPlayback, advancePlayback, tracePeriod } = catalog;

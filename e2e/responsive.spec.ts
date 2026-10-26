@@ -13,8 +13,8 @@ const MIN_TARGET_PX = 24;
 
 const PAGES = [
   { name: "home", path: "/" },
-  { name: "gallery", path: "/gallery" },
-  { name: "detail", path: "/gallery/butterfly-i" },
+  { name: "gallery", path: "/three-body" },
+  { name: "detail", path: "/three-body/butterfly-i" },
 ] as const;
 
 for (const { width, height, galleryColumns } of VIEWPORTS) {
@@ -41,7 +41,7 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
     }
 
     test(`the gallery grid has ${galleryColumns} columns`, async ({ page }) => {
-      await page.goto("/gallery");
+      await page.goto("/three-body");
       const cards = page.getByRole("main").getByRole("listitem");
       await expect(cards).not.toHaveCount(0);
 
@@ -55,7 +55,7 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
     test("detail controls stay inside the viewport with 24 px targets", async ({
       page,
     }) => {
-      await page.goto("/gallery/butterfly-i");
+      await page.goto("/three-body/butterfly-i");
       const controls = page.getByRole("group", {
         name: es.detail.player.controls,
       });

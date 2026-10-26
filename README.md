@@ -1,6 +1,6 @@
 # Orbitarium
 
-Learn Newton's law of universal gravitation by playing with it, with an AI tutor and a gallery of periodic three-body orbits.
+Learn Newton's law of universal gravitation by playing with it, with an AI tutor, and explore the three-body problem through six of its periodic solutions.
 
 **Live:** https://orbitarium-app.vercel.app
 

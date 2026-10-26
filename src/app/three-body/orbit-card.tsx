@@ -11,12 +11,12 @@ export function OrbitCard({ orbit }: { orbit: OrbitPreset }) {
       <div className="px-1 pt-4 pb-1">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-heading text-card font-medium text-strong">
-            <CardLink href={`/gallery/${orbit.slug}`}>
+            <CardLink href={`/three-body/${orbit.slug}`}>
               {es.orbits[orbit.slug].name}
             </CardLink>
           </h2>
           <p className="shrink-0 text-small text-muted">
-            {es.gallery.period(orbit.period)}
+            {es.threeBody.period(orbit.period)}
           </p>
         </div>
         <div className="mt-2">

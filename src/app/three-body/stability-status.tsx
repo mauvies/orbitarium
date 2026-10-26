@@ -20,7 +20,7 @@ export function StabilityStatus({ holds }: { holds: boolean }) {
   return (
     <p className="flex items-center gap-2 text-small">
       <StatusDot holds={holds} />
-      {holds ? es.gallery.stability.holds : es.gallery.stability.drifts}
+      {holds ? es.threeBody.stability.holds : es.threeBody.stability.drifts}
     </p>
   );
 }

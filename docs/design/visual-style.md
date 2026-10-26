@@ -65,7 +65,7 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 
 ## Components
 
-**Header.** Logo mark (28 px) and the wordmark "Orbitarium" (Poppins 600, 1.125rem) on the left, linking home. Navigation on the right: "Galería" and "Aprende", in `body`, turning `strong` on hover. The current section has `aria-current="page"`, `strong` text and a 2 px `accent` underline 6 px below the baseline. A detail page marks "Galería" as current.
+**Header.** Logo mark (28 px) and the wordmark "Orbitarium" (Poppins 600, 1.125rem) on the left, linking home. Navigation on the right: "Gravitación" and "Tres cuerpos", in `body`, turning `strong` on hover. The current section has `aria-current="page"`, `strong` text and a 2 px `accent` underline 6 px below the baseline. A detail page marks "Tres cuerpos" as current.
 
 **Page header.** The h1 and an optional lead, using the rhythm above. One shared component, so every page starts at the same height.
 

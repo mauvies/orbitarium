@@ -3,11 +3,11 @@ import { es } from "@/content/es";
 import { orbits } from "@/orbits";
 
 const stabilityLabel = (holds: boolean) =>
-  holds ? es.gallery.stability.holds : es.gallery.stability.drifts;
+  holds ? es.threeBody.stability.holds : es.threeBody.stability.drifts;
 
 // Spec 03, G2.
 test("gallery lists the six orbits", async ({ page }) => {
-  await page.goto("/gallery");
+  await page.goto("/three-body");
   const items = page.getByRole("main").getByRole("listitem");
 
   await expect(items).toHaveCount(orbits.length);
@@ -17,7 +17,7 @@ test("gallery lists the six orbits", async ({ page }) => {
 
     await expect(item.getByRole("link", { name })).toHaveAttribute(
       "href",
-      `/gallery/${orbit.slug}`,
+      `/three-body/${orbit.slug}`,
     );
     await expect(item).toContainText(
       stabilityLabel(orbit.holdsWithoutCorrection),
@@ -35,29 +35,29 @@ const namesOf = (subset: typeof orbits) =>
 test("the filter shows the matching orbits and survives a reload", async ({
   page,
 }) => {
-  await page.goto("/gallery");
+  await page.goto("/three-body");
   const cardTitles = page.getByRole("main").getByRole("heading", { level: 2 });
   await expect(
-    page.getByRole("radio", { name: es.gallery.filter.all }),
+    page.getByRole("radio", { name: es.threeBody.filter.all }),
   ).toBeChecked();
 
-  await page.getByRole("radio", { name: es.gallery.filter.holds }).check();
-  await expect(page).toHaveURL("/gallery?filter=holds");
+  await page.getByRole("radio", { name: es.threeBody.filter.holds }).check();
+  await expect(page).toHaveURL("/three-body?filter=holds");
   await expect(cardTitles).toHaveText(namesOf(holding));
 
   await page.reload();
   await expect(cardTitles).toHaveText(namesOf(holding));
   await expect(
-    page.getByRole("radio", { name: es.gallery.filter.holds }),
+    page.getByRole("radio", { name: es.threeBody.filter.holds }),
   ).toBeChecked();
 
-  await page.getByRole("radio", { name: es.gallery.filter.all }).check();
-  await expect(page).toHaveURL("/gallery");
+  await page.getByRole("radio", { name: es.threeBody.filter.all }).check();
+  await expect(page).toHaveURL("/three-body");
   await expect(cardTitles).toHaveCount(orbits.length);
 });
 
 test("a shared filtered link opens the gallery filtered", async ({ page }) => {
-  await page.goto("/gallery?filter=drifts");
+  await page.goto("/three-body?filter=drifts");
 
   await expect(
     page.getByRole("main").getByRole("heading", { level: 2 }),
@@ -65,22 +65,22 @@ test("a shared filtered link opens the gallery filtered", async ({ page }) => {
 });
 
 test("an unknown filter shows every orbit", async ({ page }) => {
-  await page.goto("/gallery?filter=nope");
+  await page.goto("/three-body?filter=nope");
 
   await expect(
     page.getByRole("main").getByRole("heading", { level: 2 }),
   ).toHaveCount(orbits.length);
   await expect(
-    page.getByRole("radio", { name: es.gallery.filter.all }),
+    page.getByRole("radio", { name: es.threeBody.filter.all }),
   ).toBeChecked();
 });
 
 test("changing the filter does not add history entries", async ({ page }) => {
   await page.goto("/");
-  await page.goto("/gallery");
-  await page.getByRole("radio", { name: es.gallery.filter.holds }).check();
-  await page.getByRole("radio", { name: es.gallery.filter.drifts }).check();
-  await expect(page).toHaveURL("/gallery?filter=drifts");
+  await page.goto("/three-body");
+  await page.getByRole("radio", { name: es.threeBody.filter.holds }).check();
+  await page.getByRole("radio", { name: es.threeBody.filter.drifts }).check();
+  await expect(page).toHaveURL("/three-body?filter=drifts");
 
   await page.goBack();
   await expect(page).toHaveURL("/");
@@ -91,8 +91,8 @@ test.describe("returning from a detail page", () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
   test("returning to the gallery keeps its state", async ({ page }) => {
-    await page.goto("/gallery");
-    await page.getByRole("radio", { name: es.gallery.filter.drifts }).check();
+    await page.goto("/three-body");
+    await page.getByRole("radio", { name: es.threeBody.filter.drifts }).check();
     const lastOrbit = drifting.at(-1);
     if (lastOrbit === undefined) {
       throw new Error("no drifting orbit to open");
@@ -113,7 +113,7 @@ test.describe("returning from a detail page", () => {
     ).toBeVisible();
     await page.goBack();
 
-    await expect(page).toHaveURL("/gallery?filter=drifts");
+    await expect(page).toHaveURL("/three-body?filter=drifts");
     await expect(
       page.getByRole("main").getByRole("heading", { level: 2 }),
     ).toHaveText(namesOf(drifting));
@@ -125,8 +125,8 @@ test.describe("returning from a detail page", () => {
 
 // Spec 03, Decision 8: the detail page's own link keeps the filter too.
 test("the back link returns to the filtered gallery", async ({ page }) => {
-  await page.goto("/gallery");
-  await page.getByRole("radio", { name: es.gallery.filter.holds }).check();
+  await page.goto("/three-body");
+  await page.getByRole("radio", { name: es.threeBody.filter.holds }).check();
   const [firstHolding] = holding;
   if (firstHolding === undefined) {
     throw new Error("no orbit that holds to open");
@@ -138,7 +138,7 @@ test("the back link returns to the filtered gallery", async ({ page }) => {
 
   await page.getByRole("link", { name: es.detail.backLink }).click();
 
-  await expect(page).toHaveURL("/gallery?filter=holds");
+  await expect(page).toHaveURL("/three-body?filter=holds");
   await expect(
     page.getByRole("main").getByRole("heading", { level: 2 }),
   ).toHaveText(namesOf(holding));
@@ -147,7 +147,7 @@ test("the back link returns to the filtered gallery", async ({ page }) => {
 test("gallery thumbnails render without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
-  await page.goto("/gallery");
+  await page.goto("/three-body");
 
   await expect(page.getByRole("main").locator("svg path")).toHaveCount(
     orbits.length,

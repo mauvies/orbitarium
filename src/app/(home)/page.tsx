@@ -29,17 +29,17 @@ export default function HomePage() {
       <ul className="mt-16 grid gap-4 sm:gap-6 lg:grid-cols-2">
         <li>
           <SectionCard
-            href="/learn"
-            title={es.home.lesson.link}
-            description={es.home.lesson.description}
+            href="/gravitation"
+            title={es.home.gravitation.link}
+            description={es.home.gravitation.description}
             picture={<CannonThumbnail className={PLATE_CLASSES} />}
           />
         </li>
         <li>
           <SectionCard
-            href="/gallery"
-            title={es.home.gallery.link}
-            description={es.home.gallery.description}
+            href="/three-body"
+            title={es.home.threeBody.link}
+            description={es.home.threeBody.description}
             picture={
               <OrbitThumbnail
                 orbit={galleryOrbit}

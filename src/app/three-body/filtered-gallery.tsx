@@ -85,7 +85,7 @@ export function GalleryView({
         <FilterControls filter={filter} onChange={onFilterChange} />
       </div>
       <p className="sr-only" aria-live="polite">
-        {es.gallery.filter.shown(shown.length)}
+        {es.threeBody.filter.shown(shown.length)}
       </p>
       <div className="mt-8">
         <OrbitGrid cards={shown} />

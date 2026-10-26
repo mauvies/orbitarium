@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: es.notFound.title };
 
 const links = [
   { href: "/", label: es.notFound.homeLink },
-  { href: "/gallery", label: es.notFound.galleryLink },
+  { href: "/three-body", label: es.notFound.threeBodyLink },
 ] as const;
 
 // Spec 03, Decisions 1 and 2: Next.js's default 404 page is in English.

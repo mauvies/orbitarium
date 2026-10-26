@@ -20,14 +20,14 @@ export function generateStaticParams(): { slug: string }[] {
 
 export async function generateMetadata({
   params,
-}: PageProps<"/gallery/[slug]">): Promise<Metadata> {
+}: PageProps<"/three-body/[slug]">): Promise<Metadata> {
   const { name, description } = es.orbits[orbitFor((await params).slug).slug];
   return { title: name, description };
 }
 
 export default async function OrbitPage({
   params,
-}: PageProps<"/gallery/[slug]">) {
+}: PageProps<"/three-body/[slug]">) {
   const orbit = orbitFor((await params).slug);
   const content = es.orbits[orbit.slug];
   return (
