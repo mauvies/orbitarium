@@ -29,7 +29,7 @@ export default function HomePage() {
       <ul className="mt-16 grid gap-4 sm:gap-6 lg:grid-cols-2">
         <li>
           <SectionCard
-            href="/gravitation"
+            href="/gravitation#cannon"
             title={es.home.gravitation.link}
             description={es.home.gravitation.description}
             picture={<CannonThumbnail className={PLATE_CLASSES} />}

@@ -1,9 +1,23 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { es } from "@/content/es";
 
-const { title, steps, questions, question: ui, animation } = es.gravitation;
+const {
+  title,
+  steps,
+  questions,
+  question: ui,
+  animation,
+  cannon,
+} = es.gravitation;
 
-const SECTIONS = ["falling", "mutual", "moon", "cannon", "law"] as const;
+const SECTIONS = [
+  "falling",
+  "mutual",
+  "moon",
+  "orbit",
+  "cannon",
+  "law",
+] as const;
 
 // Spec 04, "Questions and misconceptions": the first option of each part's
 // question and a second one, for the tests that need two answers.
@@ -11,6 +25,10 @@ const FIRST_QUESTION = {
   falling: { id: "two-falls", options: ["centre", "south-pole"] },
   mutual: { id: "who-pulls-harder", options: ["equal", "earth"] },
   moon: { id: "twice-as-far", options: ["quarter", "half"] },
+  orbit: {
+    id: "why-the-moon-does-not-fall",
+    options: ["falls-sideways", "no-gravity"],
+  },
   law: { id: "twice-the-mass", options: ["double", "quadruple"] },
 } as const;
 
@@ -232,4 +250,54 @@ test("reduced motion shows the two pictures at rest", async ({ page }) => {
   await expect(page.getByRole("button", { name: animation.pause })).toHaveCount(
     0,
   );
+});
+
+// Spec 04, L23.
+test("the lead links to the cannon", async ({ page }) => {
+  await page.goto("/gravitation");
+
+  await page.getByRole("link", { name: es.gravitation.lead.link }).click();
+
+  await expect(page).toHaveURL("/gravitation#cannon");
+  await expect(
+    page.getByRole("heading", { name: steps.cannon.title }),
+  ).toBeInViewport();
+});
+
+test("the cannon band holds no questions", async ({ page }) => {
+  await page.goto("/gravitation");
+
+  for (const { prompt } of Object.values(questions)) {
+    await expect(page.locator("#cannon").getByText(prompt)).toHaveCount(0);
+  }
+});
+
+test("the cannon band spans the container at 1280 px", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/gravitation");
+  const band = await place(page.locator("#cannon"));
+  const section = await place(page.locator("#falling"));
+  const canvas = await place(page.getByTestId("cannon-canvas"));
+  const controls = await place(
+    page.getByRole("group", { name: cannon.controlsLabel }),
+  );
+
+  expect(band.width).toBe(section.width);
+  expect(canvas.width).toBeGreaterThan(controls.width);
+  expect(controls.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
+});
+
+test("the cannon band stacks at 360 px", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto("/gravitation");
+  const band = await place(page.locator("#cannon"));
+  const section = await place(page.locator("#falling"));
+  const canvas = await place(page.getByTestId("cannon-canvas"));
+  const controls = await place(
+    page.getByRole("group", { name: cannon.controlsLabel }),
+  );
+
+  expect(band.width).toBe(section.width);
+  expect(controls.y).toBeGreaterThanOrEqual(canvas.y + canvas.height);
+  expect(controls.x).toBeLessThan(canvas.x + canvas.width);
 });

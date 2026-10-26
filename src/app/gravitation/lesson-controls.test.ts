@@ -74,6 +74,7 @@ describe("createLessonControls", () => {
       "falling",
       "mutual",
       "moon",
+      "orbit",
       "cannon",
       "law",
     ]);

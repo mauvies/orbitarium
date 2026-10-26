@@ -42,23 +42,7 @@ describe("learnerProfile", () => {
       "mutual-attraction",
       "inverse-square",
       "orbit-as-falling",
-      "orbit-as-falling",
       "full-law",
-    ]);
-  });
-
-  it("keeps step 4's two questions apart, though both inform orbit as falling", () => {
-    const profile = learnerProfile({
-      "launch-at-12": "escapes",
-      "why-the-moon-does-not-fall": "no-gravity",
-    });
-    const orbitAsFalling = profile.filter(
-      ({ concept }) => concept === "orbit-as-falling",
-    );
-
-    expect(orbitAsFalling.map(({ result }) => result)).toEqual([
-      { status: "correct" },
-      { status: "misconception", misconception: "no-gravity-in-space" },
     ]);
   });
 });

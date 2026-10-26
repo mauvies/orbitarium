@@ -30,32 +30,16 @@ export function LessonSection({
       <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-16">
         <div>{picture}</div>
         <div className={textFirst ? "lg:order-first" : ""}>
-          <SectionHeading id={id} title={title} level={2} />
+          <h2
+            id={`${id}-title`}
+            className="font-heading font-semibold text-section text-strong"
+          >
+            {title}
+          </h2>
           {children}
         </div>
       </div>
     </section>
-  );
-}
-
-/** A part's heading: h2 for a section, h3 for the second part of one. */
-export function SectionHeading({
-  id,
-  title,
-  level,
-}: {
-  id: StepId;
-  title: string;
-  level: 2 | 3;
-}) {
-  const Heading = level === 2 ? "h2" : "h3";
-  return (
-    <Heading
-      id={`${id}-title`}
-      className={`font-heading font-semibold text-strong ${level === 2 ? "text-section" : "text-card"}`}
-    >
-      {title}
-    </Heading>
   );
 }
 
@@ -94,11 +78,9 @@ export function StepIntro({ children }: { children: string }) {
   return <p className="mt-4 max-w-[60ch] text-lead">{children}</p>;
 }
 
-/** The part's questions. The prediction waits for the cannon. */
+/** The part's question. */
 export function StepQuestions({ step }: { step: StepId }) {
-  return questionsFor(step)
-    .filter(({ feedback }) => feedback === "on-answer")
-    .map((question) => (
-      <CheckQuestion key={question.id} question={question} continueTo={null} />
-    ));
+  return questionsFor(step).map((question) => (
+    <CheckQuestion key={question.id} question={question} continueTo={null} />
+  ));
 }

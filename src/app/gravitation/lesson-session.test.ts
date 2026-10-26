@@ -26,12 +26,12 @@ function launched(session: LessonSession, settings: CannonSettings) {
 
 describe("goToStep", () => {
   it("rejects an unknown step", () => {
-    const { session, result, navigateTo } = goToStep(AT_FALLING, "orbit");
+    const { session, result, navigateTo } = goToStep(AT_FALLING, "prediction");
 
     expect(result).toEqual({
       status: "rejected",
       field: "step",
-      reason: "must be one of falling, mutual, moon, cannon, law",
+      reason: "must be one of falling, mutual, moon, orbit, cannon, law",
     });
     expect(session).toBe(AT_FALLING);
     expect(navigateTo).toBeNull();

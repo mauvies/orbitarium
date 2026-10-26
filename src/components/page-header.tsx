@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /**
  * The page's h1 and lead, at the same height on every page
  * (docs/design/visual-style.md, "Page header"). `display` is the home hero's
@@ -9,7 +11,7 @@ export function PageHeader({
   display = false,
 }: {
   title: string;
-  lead?: string;
+  lead?: ReactNode;
   display?: boolean;
 }) {
   return (

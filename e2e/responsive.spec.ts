@@ -13,6 +13,7 @@ const MIN_TARGET_PX = 24;
 
 const PAGES = [
   { name: "home", path: "/" },
+  { name: "lesson", path: "/gravitation" },
   { name: "gallery", path: "/three-body" },
   { name: "detail", path: "/three-body/butterfly-i" },
 ] as const;

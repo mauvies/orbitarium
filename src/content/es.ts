@@ -165,14 +165,26 @@ export const es = {
   },
   gravitation: {
     title: "La ley de gravitación universal",
-    lead: "La fuerza que hace caer una manzana es la misma que mantiene a la Luna en su órbita. Aquí verás cómo llegó Newton a esa idea y a la ley que la describe.",
+    // The link to the cannon band is part of the lead (spec 04, Decision 1).
+    lead: {
+      before:
+        "La fuerza que hace caer una manzana es la misma que mantiene a la Luna en su órbita. Aquí verás cómo llegó Newton a esa idea y a la ley que la describe, o ",
+      link: "ve directo al cañón",
+      after: ".",
+    },
     animation: {
       pause: "Pausar",
       resume: "Reanudar",
     },
-    // Prototype: stands in for the interactive cannon.
-    cannonPlaceholder:
-      "Prototipo: aquí irá el cañón interactivo. El cañón dispara desde una montaña de 10 km, algo más alta que el Everest, y aquí no hay aire que frene la bala.",
+    // Spec 04, Decision 4: the cannon's band.
+    cannon: {
+      controlsLabel: "Controles del cañón",
+      caption:
+        "El cañón dispara desde una montaña de 10 km, algo más alta que el Everest, y aquí no hay aire que frene la bala.",
+      // Prototype: stands in for the interactive cannon's controls.
+      controlsPlaceholder:
+        "Prototipo: aquí irán la velocidad, el ángulo y el disparo.",
+    },
     // Spec 04, Decision 4: an illustration, an intro of one or two lines,
     // then the question.
     steps: {
@@ -212,10 +224,15 @@ export const es = {
           distance: "60 radios terrestres",
         },
       },
-      cannon: {
+      orbit: {
         title: "¿Por qué no cae la Luna?",
         intro:
           "Entonces, si la Tierra atrae a la Luna, ¿por qué no se cae? Newton lo pensó con un cañón en lo alto de una montaña.",
+      },
+      cannon: {
+        title: "El cañón de Newton",
+        intro:
+          "Elige la velocidad y el ángulo, y dispara. ¿A qué velocidad deja de caer la bala?",
       },
       law: {
         title: "La ley completa",
@@ -318,26 +335,6 @@ export const es = {
             label: "El doble.",
             feedback:
               "Al contrario: cuanto más lejos, más débil. El doble de lejos, 4 veces más débil; la Luna, 60 veces más lejos, recibe 3600 veces menos.",
-          },
-        },
-      },
-      "launch-at-12": {
-        prompt: "¿Qué crees que pasará si lanzas a 12 km/s?",
-        options: {
-          "falls-back": {
-            label: "Vuelve a caer a la Tierra.",
-            feedback:
-              "No vuelve: a 12 km/s la bala supera la velocidad de escape, unos 11,2 km/s, así que se aleja para siempre.",
-          },
-          orbit: {
-            label: "Entra en órbita.",
-            feedback:
-              "Va demasiado rápido para quedarse en órbita: a partir de unos 11,2 km/s, la bala escapa de la Tierra.",
-          },
-          escapes: {
-            label: "Escapa y no vuelve.",
-            feedback:
-              "A 12 km/s la bala supera la velocidad de escape, unos 11,2 km/s, así que se aleja para siempre.",
           },
         },
       },
