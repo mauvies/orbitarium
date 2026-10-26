@@ -38,7 +38,7 @@ const PAGES: readonly CheckedPage[] = [
     path: `/three-body/${orbit.slug}`,
     ready: detailReady,
   })),
-  { name: "the first lesson step", path: "/gravitation/falling" },
+  { name: "the lesson", path: "/gravitation" },
   { name: "the 404 page", path: "/no-such-page" },
 ];
 

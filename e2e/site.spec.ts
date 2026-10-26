@@ -39,7 +39,7 @@ for (const { path, current } of [
   { path: "/", current: undefined },
   { path: "/three-body", current: es.site.navigation.threeBody },
   { path: "/three-body/lagrange", current: es.site.navigation.threeBody },
-  { path: "/gravitation/falling", current: es.site.navigation.gravitation },
+  { path: "/gravitation", current: es.site.navigation.gravitation },
 ]) {
   test(`the navigation marks the current section on ${path}`, async ({
     page,
