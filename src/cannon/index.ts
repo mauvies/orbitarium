@@ -3,7 +3,9 @@ export {
   type ResolvedRequest,
   resolveRequest,
 } from "./controls";
+export { launchState } from "./launch";
 export { launchOutcome } from "./outcome";
+export { type Trace, type TraceEnd, traceLaunch } from "./trajectory";
 export type {
   Applied,
   CannonField,
@@ -11,6 +13,7 @@ export type {
   CannonRequest,
   CannonSettings,
   FieldLimits,
+  LaunchState,
   Rejected,
 } from "./types";
 export {
