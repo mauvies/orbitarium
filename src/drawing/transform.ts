@@ -1,5 +1,5 @@
-import type { Bounds } from "@/drawing/orbit-path";
 import type { Vec2 } from "@/physics";
+import type { Bounds } from "./orbit-path";
 
 /** From simulation units to canvas pixels: x' = offsetX + x·scale, y' = offsetY − y·scale. */
 export type CanvasTransform = {

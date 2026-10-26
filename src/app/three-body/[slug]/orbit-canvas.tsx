@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef } from "react";
 import type { OrbitPath } from "@/drawing/orbit-path";
+import { canvasAspectRatio } from "@/drawing/transform";
 import type { OrbitPreset } from "@/orbits";
 import type { DetailPreferences } from "./detail-preferences";
 import {
@@ -9,7 +10,6 @@ import {
   type PlayerControls,
   startOrbitAnimation,
 } from "./orbit-animation";
-import { canvasAspectRatio } from "./transform";
 
 /**
  * The canvas and the animation on it. React renders it only when a control

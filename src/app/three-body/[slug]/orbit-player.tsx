@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useState, useSyncExternalStore } from "react";
+import { usePrefersReducedMotion } from "@/components/use-prefers-reduced-motion";
 import { es } from "@/content/es";
 import type { OrbitPath } from "@/drawing/orbit-path";
 import type { OrbitPreset } from "@/orbits";
 import { useGallerySession } from "../gallery-session";
 import { OrbitCanvas } from "./orbit-canvas";
 import { PlayerControls } from "./player-controls";
-import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
 
 /** The animated orbit, its controls and the collision message. */
 export function OrbitPlayer({

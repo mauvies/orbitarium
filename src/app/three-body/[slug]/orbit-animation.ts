@@ -1,12 +1,12 @@
+import { startAnimationLoop } from "@/drawing/animation-loop";
+import { type CanvasSize, observeCanvasSize } from "@/drawing/canvas-size";
 import type { OrbitPath } from "@/drawing/orbit-path";
+import { readThemeColors } from "@/drawing/theme-colors";
+import { type CanvasTransform, fitTransform } from "@/drawing/transform";
 import type { OrbitPreset } from "@/orbits";
-import { startAnimationLoop } from "./animation-loop";
-import { type CanvasSize, observeCanvasSize } from "./canvas-size";
 import type { DetailPreferences } from "./detail-preferences";
 import { drawBodies, drawPath, drawTrail, pathShape } from "./draw";
 import { advanceAnimation, startAnimation } from "./orbit-frame";
-import { readThemeColors } from "./theme-colors";
-import { type CanvasTransform, fitTransform } from "./transform";
 
 /**
  * The canvas's largest width in CSS pixels: `orbit-canvas.tsx` caps it there

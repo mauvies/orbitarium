@@ -1,6 +1,6 @@
+import { type CanvasTransform, toCanvas } from "@/drawing/transform";
 import type { Vec2 } from "@/physics";
 import type { Trail, TrailSample } from "./trail";
-import { type CanvasTransform, toCanvas } from "./transform";
 
 // Spec 03, Decision 6: the path faint, the trail bright, in CSS pixels.
 const PATH_ALPHA = 0.3;

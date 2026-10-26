@@ -237,11 +237,12 @@ Code used by one route lives in that route's folder in `src/app/`, with its test
 | `src/app/three-body/stability-status.tsx` | The stability label, shared by the gallery and the detail page |
 | `src/app/three-body/[slug]/page.tsx` | Static detail page: params, metadata, facts, back link, player |
 | `src/app/three-body/[slug]/orbit-facts.tsx`, `back-to-gallery-link.tsx` | The facts list; the link back to the filtered gallery |
-| `src/app/three-body/[slug]/speed.ts`, `orbit-frame.ts`, `transform.ts`, `trail.ts` | Speeds and the frame cap; one frame of the animation, pure; the world-to-canvas transform; the trail |
+| `src/app/three-body/[slug]/speed.ts`, `orbit-frame.ts`, `trail.ts` | Speeds and the frame cap; one frame of the animation, pure; the trail |
 | `src/app/three-body/[slug]/orbit-player.tsx`, `player-controls.tsx`, `orbit-canvas.tsx`, `detail-preferences.ts` | The player: play state, restart and the collision message; the controls; the canvas element; the preferences the gallery layout keeps |
-| `src/app/three-body/[slug]/orbit-animation.ts`, `animation-loop.ts`, `canvas-size.ts`, `draw.ts`, `theme-colors.ts`, `use-prefers-reduced-motion.ts` | The animation's side effects: wiring, the `requestAnimationFrame` loop, sizing with the pixel ratio, drawing, the colour tokens, reduced motion |
-| `src/components/` | Shared components: container, page header, card, plate, orbit thumbnail, site header and navigation, logo |
+| `src/app/three-body/[slug]/orbit-animation.ts`, `draw.ts` | The animation's side effects: wiring and drawing |
+| `src/components/` | Shared components: container, page header, card, plate, orbit thumbnail, site header and navigation, logo; the reduced-motion hook (moved here by spec 04) |
 | `src/drawing/orbit-path.ts`, `simplify.ts` | Shared drawing geometry: an orbit's simplified path, its bounds and SVG data |
+| `src/drawing/transform.ts`, `animation-loop.ts`, `canvas-size.ts`, `theme-colors.ts` | The canvas pieces Part A reuses (moved here by spec 04): the world-to-canvas transform, the `requestAnimationFrame` loop, sizing with the pixel ratio, the colour tokens |
 | `src/content/es.ts` | Every UI string, the per-orbit content and Spanish number formatting |
 | `e2e/*.spec.ts`, `playwright.config.ts` | End-to-end tests against the production build |
 | `scripts/measure-stability.mjs` | Decision 9's measurement (G7) |
