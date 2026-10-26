@@ -103,7 +103,7 @@ export const es = {
     threeBody: {
       link: "El problema de los tres cuerpos",
       description:
-        "Tres cuerpos que se atraen no tienen una solución general, pero sí seis soluciones periódicas. Míralas moverse en tiempo real en tu navegador.",
+        "El movimiento de tres cuerpos que se atraen no se puede resolver con una fórmula general, pero algunas configuraciones se repiten. Mira seis de ellas moverse en tiempo real en tu navegador.",
     },
   },
   threeBody: {
