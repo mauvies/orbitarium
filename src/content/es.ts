@@ -157,8 +157,20 @@ export const es = {
     },
   },
   gravitation: {
-    title: "La ley de gravitación universal",
-    comingSoon: "La lección sobre esta ley está en preparación.",
-    threeBodyLink: "Mientras tanto, explora el problema de los tres cuerpos",
+    // Spec 04, Decision 1: the design note's five steps.
+    steps: {
+      falling: { title: "La manzana cae" },
+      mutual: { title: "La atracción es mutua" },
+      moon: { title: "¿Llega hasta la Luna?" },
+      cannon: { title: "¿Por qué no cae la Luna?" },
+      law: { title: "La ley completa" },
+    },
+    navigation: {
+      label: "Pasos de la lección",
+      // Visual only: the list is ordered, so screen readers announce it.
+      number: (position: number) => `${position}. `,
+      previous: (title: string) => `Anterior: ${title}`,
+      next: (title: string) => `Siguiente: ${title}`,
+    },
   },
 } as const;

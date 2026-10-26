@@ -229,7 +229,7 @@ Code used by one route lives in that route's folder in `src/app/`, with its test
 | `src/app/layout.tsx`, `globals.css`, `not-found.tsx`, `icon.svg` | The whole app: `lang="es"`, fonts, theme tokens, skip link, site header, `main`; the Spanish 404; the icon |
 | `src/app/(home)/page.tsx` | Home (a route group, so its components sit beside it without changing the URL) |
 | `src/app/(home)/hero-orbit.tsx`, `cannon-thumbnail.tsx` | The figure-eight hero; Newton's cannon, traced with `@/cannon` at build time (spec 04) |
-| `src/app/gravitation/page.tsx` | Placeholder until the Part A spec |
+| `src/app/gravitation/` | The Part A lesson; its files are listed in spec 04 |
 | `src/app/three-body/layout.tsx`, `gallery-session.tsx` | What the gallery section remembers while browsing: the last filter, the detail preferences (Decisions 8 and 10) |
 | `src/app/three-body/page.tsx` | Static gallery: thumbnails built at build time, the filter in Suspense |
 | `src/app/three-body/filter.ts`, `filter-controls.tsx`, `filtered-gallery.tsx` | Parsing, showing and writing the filter in the URL |
