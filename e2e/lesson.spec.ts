@@ -1,5 +1,7 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { kmPerSecondToKmPerHour } from "@/cannon";
 import { es } from "@/content/es";
+import { canvasSnapshot, hasDrawing, waitForFrames } from "./support";
 
 const {
   title,
@@ -300,4 +302,122 @@ test("the cannon band stacks at 360 px", async ({ page }) => {
   expect(band.width).toBe(section.width);
   expect(controls.y).toBeGreaterThanOrEqual(canvas.y + canvas.height);
   expect(controls.x).toBeLessThan(canvas.x + canvas.width);
+});
+
+// Spec 04, L12 and L13: the cannon, driven through its controls.
+function cannonOf(page: Page) {
+  const band = page.locator("#cannon");
+  return {
+    canvas: band.locator("canvas"),
+    speedSlider: band.getByRole("slider", { name: cannon.speed }),
+    speedField: band.getByRole("spinbutton", { name: cannon.speedField }),
+    angleSlider: band.getByRole("slider", { name: cannon.angle }),
+    launchButton: band.getByRole("button", { name: cannon.launch }),
+  };
+}
+
+/** The canvas once the page has hydrated and drawn the Earth and the cannon. */
+async function readyCannon(page: Page) {
+  const controls = cannonOf(page);
+  await expect(controls.launchButton).toBeEnabled();
+  await expect.poll(() => hasDrawing(controls.canvas)).toBe(true);
+  return controls;
+}
+
+const SPEED_STEP_KM_PER_SECOND = 0.01;
+// The ballistic preset, the session's first settings (spec 04, Decision 11).
+const FIRST_SETTINGS = { speedKmPerSecond: 7, angleDegrees: 45 };
+
+function speedText(speedKmPerSecond: number): string {
+  return cannon.speedValue(
+    speedKmPerSecond,
+    kmPerSecondToKmPerHour(speedKmPerSecond),
+  );
+}
+
+test("launching from the controls draws the shot's path", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { canvas, launchButton } = await readyCannon(page);
+  const beforeLaunch = await canvasSnapshot(canvas);
+
+  await launchButton.click();
+  await waitForFrames(page, 10);
+
+  expect(await canvasSnapshot(canvas)).not.toBe(beforeLaunch);
+});
+
+test("the canvas describes the last launch", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { canvas, launchButton } = await readyCannon(page);
+  await expect(canvas).toHaveAccessibleName(cannon.canvasLabel.idle);
+
+  await launchButton.click();
+
+  await expect(canvas).toHaveAccessibleName(
+    cannon.canvasLabel.launched(
+      FIRST_SETTINGS.speedKmPerSecond,
+      FIRST_SETTINGS.angleDegrees,
+    ),
+  );
+});
+
+test("the cannon works with the keyboard", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { canvas, speedSlider, launchButton } = await readyCannon(page);
+  const beforeLaunch = await canvasSnapshot(canvas);
+
+  await speedSlider.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await expect(launchButton).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  const raisedSpeed =
+    FIRST_SETTINGS.speedKmPerSecond + SPEED_STEP_KM_PER_SECOND;
+  await expect(canvas).toHaveAccessibleName(
+    cannon.canvasLabel.launched(raisedSpeed, FIRST_SETTINGS.angleDegrees),
+  );
+  expect(await canvasSnapshot(canvas)).not.toBe(beforeLaunch);
+});
+
+test("the speed field adjusts by 0.01 km/s", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { speedField, speedSlider } = await readyCannon(page);
+
+  await speedField.focus();
+  await page.keyboard.press("ArrowUp");
+
+  await expect(speedField).toHaveValue("7.01");
+  await expect(speedSlider).toHaveAttribute("aria-valuetext", speedText(7.01));
+});
+
+test("a typed speed is applied, and clamped to the range", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { speedField, speedSlider } = await readyCannon(page);
+
+  await speedField.fill("7.91");
+  await expect(speedSlider).toHaveAttribute("aria-valuetext", speedText(7.91));
+
+  await speedField.fill("50");
+  await speedField.blur();
+  await expect(speedField).toHaveValue("15.00");
+  await expect(speedSlider).toHaveAttribute("aria-valuetext", speedText(15));
+});
+
+test("reduced motion draws the path at once", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/gravitation");
+  const { canvas, launchButton } = await readyCannon(page);
+  const beforeLaunch = await canvasSnapshot(canvas);
+
+  await launchButton.click();
+  await waitForFrames(page, 2);
+  const justAfter = await canvasSnapshot(canvas);
+  // The lob lasts 2.9 s on screen; animated, half a second would move it.
+  await waitForFrames(page, 30);
+
+  expect(justAfter).not.toBe(beforeLaunch);
+  expect(await canvasSnapshot(canvas)).toBe(justAfter);
 });

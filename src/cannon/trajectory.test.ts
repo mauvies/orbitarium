@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Vec2 } from "@/physics";
 import { circularSpeed, launchState } from "./launch";
 import { launchOutcome } from "./outcome";
-import { type Trace, traceLaunch } from "./trajectory";
+import { finalFrame, type Trace, traceFrame, traceLaunch } from "./trajectory";
 import type { CannonOutcome, CannonSettings } from "./types";
 import { EARTH_RADIUS, LAUNCH_RADIUS } from "./units";
 
@@ -32,6 +32,9 @@ const THUMBNAIL_LAUNCH_RADIUS = 1.35;
 const CIRCLE_TOLERANCE = 1e-4;
 // Far below the 10 km (1.6e-3 radii) between the launch point and the ground.
 const RADIUS_TOLERANCE = 1e-9;
+
+// The lesson's view (spec 04, Decision 10), where the canvas's traces stop.
+const VIEW_STOP_RADIUS = 2;
 
 // About 1 s locally for the whole grid; shared CI runners are slower.
 const GRID_TIMEOUT_MS = 30_000;
@@ -205,5 +208,89 @@ describe("traceLaunch", () => {
     expect(() => traceLaunch(launch, { stopRadius: 1_000 })).toThrow(
       RangeError,
     );
+  });
+});
+
+describe("traceFrame", () => {
+  // The ballistic preset, a lob that lands, and the circular one.
+  const lob = trace(
+    { speedKmPerSecond: 7, angleDegrees: 45 },
+    VIEW_STOP_RADIUS,
+  );
+  const ring = trace(
+    { speedKmPerSecond: 7.91, angleDegrees: 0 },
+    VIEW_STOP_RADIUS,
+  );
+  const lastIndex = (shot: Trace) => shot.points.length - 1;
+
+  it("shows only the launch point at the start", () => {
+    expect(traceFrame(lob, 0)).toEqual({
+      revealedPoints: 1,
+      shot: lob.points[0],
+      finished: false,
+    });
+  });
+
+  it("reveals one point per dt of elapsed time", () => {
+    expect(traceFrame(lob, 10.5 * lob.dt)).toEqual({
+      revealedPoints: 11,
+      shot: lob.points[10],
+      finished: false,
+    });
+  });
+
+  it("a shot that hits the ground stops at its last point and finishes", () => {
+    const afterLanding = (lastIndex(lob) + 1) * lob.dt;
+
+    expect(traceFrame(lob, afterLanding)).toEqual({
+      revealedPoints: lob.points.length,
+      shot: lastPoint(lob.points),
+      finished: true,
+    });
+  });
+
+  it("a closed orbit keeps looping after one period and never finishes", () => {
+    const intoSecondTurn = (lastIndex(ring) + 10.5) * ring.dt;
+
+    expect(traceFrame(ring, intoSecondTurn)).toEqual({
+      revealedPoints: ring.points.length,
+      shot: ring.points[10],
+      finished: false,
+    });
+  });
+
+  it("rejects a negative or non-finite elapsed time", () => {
+    expect(() => traceFrame(lob, -1)).toThrow("elapsedTime");
+    expect(() => traceFrame(lob, Number.POSITIVE_INFINITY)).toThrow(
+      "elapsedTime",
+    );
+  });
+});
+
+describe("finalFrame", () => {
+  it("shows a shot that lands whole, at its last point", () => {
+    const lob = trace(
+      { speedKmPerSecond: 7, angleDegrees: 45 },
+      VIEW_STOP_RADIUS,
+    );
+
+    expect(finalFrame(lob)).toEqual({
+      revealedPoints: lob.points.length,
+      shot: lastPoint(lob.points),
+      finished: true,
+    });
+  });
+
+  it("shows a closed orbit's whole ring, with the shot at the launch point", () => {
+    const ring = trace(
+      { speedKmPerSecond: 7.91, angleDegrees: 0 },
+      VIEW_STOP_RADIUS,
+    );
+
+    expect(finalFrame(ring)).toEqual({
+      revealedPoints: ring.points.length,
+      shot: ring.points[0],
+      finished: true,
+    });
   });
 });

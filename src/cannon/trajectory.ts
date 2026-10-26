@@ -22,6 +22,61 @@ export type Trace = {
   readonly end: TraceEnd;
 };
 
+/** What the canvas shows of a trace at one moment. */
+export type TraceFrame = {
+  /** How many of the trace's points are drawn, from the launch point. */
+  readonly revealedPoints: number;
+  /** Where the shot is now. */
+  readonly shot: Vec2;
+  /** Nothing will move any more: the shot has landed or left the view. */
+  readonly finished: boolean;
+};
+
+/**
+ * How much of `trace` is shown after `elapsedTime` units of engine time: one
+ * point per `dt` (spec 04, Decision 10). A closed orbit then loops its period
+ * and never finishes.
+ */
+export function traceFrame(trace: Trace, elapsedTime: number): TraceFrame {
+  if (!(Number.isFinite(elapsedTime) && elapsedTime >= 0)) {
+    throw new RangeError(
+      `elapsedTime must be a finite number of at least 0, got ${elapsedTime}`,
+    );
+  }
+  const lastIndex = trace.points.length - 1;
+  const step = Math.floor(elapsedTime / trace.dt);
+  if (step < lastIndex) {
+    return {
+      revealedPoints: step + 1,
+      shot: pointAt(trace, step),
+      finished: false,
+    };
+  }
+  if (trace.end !== "period") {
+    return finalFrame(trace);
+  }
+  // A period's last point is its first, so the loop skips it.
+  return {
+    revealedPoints: trace.points.length,
+    shot: pointAt(trace, step % lastIndex),
+    finished: false,
+  };
+}
+
+/**
+ * The whole trace at once, for reduced motion (spec 04, Decision 11): the
+ * shot where it stopped, or a closed orbit's ring with the shot back at the
+ * launch point.
+ */
+export function finalFrame(trace: Trace): TraceFrame {
+  const lastIndex = trace.points.length - 1;
+  return {
+    revealedPoints: trace.points.length,
+    shot: pointAt(trace, trace.end === "period" ? 0 : lastIndex),
+    finished: true,
+  };
+}
+
 /**
  * Simulates `launch` with the engine until the first of: reaching the
  * ground, one period of a bound orbit, or passing `stopRadius` (spec 04,
@@ -109,6 +164,16 @@ function shotPosition(state: SystemState): Vec2 {
     x: shot.position.x - earth.position.x,
     y: shot.position.y - earth.position.y,
   };
+}
+
+function pointAt({ points }: Trace, index: number): Vec2 {
+  const point = points[index];
+  if (point === undefined) {
+    throw new RangeError(
+      `index must be within the trace's ${points.length} points, got ${index}`,
+    );
+  }
+  return point;
 }
 
 function radiusOf({ x, y }: Vec2): number {

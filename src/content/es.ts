@@ -181,9 +181,21 @@ export const es = {
       controlsLabel: "Controles del cañón",
       caption:
         "El cañón dispara desde una montaña de 10 km, algo más alta que el Everest, y aquí no hay aire que frene la bala.",
-      // Prototype: stands in for the interactive cannon's controls.
-      controlsPlaceholder:
-        "Prototipo: aquí irán la velocidad, el ángulo y el disparo.",
+      speed: "Velocidad",
+      speedField: "Velocidad en km/s",
+      speedUnit: "km/s",
+      // Spec 04, Decision 16: the slider's value text, with units.
+      speedValue: (kmPerSecond: number, kmPerHour: number) =>
+        `${twoDecimals.format(kmPerSecond)} km/s, ${wholeNumber.format(Math.round(kmPerHour))} km/h`,
+      angle: "Ángulo",
+      angleValue: (degrees: number) => `${wholeNumber.format(degrees)}°`,
+      launch: "Disparar",
+      // Spec 04, Decision 16: the canvas's text alternative.
+      canvasLabel: {
+        idle: "La Tierra y el cañón en lo alto de la montaña, todavía sin disparar.",
+        launched: (kmPerSecond: number, degrees: number) =>
+          `La Tierra y la trayectoria del último disparo: ${twoDecimals.format(kmPerSecond)} km/s a ${wholeNumber.format(degrees)}°.`,
+      },
     },
     // Spec 04, Decision 4: an illustration, an intro of one or two lines,
     // then the question.

@@ -10,7 +10,14 @@ export {
   REFERENCE_SPEEDS,
   type ReferenceSpeeds,
 } from "./presets";
-export { type Trace, type TraceEnd, traceLaunch } from "./trajectory";
+export {
+  finalFrame,
+  type Trace,
+  type TraceEnd,
+  type TraceFrame,
+  traceFrame,
+  traceLaunch,
+} from "./trajectory";
 export type {
   Applied,
   CannonField,
@@ -28,6 +35,7 @@ export {
   engineToKmPerSecond,
   kmPerSecondToEngine,
   kmPerSecondToKmPerHour,
+  LAUNCH_RADIUS,
   SPEED_UNIT_KM_PER_SECOND,
   TIME_UNIT_SECONDS,
 } from "./units";
