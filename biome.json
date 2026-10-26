@@ -48,7 +48,7 @@
       }
     },
     {
-      "includes": ["src/physics/**", "src/orbits/**"],
+      "includes": ["src/physics/**", "src/orbits/**", "src/cannon/**"],
       "linter": {
         "rules": {
           "style": {
@@ -56,9 +56,9 @@
               "level": "error",
               "options": {
                 "paths": {
-                  "react": "src/physics and src/orbits must not depend on React (spec 01, E14).",
-                  "react-dom": "src/physics and src/orbits must not depend on React (spec 01, E14).",
-                  "next": "src/physics and src/orbits must not depend on Next.js (spec 01, E14)."
+                  "react": "src/physics, src/orbits and src/cannon must not depend on React (spec 01, E14).",
+                  "react-dom": "src/physics, src/orbits and src/cannon must not depend on React (spec 01, E14).",
+                  "next": "src/physics, src/orbits and src/cannon must not depend on Next.js (spec 01, E14)."
                 },
                 "patterns": [
                   {
@@ -68,7 +68,7 @@
                       "next/**",
                       "@next/**"
                     ],
-                    "message": "src/physics and src/orbits must not depend on React or Next.js (spec 01, E14)."
+                    "message": "src/physics, src/orbits and src/cannon must not depend on React or Next.js (spec 01, E14)."
                   }
                 ]
               }
@@ -77,15 +77,15 @@
               "level": "error",
               "options": {
                 "deniedGlobals": {
-                  "window": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "self": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "document": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "navigator": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "location": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "localStorage": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "sessionStorage": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "requestAnimationFrame": "src/physics and src/orbits must not use DOM globals (spec 01, E14).",
-                  "cancelAnimationFrame": "src/physics and src/orbits must not use DOM globals (spec 01, E14)."
+                  "window": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "self": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "document": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "navigator": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "location": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "localStorage": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "sessionStorage": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "requestAnimationFrame": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14).",
+                  "cancelAnimationFrame": "src/physics, src/orbits and src/cannon must not use DOM globals (spec 01, E14)."
                 }
               }
             }
@@ -115,6 +115,7 @@
       "includes": [
         "src/physics/**",
         "src/orbits/**",
+        "src/cannon/**",
         "!**/*.test.ts",
         "!src/physics/testing/**",
         "!src/orbits/testing/**"
@@ -126,9 +127,9 @@
               "level": "error",
               "options": {
                 "paths": {
-                  "react": "src/physics and src/orbits must not depend on React (spec 01, E14).",
-                  "react-dom": "src/physics and src/orbits must not depend on React (spec 01, E14).",
-                  "next": "src/physics and src/orbits must not depend on Next.js (spec 01, E14)."
+                  "react": "src/physics, src/orbits and src/cannon must not depend on React (spec 01, E14).",
+                  "react-dom": "src/physics, src/orbits and src/cannon must not depend on React (spec 01, E14).",
+                  "next": "src/physics, src/orbits and src/cannon must not depend on Next.js (spec 01, E14)."
                 },
                 "patterns": [
                   {
@@ -138,11 +139,11 @@
                       "next/**",
                       "@next/**"
                     ],
-                    "message": "src/physics and src/orbits must not depend on React or Next.js (spec 01, E14)."
+                    "message": "src/physics, src/orbits and src/cannon must not depend on React or Next.js (spec 01, E14)."
                   },
                   {
                     "group": ["@/**", "!@/physics", "../**"],
-                    "message": "src/physics and src/orbits import only their own modules, by relative path, and the public entry point @/physics (spec 02, Decision 8)."
+                    "message": "src/physics, src/orbits and src/cannon import only their own modules, by relative path, and the public entry point @/physics (spec 02, Decision 8)."
                   }
                 ]
               }
