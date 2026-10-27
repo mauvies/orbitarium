@@ -26,8 +26,12 @@ export type NavigationResult =
 
 /** The page as the controls see it: where the learner is, and how to move. */
 export type LessonView = {
-  /** Scrolls to the part, focuses its heading and replaces the anchor. */
+  /** Scrolls to the part and replaces the anchor, without a history entry. */
   readonly scrollToSection: (section: SectionId) => void;
+  readonly focusHeading: (section: SectionId) => void;
+  /** Says in the tutor's panel which part the page moved to. */
+  readonly announceSection: (section: SectionId) => void;
+  readonly isTutorOpen: () => boolean;
   readonly sectionAtTop: () => SectionId;
   readonly isCannonInView: () => boolean;
 };
@@ -70,6 +74,19 @@ export function createLessonControls(
   store: LessonStore,
   view: LessonView,
 ): LessonControls {
+  /**
+   * Moves the page to `section` for the tutor. With the panel open, focus
+   * stays in it and the move is announced instead (spec 04, Decision 14).
+   */
+  function moveTo(section: SectionId): void {
+    view.scrollToSection(section);
+    if (view.isTutorOpen()) {
+      view.announceSection(section);
+    } else {
+      view.focusHeading(section);
+    }
+  }
+
   return {
     cannon: {
       limits: CANNON_LIMITS,
@@ -83,7 +100,7 @@ export function createLessonControls(
         store.replace(session);
         // Spec 04, Decision 14: the learner sees what the tutor fired.
         if (result.status === "launched" && !view.isCannonInView()) {
-          view.scrollToSection("cannon");
+          moveTo("cannon");
         }
         return result;
       },
@@ -111,7 +128,7 @@ export function createLessonControls(
             reason: SECTION_REASON,
           };
         }
-        view.scrollToSection(section);
+        moveTo(section);
         return { status: "moved", section };
       },
     },

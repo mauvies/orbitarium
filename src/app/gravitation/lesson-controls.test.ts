@@ -5,32 +5,47 @@ import { answerQuestion, initialSession } from "./lesson-session";
 import { createLessonStore } from "./lesson-store";
 import type { SectionId } from "./section-ids";
 
-// Spec 04, Decisions 12 to 14: the API the tutor will use in spec 05. The
+// Spec 04, Decisions 12 to 15: the API the tutor will use in spec 05. The
 // view stands in for the page: scrolling makes the part the one at the top.
 function controlsWith({
   atTop = "falling",
   cannonInView = false,
+  tutorOpen = false,
 }: {
   atTop?: SectionId;
   cannonInView?: boolean;
+  tutorOpen?: boolean;
 } = {}) {
   const scrolledTo: SectionId[] = [];
+  const focused: SectionId[] = [];
+  const announced: SectionId[] = [];
   let top = atTop;
   const view: LessonView = {
     scrollToSection: (section) => {
       scrolledTo.push(section);
       top = section;
     },
+    focusHeading: (section) => focused.push(section),
+    announceSection: (section) => announced.push(section),
+    isTutorOpen: () => tutorOpen,
     sectionAtTop: () => top,
     isCannonInView: () => cannonInView,
   };
   const store = createLessonStore(initialSession());
-  return { controls: createLessonControls(store, view), scrolledTo };
+  return {
+    controls: createLessonControls(store, view),
+    scrolledTo,
+    focused,
+    announced,
+  };
 }
 
 // A view that never moves, for tests that do not navigate.
 const STILL_VIEW: LessonView = {
   scrollToSection: () => {},
+  focusHeading: () => {},
+  announceSection: () => {},
+  isTutorOpen: () => false,
   sectionAtTop: () => "falling",
   isCannonInView: () => true,
 };
@@ -113,6 +128,41 @@ describe("createLessonControls", () => {
     controls.navigation.goToSection("nowhere");
 
     expect(scrolledTo).toEqual(["law"]);
+  });
+
+  it("with the tutor closed, goToSection focuses the part's heading", () => {
+    const { controls, focused, announced } = controlsWith();
+
+    controls.navigation.goToSection("moon");
+
+    expect(focused).toEqual(["moon"]);
+    expect(announced).toEqual([]);
+  });
+
+  it("with the tutor open, goToSection keeps focus in the panel and announces the part", () => {
+    const { controls, scrolledTo, focused, announced } = controlsWith({
+      tutorOpen: true,
+    });
+
+    controls.navigation.goToSection("moon");
+    controls.navigation.goToSection("moon");
+
+    expect(scrolledTo).toEqual(["moon", "moon"]);
+    expect(focused).toEqual([]);
+    expect(announced).toEqual(["moon", "moon"]);
+    expect(controls.navigation.current()).toBe("moon");
+  });
+
+  it("a tutor's launch out of view moves to the cannon by the same rule", () => {
+    const closed = controlsWith({ atTop: "moon" });
+    const open = controlsWith({ atTop: "moon", tutorOpen: true });
+
+    closed.controls.cannon.launch({ speedKmPerSecond: 8 });
+    open.controls.cannon.launch({ speedKmPerSecond: 8 });
+
+    expect(closed.focused).toEqual(["cannon"]);
+    expect(open.focused).toEqual([]);
+    expect(open.announced).toEqual(["cannon"]);
   });
 
   it("current() is the part at the top of the viewport", () => {

@@ -44,14 +44,41 @@ type Lesson = {
 const LessonContext = createContext<Lesson | null>(null);
 
 /**
+ * Whether the tutor's panel is open, and its last announcement: page state,
+ * not lesson state, kept apart so opening the panel re-renders only what
+ * shows it (spec 04, Decisions 14 and 15).
+ */
+type TutorPanelState = {
+  readonly open: boolean;
+  readonly setOpen: (open: boolean) => void;
+  readonly announcement: string;
+};
+
+const TutorPanelContext = createContext<TutorPanelState | null>(null);
+
+/**
  * Keeps the lesson's session while the learner reads it (spec 04, Decision
  * 2) and exposes its controls.
  */
 export function LessonProvider({ children }: { children: ReactNode }) {
   const [store] = useState(() => createLessonStore(initialSession()));
+  const [tutorOpen, setTutorOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const controls = useMemo(
-    () => createLessonControls(store, createLessonView()),
+    () =>
+      createLessonControls(
+        store,
+        // Cleared first, so the same move twice is announced twice.
+        createLessonView((message) => {
+          setAnnouncement("");
+          requestAnimationFrame(() => setAnnouncement(message));
+        }),
+      ),
     [store],
+  );
+  const tutorPanel = useMemo(
+    () => ({ open: tutorOpen, setOpen: setTutorOpen, announcement }),
+    [tutorOpen, announcement],
   );
   const lesson = useMemo(
     () => ({
@@ -71,7 +98,11 @@ export function LessonProvider({ children }: { children: ReactNode }) {
     }),
     [store, controls],
   );
-  return <LessonContext value={lesson}>{children}</LessonContext>;
+  return (
+    <LessonContext value={lesson}>
+      <TutorPanelContext value={tutorPanel}>{children}</TutorPanelContext>
+    </LessonContext>
+  );
 }
 
 export function useLessonControls(): LessonControls {
@@ -101,6 +132,14 @@ export function useLessonSession(): LessonSession {
     store.getSession,
     store.getSession,
   );
+}
+
+export function useTutorPanel(): TutorPanelState {
+  const tutorPanel = useContext(TutorPanelContext);
+  if (tutorPanel === null) {
+    throw new Error("useTutorPanel must be used inside LessonProvider");
+  }
+  return tutorPanel;
 }
 
 function useLesson(): Lesson {

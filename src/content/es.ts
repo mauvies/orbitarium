@@ -311,6 +311,16 @@ export const es = {
           "Todo junto: la fuerza crece con cada masa y se debilita con el cuadrado de la distancia entre sus centros.",
       },
     },
+    // Spec 04, Decision 15: the tutor's shell; spec 05 brings the tutor.
+    tutor: {
+      toggle: "Preguntar al tutor",
+      title: "Tutor",
+      placeholder:
+        "Aquí podrás conversar con un tutor sobre la lección. Llegará pronto.",
+      close: "Cerrar el tutor",
+      // Spec 04, Decision 14: a tutor's move, announced in the panel.
+      movedTo: (title: string) => `Ahora estás en “${title}”.`,
+    },
     question: {
       answer: "Responder",
       correct: "Correcto.",

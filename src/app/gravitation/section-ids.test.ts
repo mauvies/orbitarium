@@ -96,6 +96,17 @@ describe("isMostlyVisible", () => {
     );
   });
 
+  it("with the sheet open, the cannon is measured against the page above it", () => {
+    // 360 × 740 with the tutor's sheet open: the page shows above 333 px.
+    const pageAboveSheetPx = 333;
+    const canvasAfterScroll = { top: 88, height: 290 };
+
+    expect(isMostlyVisible(canvasAfterScroll, pageAboveSheetPx)).toBe(true);
+    expect(isMostlyVisible({ top: 220, height: 290 }, pageAboveSheetPx)).toBe(
+      false,
+    );
+  });
+
   it("a rect taller than the viewport is measured against the viewport", () => {
     expect(
       isMostlyVisible({ top: -200, height: 2000 }, VIEWPORT_HEIGHT_PX),
