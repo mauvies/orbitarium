@@ -11,7 +11,7 @@ import {
   type Trace,
   traceLaunch,
 } from "@/cannon";
-import { CANNON_VIEW_RADIUS } from "./cannon-view";
+import { CANNON_STOP_RADIUS } from "./cannon-view";
 import { type Answers, grade, type QuestionId } from "./questions";
 import { parseStep, STEP_IDS, type StepId } from "./steps";
 
@@ -139,7 +139,7 @@ export function launchCannon(
     settings,
     outcome,
     trace: traceLaunch(launchState(settings), {
-      stopRadius: CANNON_VIEW_RADIUS,
+      stopRadius: CANNON_STOP_RADIUS,
     }),
   };
   return {
@@ -153,6 +153,17 @@ export function launchCannon(
     result: { status: "launched", ...settings, clamped, outcome },
     navigateTo: session.step === "cannon" ? null : "cannon",
   };
+}
+
+/**
+ * Keeps only the last launch: the faint paths go, and the cannon's last
+ * launch, which the tutor reads, stays (spec 04, Decision 11).
+ */
+export function clearEarlierPaths(session: LessonSession): LessonSession {
+  if (session.launches.length <= 1) {
+    return session;
+  }
+  return { ...session, launches: session.launches.slice(-1) };
 }
 
 /**

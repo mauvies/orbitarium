@@ -4,9 +4,14 @@ import { type CanvasSize, observeCanvasSize } from "@/drawing/canvas-size";
 import { readThemeColors } from "@/drawing/theme-colors";
 import { type CanvasTransform, fitTransform } from "@/drawing/transform";
 import { CANNON_VIEW_RADIUS } from "../cannon-view";
-import { drawEarth, drawMountain, drawShot, drawShotPath } from "./cannon-draw";
+import {
+  drawEarlierPath,
+  drawEarth,
+  drawMountain,
+  drawShot,
+  drawShotPath,
+} from "./cannon-draw";
 
-const PADDING_PX = 16;
 const MS_PER_SECOND = 1_000;
 
 // Fixed and centred on the Earth (spec 04, Decision 10).
@@ -20,6 +25,8 @@ const VIEW_BOUNDS = {
 export type CannonAnimation = {
   /** Plays `trace` from its start, or shows it whole when `animate` is false. */
   readonly show: (trace: Trace | null, animate: boolean) => void;
+  /** The earlier launches' paths, drawn faint under the current one. */
+  readonly setEarlierPaths: (traces: readonly Trace[]) => void;
   readonly stop: () => void;
 };
 
@@ -29,13 +36,15 @@ type View = {
 };
 
 /**
- * Draws the Earth, the cannon and the last shot on `canvas`, outside React,
- * as the gallery does (spec 03, Decision 5). The shot is revealed at one
+ * Draws the Earth, the cannon and the shots on `canvas`, outside React, as
+ * the gallery does (spec 03, Decision 5). The current shot is revealed at one
  * screen second per unit of engine time (spec 04, Decision 10), and the loop
- * stops once nothing moves.
+ * stops once nothing moves. `onOutcomeShown` is called once per `show`,
+ * when the shot's outcome becomes visible (Decision 11).
  */
 export function startCannonAnimation(
   canvas: HTMLCanvasElement,
+  onOutcomeShown: () => void,
 ): CannonAnimation {
   const context = canvas.getContext("2d");
   if (context === null) {
@@ -44,8 +53,10 @@ export function startCannonAnimation(
   const colors = readThemeColors(canvas);
   let view: View | null = null;
   let trace: Trace | null = null;
+  let earlierPaths: readonly Trace[] = [];
   let animate = false;
   let elapsedTime = 0;
+  let outcomeReported = false;
 
   const currentFrame = (): TraceFrame | null => {
     if (trace === null) {
@@ -66,6 +77,9 @@ export function startCannonAnimation(
       edge: colors.line,
     });
     drawMountain(context, transform, colors.muted);
+    for (const earlier of earlierPaths) {
+      drawEarlierPath(context, earlier.points, transform, colors.accent);
+    }
     if (trace !== null && frame !== null) {
       drawShotPath(
         context,
@@ -86,6 +100,10 @@ export function startCannonAnimation(
     elapsedTime += elapsedMs / MS_PER_SECOND;
     const frame = currentFrame();
     draw(frame);
+    if (frame?.outcomeShown && !outcomeReported) {
+      outcomeReported = true;
+      onOutcomeShown();
+    }
     return frame !== null && !frame.finished;
   });
 
@@ -94,6 +112,11 @@ export function startCannonAnimation(
       trace = nextTrace;
       animate = nextAnimate;
       elapsedTime = 0;
+      outcomeReported = false;
+      loop.requestFrame();
+    },
+    setEarlierPaths: (traces) => {
+      earlierPaths = traces;
       loop.requestFrame();
     },
     stop: () => {
@@ -110,6 +133,7 @@ function viewFor(size: CanvasSize): View | null {
   }
   return {
     size,
-    transform: fitTransform(VIEW_BOUNDS, size.width, size.height, PADDING_PX),
+    // No margin: paths reach the canvas's edge and are cut there.
+    transform: fitTransform(VIEW_BOUNDS, size.width, size.height, 0),
   };
 }

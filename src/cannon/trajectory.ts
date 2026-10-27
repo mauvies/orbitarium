@@ -30,6 +30,11 @@ export type TraceFrame = {
   readonly shot: Vec2;
   /** Nothing will move any more: the shot has landed or left the view. */
   readonly finished: boolean;
+  /**
+   * The outcome can be seen: the shot has landed, closed its orbit or left
+   * (spec 04, Decision 11).
+   */
+  readonly outcomeShown: boolean;
 };
 
 /**
@@ -50,6 +55,7 @@ export function traceFrame(trace: Trace, elapsedTime: number): TraceFrame {
       revealedPoints: step + 1,
       shot: pointAt(trace, step),
       finished: false,
+      outcomeShown: false,
     };
   }
   if (trace.end !== "period") {
@@ -60,6 +66,7 @@ export function traceFrame(trace: Trace, elapsedTime: number): TraceFrame {
     revealedPoints: trace.points.length,
     shot: pointAt(trace, step % lastIndex),
     finished: false,
+    outcomeShown: true,
   };
 }
 
@@ -74,6 +81,7 @@ export function finalFrame(trace: Trace): TraceFrame {
     revealedPoints: trace.points.length,
     shot: pointAt(trace, trace.end === "period" ? 0 : lastIndex),
     finished: true,
+    outcomeShown: true,
   };
 }
 
@@ -103,13 +111,7 @@ export function traceLaunch(
     (2 * Math.PI * launchRadius ** 1.5) /
     Math.sqrt(GRAVITATIONAL_PARAMETER) /
     STEPS_PER_CIRCULAR_TURN;
-  const steps = period === null ? MAX_STEPS : Math.ceil(period / maxDt);
-  if (steps > MAX_STEPS) {
-    throw new RangeError(
-      `a period needs ${steps} steps, more than ${MAX_STEPS}; lower stopRadius`,
-    );
-  }
-  const dt = period === null ? maxDt : period / steps;
+  const { steps, dt, closes } = stepping(period, maxDt);
 
   let state = initialState(launch);
   const points: Vec2[] = [launch.position];
@@ -125,12 +127,31 @@ export function traceLaunch(
       return { points, dt, end: "stop-radius" };
     }
   }
-  if (period === null) {
+  if (!closes) {
     throw new RangeError(
-      `the shot did not pass stopRadius ${stopRadius} within ${MAX_STEPS} steps`,
+      `the shot did not land or pass stopRadius ${stopRadius} within ${MAX_STEPS} steps`,
     );
   }
   return { points, dt, end: "period" };
+}
+
+/**
+ * The steps of a trace. A period that fits the engine's limit is cut into
+ * whole steps, so it ends exactly on one. A longer one, near the escape
+ * speed, cannot close: the shot gets the limit to land or leave, as an
+ * escaping one does.
+ */
+function stepping(
+  period: number | null,
+  maxDt: number,
+): { steps: number; dt: number; closes: boolean } {
+  if (period !== null) {
+    const steps = Math.ceil(period / maxDt);
+    if (steps <= MAX_STEPS) {
+      return { steps, dt: period / steps, closes: true };
+    }
+  }
+  return { steps: MAX_STEPS, dt: maxDt, closes: false };
 }
 
 /** 2π·√(a³/μ) for a bound orbit; null when the shot escapes. */

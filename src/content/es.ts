@@ -79,6 +79,10 @@ const MOON_TEST =
   "El doble de lejos, 2 × 2 = 4 veces más débil. La Luna, 60 veces más lejos, recibe 3600 veces menos: en un segundo se desvía hacia la Tierra 1,4 mm, frente a los 4,9 m que cae la manzana.";
 // "3600", "28.000": Spanish groups thousands only from five digits.
 const wholeNumber = new Intl.NumberFormat("es");
+// Keeps "≈ 7,9 km/s" on one line.
+const NBSP = "\u00a0";
+// Spec 04, Decision 11: a shot that comes back after leaving the view.
+const RETURNS_FROM_AFAR = "se aleja mucho, pero vuelve";
 
 export const es = {
   site: {
@@ -190,6 +194,34 @@ export const es = {
       angle: "Ángulo",
       angleValue: (degrees: number) => `${wholeNumber.format(degrees)}°`,
       launch: "Disparar",
+      // Spec 04, L19, sentence 11: computed from the model, rounded.
+      circularReference: (kmPerSecond: number, kmPerHour: number) =>
+        `Para dar la vuelta sin caer: ≈${NBSP}${speedFormat.format(kmPerSecond)}${NBSP}km/s (≈${NBSP}${wholeNumber.format(Math.round(kmPerHour / 1_000) * 1_000)}${NBSP}km/h)`,
+      escapeReference: (kmPerSecond: number) =>
+        `Para escapar de la Tierra: ≈${NBSP}${speedFormat.format(kmPerSecond)}${NBSP}km/s`,
+      presets: "Ejemplos",
+      clearPaths: "Borrar trayectorias",
+      // Spec 04, Decision 11: each outcome's name, on its label and its
+      // preset, and as the live region says it.
+      outcomes: {
+        ballistic: { label: "Cae al suelo", announced: "cae al suelo" },
+        "circular-orbit": {
+          label: "Órbita circular",
+          announced: "órbita circular",
+        },
+        "elliptical-orbit": {
+          label: "Órbita elíptica",
+          announced: "órbita elíptica",
+        },
+        escape: {
+          label: "Escapa de la Tierra",
+          announced: "escapa de la Tierra",
+        },
+      },
+      outcomeLabel: (label: string, returnsFromAfar: boolean) =>
+        returnsFromAfar ? `${label}: ${RETURNS_FROM_AFAR}.` : label,
+      outcomeAnnouncement: (announced: string, returnsFromAfar: boolean) =>
+        `Resultado: ${announced}${returnsFromAfar ? `; ${RETURNS_FROM_AFAR}` : ""}.`,
       // Spec 04, Decision 16: the canvas's text alternative.
       canvasLabel: {
         idle: "La Tierra y el cañón en lo alto de la montaña, todavía sin disparar.",

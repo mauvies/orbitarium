@@ -3,9 +3,8 @@ import type { CannonOutcome, CannonSettings } from "./types";
 import { engineToKmPerSecond, LAUNCH_RADIUS } from "./units";
 
 /**
- * One launch per outcome (spec 04, Decision 11). The escape preset is the
- * speed of step 4's prediction question. The values may be tuned in visual
- * review as long as each still gives its outcome (L9).
+ * One launch per outcome (spec 04, Decision 11). The values may be tuned in
+ * visual review as long as each still gives its outcome (L9).
  */
 export const CANNON_PRESETS: Readonly<Record<CannonOutcome, CannonSettings>> = {
   ballistic: { speedKmPerSecond: 7, angleDegrees: 45 },

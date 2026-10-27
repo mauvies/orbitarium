@@ -13,6 +13,7 @@ import {
 import { createLessonControls, type LessonControls } from "./lesson-controls";
 import {
   answerQuestion,
+  clearEarlierPaths,
   initialSession,
   type LessonSession,
   syncStep,
@@ -26,6 +27,8 @@ type Lesson = {
   readonly controls: LessonControls;
   /** Answering is the learner's alone, so it is not one of the tutor's controls. */
   readonly answer: (questionId: QuestionId, optionId: string) => void;
+  /** Like answering, clearing the faint paths is the learner's alone. */
+  readonly clearEarlierPaths: () => void;
 };
 
 const LessonContext = createContext<Lesson | null>(null);
@@ -51,6 +54,8 @@ export function LessonProvider({ children }: { children: ReactNode }) {
       controls,
       answer: (questionId: QuestionId, optionId: string) =>
         store.replace(answerQuestion(store.getSession(), questionId, optionId)),
+      clearEarlierPaths: () =>
+        store.replace(clearEarlierPaths(store.getSession())),
     }),
     [store, controls],
   );
@@ -63,6 +68,10 @@ export function useLessonControls(): LessonControls {
 
 export function useAnswerQuestion(): Lesson["answer"] {
   return useLesson().answer;
+}
+
+export function useClearEarlierPaths(): Lesson["clearEarlierPaths"] {
+  return useLesson().clearEarlierPaths;
 }
 
 export function useLessonSession(): LessonSession {

@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { type FieldLimits, kmPerSecondToKmPerHour } from "@/cannon";
+import {
+  CANNON_PRESETS,
+  type CannonOutcome,
+  type FieldLimits,
+  kmPerSecondToKmPerHour,
+  REFERENCE_SPEEDS,
+} from "@/cannon";
 import { es } from "@/content/es";
-import { useLessonControls, useLessonSession } from "../lesson-provider";
+import {
+  useClearEarlierPaths,
+  useLessonControls,
+  useLessonSession,
+} from "../lesson-provider";
 import { useHydrated } from "../use-hydrated";
 
 const { cannon } = es.gravitation;
@@ -11,16 +21,22 @@ const { cannon } = es.gravitation;
 // The field shows every applied speed exactly: its resolution is 0.01 km/s.
 const SPEED_DECIMALS = 2;
 
+const PRESET_OUTCOMES = Object.keys(CANNON_PRESETS) as CannonOutcome[];
+const SECONDARY_BUTTON =
+  "rounded-[10px] border border-line bg-surface px-3 py-2 text-small text-strong hover:bg-surface-raised disabled:opacity-50 disabled:hover:bg-surface";
+
 /**
  * The cannon's controls. They change the cannon only through the lesson's
  * controller, as the tutor will (spec 04, Decision 12): moving a control
- * sets, the button launches. Native inputs, so the arrow keys step the speed
- * by 0.01 km/s and the angle by 1° (Decision 8). Disabled until the page
- * hydrates: a click before then would be lost.
+ * sets, the launch button and the presets launch. Native inputs, so the
+ * arrow keys step the speed by 0.01 km/s and the angle by 1° (Decision 8).
+ * Disabled until the page hydrates: a click before then would be lost.
  */
 export function CannonPanel() {
   const { set, launch, limits } = useLessonControls().cannon;
-  const { speedKmPerSecond, angleDegrees } = useLessonSession().cannon;
+  const session = useLessonSession();
+  const { speedKmPerSecond, angleDegrees } = session.cannon;
+  const clearEarlierPaths = useClearEarlierPaths();
   const hydrated = useHydrated();
   const speed = limits.speedKmPerSecond;
   const angle = limits.angleDegrees;
@@ -56,6 +72,7 @@ export function CannonPanel() {
           speedKmPerSecond={speedKmPerSecond}
           onSpeedChange={(value) => set({ speedKmPerSecond: value })}
         />
+        <ReferenceSpeeds />
       </div>
       <div className="grid gap-2">
         <div className="flex items-baseline justify-between">
@@ -86,6 +103,29 @@ export function CannonPanel() {
         className="rounded-[10px] bg-accent px-4 py-2 font-semibold text-bg-bottom disabled:opacity-50"
       >
         {cannon.launch}
+      </button>
+      <fieldset className="grid gap-2">
+        <legend className="mb-2 text-muted text-small">{cannon.presets}</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {PRESET_OUTCOMES.map((outcome) => (
+            <button
+              key={outcome}
+              type="button"
+              onClick={() => launch(CANNON_PRESETS[outcome])}
+              className={SECONDARY_BUTTON}
+            >
+              {cannon.outcomes[outcome].label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <button
+        type="button"
+        onClick={clearEarlierPaths}
+        disabled={session.launches.length <= 1}
+        className={SECONDARY_BUTTON}
+      >
+        {cannon.clearPaths}
       </button>
     </fieldset>
   );
@@ -134,5 +174,24 @@ function SpeedField({
       />
       <span className="text-muted text-small">{cannon.speedUnit}</span>
     </div>
+  );
+}
+
+/**
+ * The two speeds to aim for, computed from the model at the launch point
+ * (spec 04, Decision 11).
+ */
+function ReferenceSpeeds() {
+  const { circularKmPerSecond, escapeKmPerSecond } = REFERENCE_SPEEDS;
+  return (
+    <ul className="grid gap-1 text-muted text-small">
+      <li>
+        {cannon.circularReference(
+          circularKmPerSecond,
+          kmPerSecondToKmPerHour(circularKmPerSecond),
+        )}
+      </li>
+      <li>{cannon.escapeReference(escapeKmPerSecond)}</li>
+    </ul>
   );
 }

@@ -9,6 +9,9 @@ const MOUNTAIN_HEIGHT_PX = 8;
 const MOUNTAIN_HALF_WIDTH_PX = 5;
 const PATH_WIDTH_PX = 2;
 const SHOT_RADIUS_PX = 3.5;
+// Spec 04, Decision 11: earlier paths stay faint, like the gallery's path
+// (spec 03, Decision 6).
+const EARLIER_PATH_ALPHA = 0.3;
 
 export function drawEarth(
   context: CanvasRenderingContext2D,
@@ -24,10 +27,14 @@ export function drawEarth(
     0,
     2 * Math.PI,
   );
+  context.closePath();
   context.fillStyle = fill;
   context.fill();
   context.strokeStyle = edge;
   context.lineWidth = EARTH_EDGE_WIDTH_PX;
+  // Set here, and the circle closed so it has no caps: otherwise the edge
+  // would take the last path's style and change once a shot is drawn.
+  context.lineJoin = "round";
   context.stroke();
 }
 
@@ -55,23 +62,19 @@ export function drawShotPath(
   transform: CanvasTransform,
   color: string,
 ): void {
-  if (count < 2) {
-    return;
-  }
-  context.beginPath();
-  for (const [i, point] of points.slice(0, count).entries()) {
-    const { x, y } = toCanvas(point, transform);
-    if (i === 0) {
-      context.moveTo(x, y);
-    } else {
-      context.lineTo(x, y);
-    }
-  }
-  context.strokeStyle = color;
-  context.lineWidth = PATH_WIDTH_PX;
-  context.lineJoin = "round";
-  context.lineCap = "round";
-  context.stroke();
+  strokePath(context, points.slice(0, count), transform, color);
+}
+
+/** An earlier launch's whole path, faint, to compare with the current one. */
+export function drawEarlierPath(
+  context: CanvasRenderingContext2D,
+  points: readonly Vec2[],
+  transform: CanvasTransform,
+  color: string,
+): void {
+  context.globalAlpha = EARLIER_PATH_ALPHA;
+  strokePath(context, points, transform, color);
+  context.globalAlpha = 1;
 }
 
 export function drawShot(
@@ -85,4 +88,29 @@ export function drawShot(
   context.arc(x, y, SHOT_RADIUS_PX, 0, 2 * Math.PI);
   context.fillStyle = color;
   context.fill();
+}
+
+function strokePath(
+  context: CanvasRenderingContext2D,
+  points: readonly Vec2[],
+  transform: CanvasTransform,
+  color: string,
+): void {
+  if (points.length < 2) {
+    return;
+  }
+  context.beginPath();
+  for (const [i, point] of points.entries()) {
+    const { x, y } = toCanvas(point, transform);
+    if (i === 0) {
+      context.moveTo(x, y);
+    } else {
+      context.lineTo(x, y);
+    }
+  }
+  context.strokeStyle = color;
+  context.lineWidth = PATH_WIDTH_PX;
+  context.lineJoin = "round";
+  context.lineCap = "round";
+  context.stroke();
 }

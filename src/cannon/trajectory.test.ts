@@ -33,11 +33,14 @@ const CIRCLE_TOLERANCE = 1e-4;
 // Far below the 10 km (1.6e-3 radii) between the launch point and the ground.
 const RADIUS_TOLERANCE = 1e-9;
 
-// The lesson's view (spec 04, Decision 10), where the canvas's traces stop.
-const VIEW_STOP_RADIUS = 2;
+// The lesson's stop radius: the corner of its view, 3 radii from the Earth's
+// centre (spec 04, Decision 10).
+const VIEW_STOP_RADIUS = 3 * Math.SQRT2;
 
 // About 1 s locally for the whole grid; shared CI runners are slower.
 const GRID_TIMEOUT_MS = 30_000;
+// The engine's 1,000,000 steps: about 1.6 s locally.
+const STEP_LIMIT_TIMEOUT_MS = 30_000;
 
 const radius = ({ x, y }: Vec2) => Math.sqrt(x * x + y * y);
 
@@ -189,6 +192,19 @@ describe("traceLaunch", () => {
     GRID_TIMEOUT_MS,
   );
 
+  // Their periods need more than the engine's 1,000,000 steps, but they pass
+  // the view's stop radius long before.
+  it("a shot just below the escape speed is traced until it leaves the view", () => {
+    for (const speedKmPerSecond of [11.14, 11.17]) {
+      const { end } = trace(
+        { speedKmPerSecond, angleDegrees: 0 },
+        VIEW_STOP_RADIUS,
+      );
+
+      expect(end).toBe("stop-radius");
+    }
+  });
+
   it("rejects a stop radius that does not leave the launch point", () => {
     const launch = launchState({ speedKmPerSecond: 7, angleDegrees: 0 });
 
@@ -200,15 +216,20 @@ describe("traceLaunch", () => {
     );
   });
 
-  it("refuses a trace longer than 1,000,000 steps", () => {
-    // 11.17 km/s horizontal swings out to 760 radii, with a period of
-    // about 46,500 time units.
-    const launch = launchState({ speedKmPerSecond: 11.17, angleDegrees: 0 });
+  it(
+    "refuses a shot that neither lands, closes nor leaves within 1,000,000 steps",
+    () => {
+      // 11.17 km/s horizontal swings out to 760 radii, with a period of
+      // about 46,500 time units: its period does not fit the engine's limit,
+      // and it never reaches 1,000 radii.
+      const launch = launchState({ speedKmPerSecond: 11.17, angleDegrees: 0 });
 
-    expect(() => traceLaunch(launch, { stopRadius: 1_000 })).toThrow(
-      RangeError,
-    );
-  });
+      expect(() => traceLaunch(launch, { stopRadius: 1_000 })).toThrow(
+        RangeError,
+      );
+    },
+    STEP_LIMIT_TIMEOUT_MS,
+  );
 });
 
 describe("traceFrame", () => {
@@ -228,6 +249,7 @@ describe("traceFrame", () => {
       revealedPoints: 1,
       shot: lob.points[0],
       finished: false,
+      outcomeShown: false,
     });
   });
 
@@ -236,6 +258,7 @@ describe("traceFrame", () => {
       revealedPoints: 11,
       shot: lob.points[10],
       finished: false,
+      outcomeShown: false,
     });
   });
 
@@ -246,6 +269,7 @@ describe("traceFrame", () => {
       revealedPoints: lob.points.length,
       shot: lastPoint(lob.points),
       finished: true,
+      outcomeShown: true,
     });
   });
 
@@ -256,6 +280,24 @@ describe("traceFrame", () => {
       revealedPoints: ring.points.length,
       shot: ring.points[10],
       finished: false,
+      outcomeShown: true,
+    });
+  });
+
+  it("an escaping shot shows its outcome once it leaves the view", () => {
+    const escaping = trace(
+      { speedKmPerSecond: 12, angleDegrees: 0 },
+      VIEW_STOP_RADIUS,
+    );
+
+    expect(
+      traceFrame(escaping, (lastIndex(escaping) - 1) * escaping.dt),
+    ).toMatchObject({ outcomeShown: false });
+    expect(
+      traceFrame(escaping, lastIndex(escaping) * escaping.dt),
+    ).toMatchObject({
+      outcomeShown: true,
+      finished: true,
     });
   });
 
@@ -278,6 +320,7 @@ describe("finalFrame", () => {
       revealedPoints: lob.points.length,
       shot: lastPoint(lob.points),
       finished: true,
+      outcomeShown: true,
     });
   });
 
@@ -291,6 +334,7 @@ describe("finalFrame", () => {
       revealedPoints: ring.points.length,
       shot: ring.points[0],
       finished: true,
+      outcomeShown: true,
     });
   });
 });

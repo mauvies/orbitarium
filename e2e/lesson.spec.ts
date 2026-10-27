@@ -1,5 +1,10 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { kmPerSecondToKmPerHour } from "@/cannon";
+import {
+  CANNON_PRESETS,
+  type CannonOutcome,
+  kmPerSecondToKmPerHour,
+  REFERENCE_SPEEDS,
+} from "@/cannon";
 import { es } from "@/content/es";
 import { canvasSnapshot, hasDrawing, waitForFrames } from "./support";
 
@@ -313,6 +318,14 @@ function cannonOf(page: Page) {
     speedField: band.getByRole("spinbutton", { name: cannon.speedField }),
     angleSlider: band.getByRole("slider", { name: cannon.angle }),
     launchButton: band.getByRole("button", { name: cannon.launch }),
+    clearButton: band.getByRole("button", { name: cannon.clearPaths }),
+    preset: (outcome: CannonOutcome) =>
+      band.getByRole("button", {
+        name: cannon.outcomes[outcome].label,
+        exact: true,
+      }),
+    status: band.getByRole("status"),
+    label: band.getByTestId("cannon-outcome"),
   };
 }
 
@@ -420,4 +433,117 @@ test("reduced motion draws the path at once", async ({ page }) => {
 
   expect(justAfter).not.toBe(beforeLaunch);
   expect(await canvasSnapshot(canvas)).toBe(justAfter);
+});
+
+// Spec 04, L9, L12 and L13: the outcome, the earlier paths, the presets and
+// the reference speeds.
+function announcement(outcome: CannonOutcome, returnsFromAfar = false) {
+  return cannon.outcomeAnnouncement(
+    cannon.outcomes[outcome].announced,
+    returnsFromAfar,
+  );
+}
+
+test("each preset shows its outcome label", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/gravitation");
+  const { preset, status, label } = await readyCannon(page);
+
+  for (const outcome of Object.keys(CANNON_PRESETS) as CannonOutcome[]) {
+    await preset(outcome).click();
+
+    await expect(status).toHaveText(announcement(outcome));
+    await expect(label).toHaveText(cannon.outcomes[outcome].label);
+  }
+});
+
+test("launching from the controls shows the outcome label", async ({
+  page,
+}) => {
+  await page.goto("/gravitation");
+  const { launchButton, label } = await readyCannon(page);
+
+  await launchButton.click();
+
+  // The lob lands after 2.9 s on screen; its label waits for that.
+  await expect(label).toHaveText("");
+  await expect(label).toHaveText(cannon.outcomes.ballistic.label, {
+    timeout: 10_000,
+  });
+});
+
+test("the outcome is announced", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/gravitation");
+  const { launchButton, status } = await readyCannon(page);
+  await expect(status).toHaveText("");
+
+  await launchButton.click();
+
+  await expect(status).toHaveText(announcement("ballistic"));
+});
+
+test("a shot that comes back from beyond the view says so", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/gravitation");
+  const { speedField, angleSlider, launchButton, status, label } =
+    await readyCannon(page);
+
+  await speedField.fill("10.5");
+  await angleSlider.fill("0");
+  await launchButton.click();
+
+  await expect(status).toHaveText(announcement("elliptical-orbit", true));
+  await expect(label).toHaveText(
+    cannon.outcomeLabel(cannon.outcomes["elliptical-orbit"].label, true),
+  );
+});
+
+test("earlier paths stay faint until cleared", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/gravitation");
+  const first = await readyCannon(page);
+  await expect(first.clearButton).toBeDisabled();
+  await first.preset("ballistic").click();
+  await first.preset("elliptical-orbit").click();
+  await expect(first.status).toHaveText(announcement("elliptical-orbit"));
+  await waitForFrames(page, 2);
+  const twoPaths = await canvasSnapshot(first.canvas);
+
+  await first.clearButton.click();
+  await waitForFrames(page, 2);
+  const cleared = await canvasSnapshot(first.canvas);
+
+  await page.reload();
+  const alone = await readyCannon(page);
+  await alone.preset("elliptical-orbit").click();
+  await expect(alone.status).toHaveText(announcement("elliptical-orbit"));
+  await waitForFrames(page, 2);
+  const onePath = await canvasSnapshot(alone.canvas);
+
+  expect(twoPaths).not.toBe(onePath);
+  expect(cleared).toBe(onePath);
+  await expect(first.clearButton).toBeDisabled();
+});
+
+test("the reference speeds are shown next to the speed control", async ({
+  page,
+}) => {
+  await page.goto("/gravitation");
+  const controls = page.getByRole("group", { name: cannon.controlsLabel });
+  const { circularKmPerSecond, escapeKmPerSecond } = REFERENCE_SPEEDS;
+
+  await expect(
+    controls.getByText(
+      cannon.circularReference(
+        circularKmPerSecond,
+        kmPerSecondToKmPerHour(circularKmPerSecond),
+      ),
+    ),
+  ).toBeVisible();
+  await expect(
+    controls.getByText(cannon.escapeReference(escapeKmPerSecond)),
+  ).toBeVisible();
 });

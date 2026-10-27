@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CANNON_PRESETS, type CannonSettings } from "@/cannon";
 import {
   answerQuestion,
+  clearEarlierPaths,
   goToStep,
   initialSession,
   type LessonSession,
@@ -152,6 +153,25 @@ describe("launchCannon", () => {
       speeds.slice(-RECENT_LAUNCHES),
     );
     expect(new Set(kept.map((launch) => launch.id)).size).toBe(RECENT_LAUNCHES);
+  });
+});
+
+describe("clearEarlierPaths", () => {
+  it("keeps only the last launch, which the tutor still reads", () => {
+    const twoLaunches = launched(
+      launched(AT_CANNON, CANNON_PRESETS.ballistic),
+      ELLIPTICAL,
+    );
+    const last = twoLaunches.launches.at(-1);
+
+    expect(clearEarlierPaths(twoLaunches).launches).toEqual([last]);
+  });
+
+  it("changes nothing without earlier paths", () => {
+    const oneLaunch = launched(AT_CANNON, ELLIPTICAL);
+
+    expect(clearEarlierPaths(AT_CANNON)).toBe(AT_CANNON);
+    expect(clearEarlierPaths(oneLaunch)).toBe(oneLaunch);
   });
 });
 
