@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { circularSpeed } from "./launch";
 import { launchOrbit, launchOutcome } from "./outcome";
-import type { CannonOutcome } from "./types";
+import { CANNON_PRESETS } from "./presets";
+import { CANNON_OUTCOMES, type CannonOutcome } from "./types";
 import { EARTH_RADIUS_KM, engineToKmPerSecond, launchRadius } from "./units";
 
 // Spec 04, L6. The expected values were computed independently with the
@@ -163,5 +164,20 @@ describe("launchOutcome: other heights", () => {
     });
 
     expect(mismatches).toEqual([]);
+  });
+});
+
+// Spec 05, Decision 3: the tutor's route checks outcomes against this list.
+describe("CANNON_OUTCOMES", () => {
+  it("lists the four outcomes, and every preset's outcome is one of them", () => {
+    expect(CANNON_OUTCOMES).toEqual([
+      "ballistic",
+      "circular-orbit",
+      "elliptical-orbit",
+      "escape",
+    ]);
+    for (const settings of Object.values(CANNON_PRESETS)) {
+      expect(CANNON_OUTCOMES).toContain(launchOutcome(settings));
+    }
   });
 });

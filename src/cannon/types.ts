@@ -9,11 +9,14 @@ export type CannonSettings = {
   readonly altitudeKm: number;
 };
 
-export type CannonOutcome =
-  | "ballistic"
-  | "circular-orbit"
-  | "elliptical-orbit"
-  | "escape";
+export const CANNON_OUTCOMES = [
+  "ballistic",
+  "circular-orbit",
+  "elliptical-orbit",
+  "escape",
+] as const;
+
+export type CannonOutcome = (typeof CANNON_OUTCOMES)[number];
 
 /** The shot as it leaves the cannon, in engine units, relative to the Earth's centre. */
 export type LaunchState = {

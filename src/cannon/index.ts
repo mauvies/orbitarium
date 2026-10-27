@@ -30,6 +30,7 @@ export type {
   LaunchState,
   Rejected,
 } from "./types";
+export { CANNON_OUTCOMES } from "./types";
 export {
   EARTH_GM_KM3_PER_SECOND2,
   EARTH_RADIUS,
