@@ -74,3 +74,49 @@ test("the header links to every section", async ({ page }) => {
     navigation.getByRole("link", { name: es.site.navigation.gravitation }),
   ).toHaveAttribute("href", "/gravitation");
 });
+
+// Spec 03, Decision 1: on a phone the header keeps the logo and drops the
+// name, so the two links fit on one line each.
+test("on a phone the header shows only the logo, with the name for screen readers", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto("/gravitation");
+  const home = page.getByRole("banner").getByRole("link", {
+    name: es.site.name,
+  });
+
+  const name = await home.getByText(es.site.name).boundingBox();
+  expect(name?.width).toBeLessThanOrEqual(1);
+  const links = page
+    .getByRole("navigation", { name: es.site.navigation.label })
+    .getByRole("link");
+  for (const link of await links.all()) {
+    const box = await link.boundingBox();
+    expect(box?.height).toBeLessThan(50);
+  }
+});
+
+test("from 640 px the header shows the name", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/gravitation");
+
+  await expect(page.getByRole("banner").getByText(es.site.name)).toBeVisible();
+});
+
+// The tab icon has no background and adapts to the browser's theme: the gold
+// is darkened on a light tab.
+test("the tab icon is only the orbits and adapts to light and dark", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/");
+  const href = await page
+    .locator("link[rel=icon]")
+    .first()
+    .getAttribute("href");
+  const icon = await (await request.get(href ?? "")).text();
+
+  expect(icon).not.toContain("<rect");
+  expect(icon).toContain("prefers-color-scheme: light");
+});

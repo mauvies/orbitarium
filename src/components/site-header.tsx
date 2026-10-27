@@ -13,7 +13,8 @@ export function SiteHeader() {
           className="flex items-center gap-2 font-heading text-card font-semibold text-strong"
         >
           <LogoMark className="size-7" />
-          {es.site.name}
+          {/* On a phone only the logo shows, so both links fit on one line. */}
+          <span className="sr-only sm:not-sr-only">{es.site.name}</span>
         </Link>
         <SiteNavigation />
       </Container>

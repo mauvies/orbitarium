@@ -1,5 +1,5 @@
 // Three identical ellipses crossing at the centre (docs/design/visual-style.md,
-// "Logo"); src/app/icon.svg draws the same on a background.
+// "Logo"); src/app/icon.svg draws the same for the browser's tab.
 const ROTATIONS = [0, 60, 120] as const;
 
 export function LogoMark({ className }: { className?: string }) {

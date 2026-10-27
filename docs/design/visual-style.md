@@ -97,7 +97,7 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 Three amber orbits crossing at the centre: three identical ellipses, rotated 0°, 60° and 120°, with nothing else.
 
 - **Mark** (header, 28 px): ellipses with rx 27 and ry 10 in a 64-unit box, centred, stroke 2 units, in `accent`. Rendered as an inline SVG component using the theme tokens.
-- **Icon** (favicon and app icon, `src/app/icon.svg`): the same drawing on a `bg-top` rounded square (radius 14), with the same 2-unit stroke. The fine line is a deliberate choice; at 16 px the icon reads as amber orbits rather than in detail.
+- **Icon** (favicon and app icon, `src/app/icon.svg`): the same drawing with no background, so it takes the browser tab's. The stroke is 3 units, not 2, because without a square behind it the fine line gets lost at 16 px. It follows the browser's theme: `accent` on a dark tab, and a darker amber (`#9A6700`, 4.9:1 on white) on a light one.
 
 ## Motion
 
