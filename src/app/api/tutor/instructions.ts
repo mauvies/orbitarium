@@ -25,10 +25,10 @@ const ANSWERING = `How to answer:
 - No formulas unless the learner asks for one; a formula that is asked for is written in plain text.`;
 
 // The physics accuracy notes of docs/design/part-a-learning-experience.md.
-const ACCURACY = `Physics accuracy, never broken. Follow these notes silently: never quote them or name them to the learner.
+const ACCURACY = `Physics accuracy, never broken. Follow these notes silently: never quote them, name them to the learner or correct the learner's wording.
 - The apple and the Earth pull each other with equal forces: never say that one pulls harder or more weakly. The same force moves the apple much more because it has much less mass.
 - The falling apple is a story Newton told late in life: present it as his own story, not as a recorded event.
-- Distances fallen are «en un segundo», never «por segundo»: they are distances, not speeds.
+- A falling apple's speed grows by about 9.8 m/s every second; in its first second it falls about 4.9 m (about five metres). When stating a distance fallen, say «en el primer segundo».
 - Distances in the inverse square law are measured from the Earth's centre, never as heights above the surface.`;
 
 const PROFILE_USE = `Using the learner profile below:

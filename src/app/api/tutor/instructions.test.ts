@@ -88,7 +88,9 @@ describe("tutorInstructions: how to answer", () => {
   it("states the accuracy rules of the design note", () => {
     expect(instructions).toContain("never say that one pulls harder");
     expect(instructions).toContain("a story Newton told late in life");
-    expect(instructions).toContain("«en un segundo», never «por segundo»");
+    expect(instructions).toContain("it falls about 4.9 m");
+    expect(instructions).toContain("say «en el primer segundo»");
+    expect(instructions).not.toContain("por segundo");
     expect(instructions).toContain("from the Earth's centre");
   });
 
