@@ -33,12 +33,14 @@ Builds on spec 04 (the panel's shell, `LessonControls`, the learner profile, Dec
 
 4. **The page sends its context with every message; the model's memory holds none of it.** Each request carries the learner profile (`LessonControls.learnerProfile()`), the cannon's state (`cannon.current()`: settings and last launch) and the part at the top of the viewport (`navigation.current()`). The page builds it when each request is sent, including the automatic resend after a tool result (in `useChat`'s request preparation or equivalent), never when the chat mounts: a context captured once would tell the model about a launch older than the one it just made. The route turns it into a short block at the end of the instructions. This is the design note's rule (the profile lives in the app and is sent with each message), and it makes adaptation testable: the same context always gives the same instructions. Cost: some tokens per request, small next to the free tier's 250,000 per minute.
 5. **The instructions are built from the lesson's own content.** One pure function writes them, in English (code and prompts are in English), and tells the model to answer in Spanish. They take the parts' ids and titles, each question with its options and the correct one, and the cannon's limits and presets from `src/content/es.ts`, `questions.ts` and `@/cannon`, so they cannot drift from the page. They state:
-   - who the learner is (no physics background) and the tone: short answers, one idea at a time, no formulas unless asked; the question asked is answered before pointing to a part or the cannon, and one about how a quantity changes gets the factor («cuatro veces menos»); a formula that is asked for is written in plain text; only the letters of Spanish's alphabet, since the eval showed Arabic letters inside a word;
+   - who the learner is (no physics background) and the tone: short answers, one idea at a time, no formulas unless asked; a question on the lesson's subject is answered before pointing to a part or the cannon, and one about how a quantity changes gets the factor («cuatro veces menos»), while any other is declined in one sentence without answering it; a formula that is asked for is written in plain text; only the letters of Spanish's alphabet, since the eval showed Arabic letters inside a word;
    - **plain text only, no Markdown** (the panel shows text as it comes; see Risks);
    - the physics accuracy notes of the design note: equal forces are never unequal, the apple is Newton's own story, "en un segundo" and never "por segundo", distances from the Earth's centre; the notes are followed silently, never quoted or named to the learner;
-   - how to use the profile: explain the misconception a wrong answer shows, offer to move on when a concept is already right, and give a hint first about a question still unanswered, a hint that never names the correct option or states its conclusion; an open question («¿y ahora qué?») gets the profile's first misconception addressed before anything else;
+   - how to use the profile: explain the misconception a wrong answer shows, offer to move on when a concept is already right, and give a hint first about a question still unanswered, a hint that never names the correct option or states its conclusion, shown with a bad and a good example taken from a question other than the eval's; an open question («¿y ahora qué?») gets the profile's first misconception addressed before anything else;
    - how to use the tools: act when the learner asks or when showing helps, then explain the result the tool returned, never a guessed one;
    - to stay on the lesson's subject, and to say briefly that it cannot help with anything else; the law and its formula are on subject however the question is phrased, and a format that is not used (bold, lists) is dropped without saying so and without declining.
+
+   **Known limit: the hint rule does not hold.** After two attempts, the second with a bad and a good example, the model still states the conclusion instead of hinting about a question the learner has not answered. No further rule is added; see Risks and Results.
 
 ### What the tutor can do
 
@@ -151,6 +153,8 @@ CI has no key and must not spend quota. The route is tested with the AI SDK's mo
 - **The free tier is small and shared.** 500 requests a day, and a launch costs two. Mitigation: the route's limits (Decision 9), plain messages when they are reached (Decision 10), and the lesson works fully without the tutor.
 - **Google may use the conversations.** Free-tier data may be used to improve Google's products. Mitigation: the README says so (Decision 13), and the instructions never ask for personal data. The panel does not (Decision 11).
 - **The model can still be wrong or use Markdown.** No test can prevent it. Mitigation: the instructions (Decision 5), and the eval reviewed by a human (T13). A stray `**` would show as asterisks.
+- **The model does not hint about an unanswered question.** The instructions ask for a hint that never states the conclusion, and a second attempt with a bad and a good example did not change it: the eval's answer still tells the learner that bodies fall towards the Earth's centre. Accepted: the learner may get the answer before answering the question.
+- **Google may be slow or overloaded on the free tier.** In the eval's runs it answered «high demand», and requests passed the 20 s timeout (5 of 12 in one run, first-text median 15.6 s, against 4.0 s in the first run). The route maps these to `unavailable` with «Reintentar» (Decision 10). The timeout stays at 20 s, because a longer wait only delays the same failure under load.
 - **The SDK changes fast.** AI SDK 7 already differs from most examples (spike, "Versions"). Mitigation: versions pinned, and the recorded streams fail the E2E tests if the stream format changes.
 - **The limits are per instance.** Several instances could together exceed Google's limits. Mitigation: Google's 429 is mapped to the same message, so the learner sees the same thing either way.
 
@@ -195,4 +199,23 @@ Each step ends somewhere shippable:
 
 ## Results
 
-To be filled after implementation: T13's eval reviewed by a human, and T14's latency.
+### T13: the eval, three local runs (2026-10-27)
+
+One sample per prompt, so a change is a hint, not proof. Run 1 used the instructions of Decision 5 as first written; run 2 added six rules from run 1; run 3 narrowed the «answer first» rule to the lesson's subject and gave the hint rule a bad and a good example. Runs 2 and 3 were incomplete: Google's overload made 4 and 5 of the 12 prompts fail.
+
+| prompt | run 1 | run 2 | run 3 |
+|---|---|---|---|
+| inverse-square | evasive, no number | the factor | the factor |
+| equal-forces | right | right | right |
+| markdown-bait | refused as off-topic | failed | answers in plain text, formula in words |
+| set | right | right | right |
+| off-topic | declined | answered the question | declined |
+| misconception | ignored the profile | addressed it | addressed it |
+| hint-not-answer | stated the conclusion | stated the conclusion | **stated the conclusion** |
+| clamped-launch | Arabic letters in a word | no Arabic; a wrong word | failed |
+| per-second | quoted the accuracy rule | failed | failed |
+| astronauts | right | failed | failed |
+| launch | right | failed | failed |
+| move | right | right | failed |
+
+What improved: the factor for inverse-square, no refusal of the formula, the misconception addressed, no stray letters. What did not: the hint (Decision 5, known limit). The prompts that no run answered after the new rules (per-second, launch, astronauts, move and clamped-launch) and T14's latency are checked by hand on the deployment, where the key is set.
