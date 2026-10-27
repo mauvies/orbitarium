@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
-import { questionsFor } from "../questions";
 import { SECTION_SCROLL_MARGIN_PX, type SectionId } from "../section-ids";
-import { CheckQuestion } from "./check-question";
 
 /**
  * One part of the lesson. Narrow screens read its title, its description, its
@@ -54,46 +52,4 @@ export function LessonSection({
       </div>
     </section>
   );
-}
-
-/**
- * An SVG illustration with its text alternative and an optional caption.
- * `wide` is for a drawing wider than tall.
- */
-export function StepIllustration({
-  label,
-  viewBox,
-  wide = false,
-  caption,
-  children,
-}: {
-  label: string;
-  viewBox: string;
-  wide?: boolean;
-  caption?: string;
-  children: ReactNode;
-}) {
-  return (
-    <figure className={`mx-auto ${wide ? "max-w-xl" : "max-w-sm"}`}>
-      <svg role="img" aria-label={label} viewBox={viewBox} className="w-full">
-        {children}
-      </svg>
-      {caption !== undefined && (
-        <figcaption className="mt-3 text-muted text-small">
-          {caption}
-        </figcaption>
-      )}
-    </figure>
-  );
-}
-
-export function StepIntro({ children }: { children: string }) {
-  return <p className="mt-4 max-w-[60ch] text-lead">{children}</p>;
-}
-
-/** The part's question. */
-export function StepQuestions({ section }: { section: SectionId }) {
-  return questionsFor(section).map((question) => (
-    <CheckQuestion key={question.id} question={question} />
-  ));
 }

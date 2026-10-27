@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { es } from "@/content/es";
 import { useAnswerQuestion, useLessonSession } from "../lesson-provider";
-import { grade, type Question, questionText } from "../questions";
+import { type Question, questionText } from "../questions";
 import { useHydrated } from "../use-hydrated";
+import { QuestionExplanation } from "./question-explanation";
 
 const ui = es.gravitation.question;
 
@@ -72,7 +73,7 @@ export function CheckQuestion({ question }: { question: Question }) {
             aria-hidden="true"
             className="invisible col-start-1 row-start-1"
           >
-            <Explanation question={question} optionId={option.id} />
+            <QuestionExplanation question={question} optionId={option.id} />
           </div>
         ))}
         {/*
@@ -118,7 +119,7 @@ export function CheckQuestion({ question }: { question: Question }) {
           className="col-start-1 row-start-1 self-start outline-none"
         >
           {explained !== null && (
-            <Explanation
+            <QuestionExplanation
               question={question}
               optionId={explained}
               onShowOptions={showOptions}
@@ -127,50 +128,5 @@ export function CheckQuestion({ question }: { question: Question }) {
         </output>
       </div>
     </fieldset>
-  );
-}
-
-/**
- * The verdict, the correct option when this one is wrong, why, and the way
- * back to the options. Without `onShowOptions` it only takes up the room it
- * needs.
- */
-function Explanation({
-  question,
-  optionId,
-  onShowOptions,
-}: {
-  question: Question;
-  optionId: string;
-  onShowOptions?: () => void;
-}) {
-  const text = questionText(question.id);
-  const correctOption = question.options.find(
-    ({ misconception }) => misconception === null,
-  );
-  const correct = grade(question.id, optionId).status === "correct";
-  const backClasses =
-    "shrink-0 rounded-lg text-accent text-small underline-offset-4 hover:underline";
-  return (
-    <span className="block px-2 py-1 text-small">
-      <span className="block">
-        <strong className="font-medium text-strong">
-          {correct ? ui.correct : ui.wrong}
-        </strong>
-        {!correct && correctOption !== undefined && (
-          <> {ui.correctAnswer(text.option(correctOption.id).label)}</>
-        )}
-      </span>
-      <span className="mt-1 block">{text.option(optionId).feedback}</span>
-      <span className="mt-1 flex justify-end">
-        {onShowOptions === undefined ? (
-          <span className={backClasses}>{ui.showOptions}</span>
-        ) : (
-          <button type="button" onClick={onShowOptions} className={backClasses}>
-            {ui.showOptions}
-          </button>
-        )}
-      </span>
-    </span>
   );
 }

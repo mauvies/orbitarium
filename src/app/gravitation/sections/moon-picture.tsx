@@ -1,7 +1,7 @@
 import { es } from "@/content/es";
-import { StepIllustration, StepIntro } from "./step-layout";
+import { SectionIllustration } from "./section-illustration";
 
-const { intro, illustration } = es.gravitation.sections.moon;
+const { illustration } = es.gravitation.sections.moon;
 
 // In the drawing's units. The bodies are to scale with each other (the
 // Moon's radius is 0.27 of the Earth's); the distance between them is not.
@@ -18,7 +18,7 @@ const BREAK_X = 200;
  */
 export function MoonPicture() {
   return (
-    <StepIllustration
+    <SectionIllustration
       label={illustration.label}
       viewBox="0 0 360 170"
       wide
@@ -82,10 +82,6 @@ export function MoonPicture() {
       >
         {illustration.distance}
       </text>
-    </StepIllustration>
+    </SectionIllustration>
   );
-}
-
-export function MoonIntro() {
-  return <StepIntro>{intro}</StepIntro>;
 }

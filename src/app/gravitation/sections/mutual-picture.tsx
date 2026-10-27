@@ -1,8 +1,9 @@
 import { es } from "@/content/es";
+import { MutualArrow } from "./mutual-arrow";
 import { PausableAnimation } from "./pausable-animation";
-import { StepIllustration, StepIntro } from "./step-layout";
+import { SectionIllustration } from "./section-illustration";
 
-const { intro, illustration } = es.gravitation.sections.mutual;
+const { illustration } = es.gravitation.sections.mutual;
 
 // In the drawing's units: the top of the Earth, the apple and the arrows,
 // which are the same length because the two forces are equal.
@@ -20,7 +21,7 @@ const CENTRE_X = 120;
 export function MutualPicture() {
   return (
     <PausableAnimation buttonAt="top-left" width="max-w-sm">
-      <StepIllustration
+      <SectionIllustration
         label={illustration.label}
         viewBox="0 20 240 180"
         caption={illustration.caption}
@@ -44,7 +45,11 @@ export function MutualPicture() {
           r={160}
           className="fill-surface-raised stroke-line"
         />
-        <Arrow fromY={SURFACE_Y} toY={SURFACE_Y - ARROW_LENGTH} />
+        <MutualArrow
+          x={CENTRE_X}
+          fromY={SURFACE_Y}
+          toY={SURFACE_Y - ARROW_LENGTH}
+        />
         <g className="motion-safe:animate-apple-loop">
           <circle
             cx={CENTRE_X}
@@ -52,30 +57,13 @@ export function MutualPicture() {
             r={APPLE_RADIUS}
             className="fill-apple"
           />
-          <Arrow
+          <MutualArrow
+            x={CENTRE_X}
             fromY={APPLE_Y + APPLE_RADIUS}
             toY={APPLE_Y + APPLE_RADIUS + ARROW_LENGTH}
           />
         </g>
-      </StepIllustration>
+      </SectionIllustration>
     </PausableAnimation>
-  );
-}
-
-export function MutualIntro() {
-  return <StepIntro>{intro}</StepIntro>;
-}
-
-function Arrow({ fromY, toY }: { fromY: number; toY: number }) {
-  return (
-    <line
-      x1={CENTRE_X}
-      y1={fromY}
-      x2={CENTRE_X}
-      y2={toY}
-      className="stroke-accent"
-      strokeWidth={1.25}
-      markerEnd="url(#force-head)"
-    />
   );
 }
