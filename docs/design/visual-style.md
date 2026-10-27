@@ -101,7 +101,11 @@ A border that is what identifies a control needs 3:1 against its background (WCA
 
 **Tutor's panel.** From 1,280 px a floating card at the bottom right, set apart from the page by a `surface-raised` background, a 1 px `strong` border and a 12 px radius, with no shadow. Below, a full-width bottom sheet on `surface` with a `muted` top border.
 
-**Focus.** A 2 px `accent` ring with a 3 px offset on every interactive element.
+- Header: the title at card size (h3 style), a quiet «Nueva conversación» text button once there are messages, and a 32 px «×» close button with a `muted` border.
+- Messages: in small text (0.875 rem, 1.45 line height). The tutor's on the left, on `surface` with a `line` border and a 10 px radius; the learner's on the right, on `line`, lighter than the panel on the sheet and on the card. Action lines are `muted` inside the tutor's message.
+- Input: one rounded field on `surface` with a `muted` border, which grows with the text up to about six lines and then scrolls, with «Enviar» as a 32 px icon button (↵) inside it at the bottom right. While the text area has focus, the field's border turns `strong` and 2 px wide (see "Focus").
+
+**Focus.** A 2 px `accent` ring with a 3 px offset on every interactive element. One exception: the tutor's input field, a bordered container with its button inside, shows focus as a 2 px `strong` border instead (`muted` at rest), because an accent ring around the whole field looked heavy; that is still a change of at least 3:1 against the panel.
 
 **Page titles.** The browser title is "Página | Orbitarium".
 
