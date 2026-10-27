@@ -1,0 +1,26 @@
+data: {"type":"start"}
+
+data: {"type":"start-step"}
+
+data: {"type":"text-start","id":"0"}
+
+data: {"type":"text-delta","id":"0","delta":"Hemos"}
+
+data: {"type":"text-delta","id":"0","delta":" disparado el cañón a 8 km/s desde una altura de 10 km"}
+
+data: {"type":"text-delta","id":"0","delta":" con un ángulo de 0 grados. El resultado ha sido una órbita elíptica alrededor de la Tierra. Como ves,"}
+
+data: {"type":"text-delta","id":"0","delta":" al ir más rápido que la velocidad necesaria para la órbita circular, el proyectil se aleja y se acerca a"}
+
+data: {"type":"text-delta","id":"0","delta":" la Tierra en un óvalo."}
+
+data: {"type":"text-delta","id":"0","delta":"","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TOgXEJl7GFWQzGJpw/ufNOImu9ypF3v2VT6AMarjDIDT+loTbucJ8wWKbF+v8vUIZrgVizghtL7+SqdyvvujOqSeIS2HQ/l6W8j/PjCjOSlSaRi9icyBWocg="}}}
+
+data: {"type":"text-end","id":"0"}
+
+data: {"type":"finish-step"}
+
+data: {"type":"finish","finishReason":"stop"}
+
+data: [DONE]
+

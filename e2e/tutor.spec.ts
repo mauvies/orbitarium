@@ -75,8 +75,9 @@ for (const viewport of [PHONE, WIDE]) {
       page,
     }) => {
       await page.goto("/gravitation");
-      const { toggle, panel, close } = await openTutor(page);
-      await expect(close).toBeFocused();
+      const { toggle, panel } = await openTutor(page);
+      // Where opening puts focus depends on the width (spec 05, T10).
+      await expect(panel.locator(":focus")).toHaveCount(1);
 
       await page.keyboard.press("Escape");
 

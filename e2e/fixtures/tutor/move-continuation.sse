@@ -1,0 +1,22 @@
+data: {"type":"start"}
+
+data: {"type":"start-step"}
+
+data: {"type":"text-start","id":"0"}
+
+data: {"type":"text-delta","id":"0","delta":"Te he"}
+
+data: {"type":"text-delta","id":"0","delta":" llevado a la parte de la lección dedicada a la Luna. Puedes leer la explicación"}
+
+data: {"type":"text-delta","id":"0","delta":" sobre cómo se debilita la gravedad con la distancia y probar la pregunta cuando quieras."}
+
+data: {"type":"text-delta","id":"0","delta":"","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TWKrwjenJ55ij6QyASNpJPkVnhMiRZF6AdSNPpad32vwtEmt0ha66i8l+aF8lm9AEsjWod2gBYHNUunVdlS6AHSSr5/DmIlH26wtT/nmARbWcih5ylLrkUb8="}}}
+
+data: {"type":"text-end","id":"0"}
+
+data: {"type":"finish-step"}
+
+data: {"type":"finish","finishReason":"stop"}
+
+data: [DONE]
+

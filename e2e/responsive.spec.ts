@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 import { es } from "@/content/es";
 
 // Spec 03, G9: a phone, a tablet and a laptop.
@@ -61,55 +61,30 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
       await expect(
         page.getByRole("button", { name: es.gravitation.tutor.toggle }),
       ).toBeEnabled();
-      // A checkbox's target is its label, which takes the clicks too.
-      const targets = await page
-        .locator("button:visible, input:visible, select:visible")
-        .evaluateAll((elements) =>
-          elements.map((element) => {
-            const clickable =
-              element instanceof HTMLInputElement && element.type === "checkbox"
-                ? (element.labels?.[0] ?? element)
-                : element;
-            const box = clickable.getBoundingClientRect();
-            return {
-              name:
-                element.getAttribute("aria-label") ??
-                clickable.textContent?.trim() ??
-                element.id,
-              left: box.left,
-              right: box.right,
-              top: box.top,
-              bottom: box.bottom,
-              width: box.width,
-              height: box.height,
-            };
-          }),
-        );
-      expect(targets).not.toHaveLength(0);
 
-      const problems = targets.flatMap((target) => [
-        ...(target.left < 0 || target.right > width
-          ? [`${target.name} leaves the viewport`]
-          : []),
-        ...(target.width < MIN_TARGET_PX || target.height < MIN_TARGET_PX
-          ? [
-              `${target.name} is ${Math.round(target.width)} × ${Math.round(target.height)} px`,
-            ]
-          : []),
-      ]);
-      for (const [i, first] of targets.entries()) {
-        for (const second of targets.slice(i + 1)) {
-          if (
-            first.left < second.right &&
-            second.left < first.right &&
-            first.top < second.bottom &&
-            second.top < first.bottom
-          ) {
-            problems.push(`${first.name} overlaps ${second.name}`);
-          }
-        }
-      }
-      expect(problems).toEqual([]);
+      const targets = await targetsIn(page.locator("body"));
+
+      expect(targets).not.toHaveLength(0);
+      expect(targetProblems(targets, width)).toEqual([]);
+    });
+
+    // Spec 05, T11: the open panel's own controls, which cover the page.
+    test("the tutor's controls stay inside the viewport, apart, with 24 px targets", async ({
+      page,
+    }) => {
+      await page.goto("/gravitation");
+      const toggle = page.getByRole("button", {
+        name: es.gravitation.tutor.toggle,
+      });
+      await expect(toggle).toBeEnabled();
+      await toggle.click();
+
+      const targets = await targetsIn(
+        page.getByRole("dialog", { name: es.gravitation.tutor.title }),
+      );
+
+      expect(targets).not.toHaveLength(0);
+      expect(targetProblems(targets, width)).toEqual([]);
     });
 
     test("detail controls stay inside the viewport with 24 px targets", async ({
@@ -149,4 +124,72 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
       }
     });
   });
+}
+
+type Target = {
+  readonly name: string;
+  readonly left: number;
+  readonly right: number;
+  readonly top: number;
+  readonly bottom: number;
+  readonly width: number;
+  readonly height: number;
+};
+
+/** Every visible control inside `container`, as the pointer reaches it. */
+function targetsIn(container: Locator): Promise<Target[]> {
+  // A checkbox's target is its label, which takes the clicks too.
+  return container
+    .locator("button:visible, input:visible, select:visible, textarea:visible")
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const clickable =
+          element instanceof HTMLInputElement && element.type === "checkbox"
+            ? (element.labels?.[0] ?? element)
+            : element;
+        const box = clickable.getBoundingClientRect();
+        return {
+          name:
+            element.getAttribute("aria-label") ??
+            clickable.textContent?.trim() ??
+            element.id,
+          left: box.left,
+          right: box.right,
+          top: box.top,
+          bottom: box.bottom,
+          width: box.width,
+          height: box.height,
+        };
+      }),
+    );
+}
+
+/** Each target that leaves the viewport, is too small or overlaps another. */
+function targetProblems(
+  targets: readonly Target[],
+  viewportWidth: number,
+): string[] {
+  const problems = targets.flatMap((target) => [
+    ...(target.left < 0 || target.right > viewportWidth
+      ? [`${target.name} leaves the viewport`]
+      : []),
+    ...(target.width < MIN_TARGET_PX || target.height < MIN_TARGET_PX
+      ? [
+          `${target.name} is ${Math.round(target.width)} × ${Math.round(target.height)} px`,
+        ]
+      : []),
+  ]);
+  for (const [i, first] of targets.entries()) {
+    for (const second of targets.slice(i + 1)) {
+      if (
+        first.left < second.right &&
+        second.left < first.right &&
+        first.top < second.bottom &&
+        second.top < first.bottom
+      ) {
+        problems.push(`${first.name} overlaps ${second.name}`);
+      }
+    }
+  }
+  return problems;
 }

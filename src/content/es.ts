@@ -311,13 +311,46 @@ export const es = {
           "Todo junto: la fuerza crece con cada masa y se debilita con el cuadrado de la distancia entre sus centros.",
       },
     },
-    // Spec 04, Decision 15: the tutor's shell; spec 05 brings the tutor.
+    // Spec 04, Decision 15: the tutor's panel; spec 05, Decision 11: the
+    // conversation in it.
     tutor: {
       toggle: "Preguntar al tutor",
       title: "Tutor",
-      placeholder:
-        "Aquí podrás conversar con un tutor sobre la lección. Llegará pronto.",
       close: "Cerrar el tutor",
+      newConversation: "Nueva conversación",
+      // Fixed, not generated, so opening the panel spends no request.
+      greeting:
+        "Hola. Puedo explicarte cualquier parte de la lección, responder tus dudas y manejar el cañón por ti: ajustarlo, dispararlo o llevarte a otra parte de la página.",
+      greetingAtCannon: "Pídeme que dispare, sin tocar nada.",
+      conversation: "Conversación con el tutor",
+      learner: "Tú:",
+      tutor: "Tutor:",
+      thinking: "Pensando…",
+      input: "Tu pregunta",
+      inputPlaceholder: "Escribe tu pregunta…",
+      send: "Enviar",
+      // Spec 05, Decision 8: what the tutor did to the page.
+      toolLines: {
+        set: (settings: string, clamped: string) =>
+          `Ajusto el cañón: ${settings}${clamped}.`,
+        launched: (settings: string, outcome: string, clamped: string) =>
+          `Disparo el cañón a ${settings}: ${outcome}${clamped}.`,
+        moved: (title: string) => `Voy a “${title}”.`,
+        settings: (kmPerSecond: number, degrees: number, altitudeKm: number) =>
+          `${twoDecimals.format(kmPerSecond)} km/s, ${wholeNumber.format(degrees)}° y ${wholeNumber.format(altitudeKm)} km`,
+        speed: (kmPerSecond: number) =>
+          `${twoDecimals.format(kmPerSecond)} km/s`,
+        angle: (degrees: number) => `${wholeNumber.format(degrees)}°`,
+        altitude: (altitudeKm: number) =>
+          `${wholeNumber.format(altitudeKm)} km`,
+        maximum: (value: string) => `${value} es el máximo`,
+        minimum: (value: string) => `${value} es el mínimo`,
+        clamped: (...notes: readonly string[]) =>
+          notes.length === 0 ? "" : ` (${notes.join("; ")})`,
+        notSet: "No he podido ajustar el cañón.",
+        notLaunched: "No he podido disparar el cañón.",
+        notMoved: "No he podido ir a esa parte de la lección.",
+      },
       // Spec 04, Decision 14: a tutor's move, announced in the panel.
       movedTo: (title: string) => `Ahora estás en “${title}”.`,
     },
