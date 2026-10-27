@@ -1,5 +1,5 @@
 import { es } from "@/content/es";
-import { StepIntro, StepQuestions } from "./step-layout";
+import { StepIntro } from "./step-layout";
 
 const { intro } = es.gravitation.steps.law;
 const { law } = es.gravitation;
@@ -41,12 +41,11 @@ export function LawPicture() {
   );
 }
 
-export function LawText() {
+export function LawIntro() {
   return (
     <>
       <StepIntro>{intro}</StepIntro>
       <p className="mt-3 max-w-[60ch]">{law.constant}</p>
-      <StepQuestions step="law" />
     </>
   );
 }

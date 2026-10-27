@@ -1,6 +1,6 @@
 import { es } from "@/content/es";
 import { PausableAnimation } from "./pausable-animation";
-import { StepIllustration, StepIntro, StepQuestions } from "./step-layout";
+import { StepIllustration, StepIntro } from "./step-layout";
 
 const { intro, illustration } = es.gravitation.steps.falling;
 
@@ -58,13 +58,8 @@ export function FallingPicture() {
   );
 }
 
-export function FallingText() {
-  return (
-    <>
-      <StepIntro>{intro}</StepIntro>
-      <StepQuestions step="falling" />
-    </>
-  );
+export function FallingIntro() {
+  return <StepIntro>{intro}</StepIntro>;
 }
 
 /** A tree on the ground, its apple resting below the crown. */

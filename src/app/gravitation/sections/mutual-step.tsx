@@ -1,6 +1,6 @@
 import { es } from "@/content/es";
 import { PausableAnimation } from "./pausable-animation";
-import { StepIllustration, StepIntro, StepQuestions } from "./step-layout";
+import { StepIllustration, StepIntro } from "./step-layout";
 
 const { intro, illustration } = es.gravitation.steps.mutual;
 
@@ -62,13 +62,8 @@ export function MutualPicture() {
   );
 }
 
-export function MutualText() {
-  return (
-    <>
-      <StepIntro>{intro}</StepIntro>
-      <StepQuestions step="mutual" />
-    </>
-  );
+export function MutualIntro() {
+  return <StepIntro>{intro}</StepIntro>;
 }
 
 function Arrow({ fromY, toY }: { fromY: number; toY: number }) {

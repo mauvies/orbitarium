@@ -1,5 +1,5 @@
 import { es } from "@/content/es";
-import { StepIllustration, StepIntro, StepQuestions } from "./step-layout";
+import { StepIllustration, StepIntro } from "./step-layout";
 
 const { intro, illustration } = es.gravitation.steps.moon;
 
@@ -86,11 +86,6 @@ export function MoonPicture() {
   );
 }
 
-export function MoonText() {
-  return (
-    <>
-      <StepIntro>{intro}</StepIntro>
-      <StepQuestions step="moon" />
-    </>
-  );
+export function MoonIntro() {
+  return <StepIntro>{intro}</StepIntro>;
 }

@@ -735,3 +735,46 @@ test("from 640 px the caption is visible", async ({ page }) => {
 
   await expect(page.getByText(cannon.caption)).toBeVisible();
 });
+
+// Spec 04, Decision 4 and L15: on a phone each part reads title, description,
+// picture, question; from 1,024 px the text sits on one side, the picture on
+// the other, alternating.
+const TEXT_FIRST_SECTIONS = ["falling", "moon", "law"] as const;
+
+for (const section of ANSWERABLE) {
+  test(`on a phone ${section} reads title, description, picture, question`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.goto("/gravitation");
+    const part = page.locator(`#${section}`);
+    const heading = await place(part.getByRole("heading", { level: 2 }));
+    const description = await place(part.locator("p").first());
+    const picture = await place(part.locator("figure").first());
+    const question = await place(part.locator("fieldset"));
+
+    expect(description.y).toBeGreaterThanOrEqual(heading.y + heading.height);
+    expect(picture.y).toBeGreaterThanOrEqual(
+      description.y + description.height,
+    );
+    expect(question.y).toBeGreaterThanOrEqual(picture.y + picture.height);
+  });
+
+  test(`from 1,024 px ${section}'s text and picture sit side by side`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/gravitation");
+    const part = page.locator(`#${section}`);
+    const heading = await place(part.getByRole("heading", { level: 2 }));
+    const question = await place(part.locator("fieldset"));
+    const picture = await place(part.locator("figure").first());
+    const [left, right] = TEXT_FIRST_SECTIONS.some((id) => id === section)
+      ? [heading, picture]
+      : [picture, heading];
+
+    expect(right.x).toBeGreaterThanOrEqual(left.x + left.width);
+    expect(question.x).toBeCloseTo(heading.x, 0);
+    expect(question.y).toBeGreaterThan(heading.y);
+  });
+}

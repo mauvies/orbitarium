@@ -4,40 +4,49 @@ import type { StepId } from "../steps";
 import { CheckQuestion } from "./check-question";
 
 /**
- * One part of the lesson: its text and questions on one side, its picture on
- * the other. Narrow screens show the picture first; from 1,024 px the two sit
- * side by side, and `textFirst` puts the text on the left.
+ * One part of the lesson. Narrow screens read its title, its description, its
+ * picture and its question, in that order, which is also the tab order. From
+ * 1,024 px the text (title, description and question) fills one column and
+ * the picture the other, centred beside it; `textFirst` puts the text on the
+ * left. The empty first and last rows centre the text against the picture.
  */
 export function LessonSection({
   id,
   title,
+  intro,
   picture,
+  questions,
   textFirst = false,
-  children,
 }: {
   id: StepId;
   title: string;
+  intro: ReactNode;
   picture: ReactNode;
+  questions: ReactNode;
   textFirst?: boolean;
-  children: ReactNode;
 }) {
+  const text = textFirst ? "lg:col-start-1" : "lg:col-start-2";
+  const side = textFirst ? "lg:col-start-2" : "lg:col-start-1";
   return (
     <section
       id={id}
       aria-labelledby={`${id}-title`}
       className="scroll-mt-8 py-12 lg:py-16"
     >
-      <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-16">
-        <div>{picture}</div>
-        <div className={textFirst ? "lg:order-first" : ""}>
-          <h2
-            id={`${id}-title`}
-            className="font-heading font-semibold text-section text-strong"
-          >
-            {title}
-          </h2>
-          {children}
+      <div className="grid lg:grid-cols-2 lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-16">
+        <h2
+          id={`${id}-title`}
+          className={`font-heading font-semibold text-section text-strong lg:row-start-2 ${text}`}
+        >
+          {title}
+        </h2>
+        <div className={`lg:row-start-3 ${text}`}>{intro}</div>
+        <div
+          className={`my-8 lg:row-span-5 lg:row-start-1 lg:my-0 lg:self-center ${side}`}
+        >
+          {picture}
         </div>
+        <div className={`lg:row-start-4 ${text}`}>{questions}</div>
       </div>
     </section>
   );

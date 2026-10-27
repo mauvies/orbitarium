@@ -1,6 +1,6 @@
 import { CannonThumbnail } from "@/app/(home)/cannon-thumbnail";
 import { es } from "@/content/es";
-import { StepIntro, StepQuestions } from "./step-layout";
+import { StepIntro } from "./step-layout";
 
 const { intro } = es.gravitation.steps.orbit;
 
@@ -13,11 +13,6 @@ export function OrbitPicture() {
   );
 }
 
-export function OrbitText() {
-  return (
-    <>
-      <StepIntro>{intro}</StepIntro>
-      <StepQuestions step="orbit" />
-    </>
-  );
+export function OrbitIntro() {
+  return <StepIntro>{intro}</StepIntro>;
 }
