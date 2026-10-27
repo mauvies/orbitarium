@@ -1,9 +1,9 @@
 // Spec 05, "Testing without the real model". Records the tutor's answers
 // from the real model, through the real route, as the E2E tests replay them:
 // a plain answer, and for each tool its call and the answer that follows its
-// result. Needs a running server with a key and TUTOR_MODEL, for example
-// `TUTOR_MODEL=google:gemini-3.5-flash-lite pnpm start`; spends about five
-// requests of the free tier.
+// result. Needs a running server with a key (`pnpm start`, with
+// GOOGLE_GENERATIVE_AI_API_KEY in .env.local); spends about five requests of
+// the free tier.
 import { mkdir, writeFile } from "node:fs/promises";
 import { readUIMessageStream } from "ai";
 

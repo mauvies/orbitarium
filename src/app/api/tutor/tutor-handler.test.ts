@@ -3,10 +3,16 @@ import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, it } from "vitest";
 import { learnerProfile } from "@/lib/lesson/learner-profile";
 import type { TutorContext } from "@/lib/tutor/context";
-import { MAX_LEARNER_MESSAGE_CHARACTERS } from "@/lib/tutor/limits";
-import { handleTutorRequest } from "./tutor-handler";
+import {
+  MAX_CONVERSATION_MESSAGES,
+  MAX_LEARNER_MESSAGE_CHARACTERS,
+} from "@/lib/tutor/limits";
+import { handleAvailabilityRequest, handleTutorRequest } from "./tutor-handler";
 
 type CallOptions = Parameters<MockLanguageModelV4["doStream"]>[0];
+
+// Long enough for any test's answer, short enough for the timeout's own test.
+const TIMEOUT_MS = 2_000;
 
 const ANSWER = "Sí cae, pero se mueve de lado tan deprisa que nunca llega.";
 
@@ -76,6 +82,47 @@ function overloadedModel() {
   return { model, attempts: () => attempts };
 }
 
+/** A model whose provider refuses with a 429 over the quota `quotaId`. */
+function overQuotaModel(quotaId: string) {
+  return new MockLanguageModelV4({
+    doStream: async () => {
+      throw new APICallError({
+        message: "You exceeded your current quota",
+        url: "https://generativelanguage.googleapis.com",
+        requestBodyValues: {},
+        statusCode: 429,
+        data: {
+          error: {
+            details: [{ violations: [{ quotaId }] }],
+          },
+        },
+        isRetryable: true,
+      });
+    },
+  });
+}
+
+/** A model that never answers, and fails when its request is aborted, as `fetch` does. */
+function silentModel() {
+  return new MockLanguageModelV4({
+    doStream: ({ abortSignal }) =>
+      new Promise((_, reject) => {
+        abortSignal?.addEventListener("abort", () =>
+          reject(abortSignal.reason),
+        );
+      }),
+  });
+}
+
+/** The learner and the tutor taking turns, `count` messages in all. */
+function conversationOf(count: number): UIMessage[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `m${i}`,
+    role: i % 2 === 0 ? "user" : "assistant",
+    parts: [{ type: "text", text: `message ${i}` }],
+  }));
+}
+
 function post(body: unknown): Request {
   return new Request("http://localhost/api/tutor", {
     method: "POST",
@@ -92,6 +139,7 @@ async function handle(
   const response = await handleTutorRequest(post(body), {
     resolveModel: () => model,
     log: (message) => logged.push(message),
+    timeoutMs: TIMEOUT_MS,
   });
   return { response, text: await response.text(), logged };
 }
@@ -236,6 +284,7 @@ describe("handleTutorRequest: the model", () => {
           throw new Error("TUTOR_MODEL must be google:<model>, got openai:x");
         },
         log: (message) => logged.push(message),
+        timeoutMs: TIMEOUT_MS,
       },
     );
 
@@ -271,5 +320,108 @@ describe("handleTutorRequest: tool calls per learner message", () => {
     await handle({ messages: afterLaunches(3), context: AT_THE_CANNON }, model);
 
     expect(calls[0]?.tools ?? []).toHaveLength(0);
+  });
+});
+
+// Spec 05, Decision 3 and T1: a conversation over the cap is refused before
+// the model is called, with the code the panel shows.
+describe("handleTutorRequest: a conversation that is too long", () => {
+  it("accepts a conversation of 30 messages", async () => {
+    const { response } = await handle({
+      messages: conversationOf(MAX_CONVERSATION_MESSAGES - 1).concat(QUESTION),
+      context: AT_THE_CANNON,
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it("refuses 31 messages as too-long, without calling the model", async () => {
+    const { model, calls } = answeringModel();
+    const { response, text } = await handle(
+      {
+        messages: conversationOf(MAX_CONVERSATION_MESSAGES).concat(QUESTION),
+        context: AT_THE_CANNON,
+      },
+      model,
+    );
+
+    expect(response.status).toBe(400);
+    expect(text).toBe("too-long");
+    expect(calls).toHaveLength(0);
+  });
+});
+
+// Spec 05, Decision 10 and T8: a provider's failure reaches the panel as a code.
+describe("handleTutorRequest: a failing model", () => {
+  it("a per-minute 429 is rate-limited", async () => {
+    const { text } = await handle(
+      { messages: [QUESTION], context: AT_THE_CANNON },
+      overQuotaModel("GenerateRequestsPerMinutePerProjectPerModel-FreeTier"),
+    );
+
+    expect(text).toContain('"errorText":"rate-limited"');
+  });
+
+  it("a per-day 429 is daily-limit", async () => {
+    const { text } = await handle(
+      { messages: [QUESTION], context: AT_THE_CANNON },
+      overQuotaModel("GenerateRequestsPerDayPerProjectPerModel-FreeTier"),
+    );
+
+    expect(text).toContain('"errorText":"daily-limit"');
+  });
+});
+
+// Spec 05, Decision 2 and T2: a request that hangs ends as unavailable.
+describe("handleTutorRequest: a model that does not answer", () => {
+  it("is unavailable once the timeout passes", async () => {
+    const logged: string[] = [];
+    const response = await handleTutorRequest(
+      post({ messages: [QUESTION], context: AT_THE_CANNON }),
+      {
+        resolveModel: () => silentModel(),
+        log: (message) => logged.push(message),
+        timeoutMs: 50,
+      },
+    );
+
+    expect(await response.text()).toContain('"errorText":"unavailable"');
+    expect(logged).toHaveLength(1);
+  });
+});
+
+// Spec 05, Decision 12 and T16.
+describe("handleAvailabilityRequest", () => {
+  const SECRET = "AIza-secret-key-value";
+
+  it("is available with a key", async () => {
+    const response = handleAvailabilityRequest({
+      GOOGLE_GENERATIVE_AI_API_KEY: SECRET,
+    });
+
+    expect(await response.json()).toEqual({ available: true });
+  });
+
+  it("is not available without one", async () => {
+    const response = handleAvailabilityRequest({});
+
+    expect(await response.json()).toEqual({ available: false });
+  });
+
+  it("is not available with a model that does not parse", async () => {
+    const response = handleAvailabilityRequest({
+      GOOGLE_GENERATIVE_AI_API_KEY: SECRET,
+      TUTOR_MODEL: "openai:gpt-5",
+    });
+
+    expect(await response.json()).toEqual({ available: false });
+  });
+
+  it("says nothing of the key", async () => {
+    const response = handleAvailabilityRequest({
+      GOOGLE_GENERATIVE_AI_API_KEY: SECRET,
+    });
+
+    expect(await response.text()).not.toContain(SECRET);
   });
 });

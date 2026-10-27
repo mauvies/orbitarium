@@ -7,6 +7,7 @@ import { useLessonControls, useTutorPanel } from "./lesson-provider";
 import { TutorConversation } from "./tutor-conversation";
 import { TUTOR_INPUT_ID, TUTOR_PANEL_ID, TUTOR_TITLE_ID } from "./tutor-ids";
 import { useHydrated } from "./use-hydrated";
+import { useTutorAvailability } from "./use-tutor-availability";
 import { useTutorChat } from "./use-tutor-chat";
 
 const { tutor } = es.gravitation;
@@ -29,6 +30,7 @@ export function TutorPanel() {
   const { open, setOpen, announcement } = useTutorPanel();
   const controls = useLessonControls();
   const chat = useTutorChat(controls);
+  const { availability, askOnce, retry } = useTutorAvailability();
   const [atCannon, setAtCannon] = useState(false);
   const hydrated = useHydrated();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -42,6 +44,7 @@ export function TutorPanel() {
     if (open && !panel.open) {
       // `show()`, not `showModal()`: the page must stay usable.
       panel.show();
+      askOnce();
       setAtCannon(controls.navigation.current() === "cannon");
       // On a phone the input would raise the keyboard over the page, so the
       // sheet focuses its close button (spec 05, Decision 11).
@@ -53,7 +56,7 @@ export function TutorPanel() {
     } else if (!open && panel.open) {
       panel.close();
     }
-  }, [open, controls]);
+  }, [open, controls, askOnce]);
 
   if (!hydrated) {
     return null;
@@ -73,7 +76,7 @@ export function TutorPanel() {
       // Below 1,280 px a bottom sheet; from there a floating card at the
       // bottom right, just above the toggle (4.5 rem up), leaving at least
       // 14 rem of page above it. Raised and outlined, without a shadow.
-      className="fixed inset-x-0 top-auto bottom-0 z-30 m-0 flex-col overflow-hidden overscroll-contain open:flex h-[min(55dvh,32rem)] max-h-none w-full max-w-none border-0 border-muted border-t bg-surface p-4 text-body xl:right-4 xl:bottom-18 xl:left-auto xl:h-[min(28rem,calc(100dvh_-_14rem))] xl:w-96 xl:rounded-xl xl:border xl:border-strong xl:bg-surface-raised"
+      className="fixed inset-x-0 top-auto bottom-0 z-30 m-0 flex-col overflow-hidden overscroll-contain open:flex h-[min(55dvh,32rem)] max-h-none w-full max-w-none border-0 border-muted border-t bg-surface p-4 text-body xl:right-4 xl:bottom-18 xl:left-auto xl:h-[min(28rem,calc(100dvh-14rem))] xl:w-96 xl:rounded-xl xl:border xl:border-strong xl:bg-surface-raised"
     >
       <div className="flex items-center justify-between gap-2">
         <h2
@@ -90,6 +93,7 @@ export function TutorPanel() {
               onClick={async () => {
                 await chat.stop();
                 chat.setMessages([]);
+                chat.clearError();
               }}
               className="min-h-8 rounded-[10px] px-2 text-muted text-small hover:text-strong"
             >
@@ -114,7 +118,12 @@ export function TutorPanel() {
           </button>
         </div>
       </div>
-      <TutorConversation chat={chat} atCannon={atCannon} />
+      <TutorConversation
+        chat={chat}
+        availability={availability}
+        retryAvailability={retry}
+        atCannon={atCannon}
+      />
       <output className="sr-only">{announcement}</output>
     </dialog>,
     document.body,

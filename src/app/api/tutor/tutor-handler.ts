@@ -5,17 +5,25 @@ import {
   safeValidateUIMessages,
   streamText,
   toUIMessageStream,
+  type UIMessageChunk,
 } from "ai";
 import { parseTutorContext, type TutorContext } from "@/lib/tutor/context";
-import { MAX_LEARNER_MESSAGE_CHARACTERS } from "@/lib/tutor/limits";
+import {
+  isConversationTooLong,
+  MAX_LEARNER_MESSAGE_CHARACTERS,
+} from "@/lib/tutor/limits";
 import { type TutorMessage, tutorTools } from "@/lib/tutor/tools";
+import { toErrorCode } from "./error-code";
 import { tutorInstructions } from "./instructions";
+import { isTutorAvailable } from "./model-id";
 import { MAX_TOOL_CALLS, toolCallsSinceLearnerMessage } from "./tool-rounds";
 
 export type TutorDependencies = {
   /** Throws, naming the variable, when the model is not configured. */
   readonly resolveModel: () => LanguageModel;
   readonly log: (message: string) => void;
+  /** How long a request may take before it is aborted as `unavailable`. */
+  readonly timeoutMs: number;
 };
 
 type TutorRequest =
@@ -24,7 +32,8 @@ type TutorRequest =
       readonly messages: TutorMessage[];
       readonly context: TutorContext;
     }
-  | { readonly status: "invalid"; readonly reason: string };
+  | { readonly status: "invalid"; readonly reason: string }
+  | { readonly status: "too-long" };
 
 /**
  * One turn of the conversation: validates the body, then streams the
@@ -32,11 +41,14 @@ type TutorRequest =
  */
 export async function handleTutorRequest(
   request: Request,
-  { resolveModel, log }: TutorDependencies,
+  { resolveModel, log, timeoutMs }: TutorDependencies,
 ): Promise<Response> {
   const tutorRequest = await readTutorRequest(request);
   if (tutorRequest.status === "invalid") {
     return new Response(tutorRequest.reason, { status: 400 });
+  }
+  if (tutorRequest.status === "too-long") {
+    return new Response("too-long", { status: 400 });
   }
   const { messages, context } = tutorRequest;
 
@@ -59,16 +71,45 @@ export async function handleTutorRequest(
     // error (spec 05, Decision 2).
     maxRetries: 0,
     abortSignal: request.signal,
+    timeout: timeoutMs,
   });
   return createUIMessageStreamResponse({
     stream: toUIMessageStream({
       stream: result.stream,
       onError: (error) => {
         log(`tutor: ${describe(error)}`);
-        return "unavailable";
+        return toErrorCode(error);
       },
-    }),
+    }).pipeThrough(timeoutAsError(log)),
   });
+}
+
+/**
+ * A request that hits its timeout ends the stream with an `abort` chunk, which
+ * the page reads as an empty answer. The learner may have left too, but then
+ * nobody reads the stream, so any abort here is the timeout (spec 05,
+ * Decision 2).
+ */
+function timeoutAsError(
+  log: (message: string) => void,
+): TransformStream<UIMessageChunk, UIMessageChunk> {
+  return new TransformStream({
+    transform(chunk, controller) {
+      if (chunk.type === "abort") {
+        log(`tutor: ${chunk.reason ?? "the request was aborted"}`);
+        controller.enqueue({ type: "error", errorText: "unavailable" });
+      } else {
+        controller.enqueue(chunk);
+      }
+    },
+  });
+}
+
+/** Whether the tutor is set up, from the environment alone (spec 05, Decision 12). */
+export function handleAvailabilityRequest(
+  environment: Readonly<Record<string, string | undefined>>,
+): Response {
+  return Response.json({ available: isTutorAvailable(environment) });
 }
 
 async function readTutorRequest(request: Request): Promise<TutorRequest> {
@@ -96,6 +137,9 @@ async function readTutorRequest(request: Request): Promise<TutorRequest> {
   });
   if (!messages.success) {
     return invalid(`messages: ${messages.error.message}`);
+  }
+  if (isConversationTooLong(messages.data.length)) {
+    return { status: "too-long" };
   }
   if (messages.data.some(isTooLong)) {
     return invalid(

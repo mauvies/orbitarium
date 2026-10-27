@@ -326,6 +326,22 @@ export const es = {
       learner: "Tú:",
       tutor: "Tutor:",
       thinking: "Pensando…",
+      // Spec 05, Decisions 10 and 12: why the tutor is silent, by the code the
+      // route answers with.
+      checking: "Comprobando el tutor…",
+      notSet:
+        "El tutor no está configurado en este servidor: necesita una clave de Google AI Studio. Las instrucciones están en el README del proyecto.",
+      errors: {
+        "rate-limited":
+          "El tutor ha recibido demasiadas preguntas. Espera un minuto y vuelve a intentarlo.",
+        "daily-limit":
+          "El tutor ya no puede responder más preguntas hoy. Vuelve mañana: la lección sigue funcionando sin él.",
+        "too-long":
+          "Esta conversación ya es muy larga. Empieza una nueva con «Nueva conversación».",
+        unavailable:
+          "El tutor no está disponible ahora mismo. Inténtalo de nuevo.",
+      },
+      retry: "Reintentar",
       input: "Tu pregunta",
       inputPlaceholder: "Escribe tu pregunta…",
       send: "Enviar",

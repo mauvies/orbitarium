@@ -10,20 +10,24 @@ const { tutor } = es.gravitation;
  * «Enviar» inside it (visual style, "Tutor's panel"). Enter sends and
  * Shift+Enter adds a line; Enter while composing an accent with a dead key
  * does neither. Nothing is sent while an answer is on its way (spec 05,
- * Decision 11).
+ * Decision 11), nor while the tutor is not ready to take a question (spec 05,
+ * Decision 12): then the field is read-only, not disabled, so that it keeps
+ * the focus that opening the panel gave it.
  */
 export function TutorInput({
   waiting,
+  unavailable,
   onSend,
 }: {
   waiting: boolean;
+  unavailable: boolean;
   onSend: (text: string) => void;
 }) {
   const [text, setText] = useState("");
 
   function send(): void {
     const message = text.trim();
-    if (waiting || message === "") {
+    if (waiting || unavailable || message === "") {
       return;
     }
     onSend(message);
@@ -58,14 +62,15 @@ export function TutorInput({
           }
         }}
         maxLength={MAX_LEARNER_MESSAGE_CHARACTERS}
+        readOnly={unavailable}
         rows={1}
         placeholder={tutor.inputPlaceholder}
-        className="field-sizing-content max-h-40 min-w-0 flex-1 resize-none bg-transparent py-1 text-body placeholder:text-muted focus-visible:outline-none"
+        className="field-sizing-content max-h-40 read-only:opacity-50 min-w-0 flex-1 resize-none bg-transparent py-1 text-body placeholder:text-muted focus-visible:outline-none"
       />
       <button
         type="submit"
         aria-label={tutor.send}
-        disabled={waiting}
+        disabled={waiting || unavailable}
         className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-muted hover:text-strong disabled:opacity-50"
       >
         {/* A return arrow, as the Enter key that also sends. */}

@@ -1,9 +1,16 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page, type Route, test } from "@playwright/test";
+import {
+  expect,
+  type Locator,
+  type Page,
+  type Route,
+  test,
+} from "@playwright/test";
 import { z } from "zod";
 import { es } from "@/content/es";
+import { MAX_CONVERSATION_MESSAGES } from "@/lib/tutor/limits";
 
 const { tutor, sections, cannon } = es.gravitation;
 
@@ -92,6 +99,9 @@ async function serveTutor(page: Page, { held = false } = {}) {
     release = resolveRelease;
   });
   await page.route("**/api/tutor", async (route: Route) => {
+    if (route.request().method() === "GET") {
+      return route.fallback();
+    }
     const request = sentRequest.parse(route.request().postDataJSON());
     requests.push(request);
     if (held) {
@@ -99,14 +109,68 @@ async function serveTutor(page: Page, { held = false } = {}) {
     }
     await route.fulfill({
       status: 200,
-      headers: {
-        "content-type": "text/event-stream",
-        "x-vercel-ai-ui-message-stream": "v1",
-      },
+      headers: STREAM_HEADERS,
       body: recording(recordingFor(request)),
     });
   });
   return { requests, release };
+}
+
+const STREAM_HEADERS = {
+  "content-type": "text/event-stream",
+  "x-vercel-ai-ui-message-stream": "v1",
+};
+
+/**
+ * Answers `GET /api/tutor`, the check of whether the tutor is set up, in
+ * order: the last answer repeats. A route added later is tried first, so a
+ * test can replace the default one below.
+ */
+async function serveAvailability(
+  page: Page,
+  ...answers: readonly ({ available: boolean } | "fails")[]
+) {
+  let checks = 0;
+  await page.route("**/api/tutor", async (route: Route) => {
+    if (route.request().method() !== "GET") {
+      return route.fallback();
+    }
+    const answer = answers[Math.min(checks++, answers.length - 1)];
+    if (answer === "fails") {
+      return route.fulfill({ status: 500, body: "boom" });
+    }
+    return route.fulfill({ json: answer });
+  });
+  return { checks: () => checks };
+}
+
+/** Fails the next request as the route does: a stream that ends in an error chunk. */
+async function failTutor(page: Page, code: string, failures = 1) {
+  let calls = 0;
+  await page.route("**/api/tutor", async (route: Route) => {
+    if (route.request().method() === "GET") {
+      return route.fallback();
+    }
+    calls++;
+    if (calls > failures) {
+      return route.fallback();
+    }
+    return route.fulfill({
+      status: 200,
+      headers: STREAM_HEADERS,
+      body: `data: {"type":"start"}\n\ndata: {"type":"error","errorText":"${code}"}\n\ndata: [DONE]\n\n`,
+    });
+  });
+  return { calls: () => calls };
+}
+
+test.beforeEach(async ({ page }) => {
+  await serveAvailability(page, { available: true });
+});
+
+/** The notice as shown; the hidden region repeats its text for screen readers. */
+function noticeIn(panel: Locator, text: string) {
+  return panel.getByRole("paragraph").filter({ hasText: text });
 }
 
 function tutorOf(page: Page) {
@@ -495,6 +559,171 @@ test.describe("the tutor's actions", () => {
   });
 });
 
+// Spec 05, Decision 10 and T8: a failure is shown as text, announced once,
+// and the learner's message stays.
+test.describe("errors", () => {
+  for (const code of ["rate-limited", "daily-limit", "unavailable"] as const) {
+    test(`${code} is shown with «Reintentar», announced, and the message stays`, async ({
+      page,
+    }) => {
+      await failTutor(page, code);
+      await page.goto("/gravitation");
+      const { panel, conversation, input, send, answerAnnouncement } =
+        await openTutor(page);
+
+      await ask(page, QUESTION);
+
+      await expect(noticeIn(panel, tutor.errors[code])).toBeVisible();
+      await expect(
+        panel.getByRole("button", { name: tutor.retry }),
+      ).toBeVisible();
+      await expect(answerAnnouncement).toHaveText(tutor.errors[code]);
+      await expect(conversation).toContainText(QUESTION);
+      await expect(input).toHaveValue("");
+      await expect(send).toBeEnabled();
+    });
+  }
+
+  test("a refusal that is not a code reads as unavailable", async ({
+    page,
+  }) => {
+    await page.route("**/api/tutor", (route) =>
+      route.request().method() === "GET"
+        ? route.fallback()
+        : route.fulfill({ status: 400, body: "context.section: not a part" }),
+    );
+    await page.goto("/gravitation");
+    const { panel } = await openTutor(page);
+
+    await ask(page, QUESTION);
+
+    await expect(noticeIn(panel, tutor.errors.unavailable)).toBeVisible();
+  });
+
+  test("too-long from the route has no «Reintentar»", async ({ page }) => {
+    await page.route("**/api/tutor", (route) =>
+      route.request().method() === "GET"
+        ? route.fallback()
+        : route.fulfill({ status: 400, body: "too-long" }),
+    );
+    await page.goto("/gravitation");
+    const { panel } = await openTutor(page);
+
+    await ask(page, QUESTION);
+
+    await expect(noticeIn(panel, tutor.errors["too-long"])).toBeVisible();
+    await expect(panel.getByRole("button", { name: tutor.retry })).toHaveCount(
+      0,
+    );
+  });
+
+  test("«Reintentar» answers the same message again", async ({ page }) => {
+    const { requests } = await serveTutor(page);
+    const failed = await failTutor(page, "rate-limited");
+    await page.goto("/gravitation");
+    const { panel, conversation } = await openTutor(page);
+    await ask(page, QUESTION);
+    await expect(noticeIn(panel, tutor.errors["rate-limited"])).toBeVisible();
+
+    await panel.getByRole("button", { name: tutor.retry }).click();
+
+    await expect(conversation).toContainText(recordedText("answer"));
+    await expect(noticeIn(panel, tutor.errors["rate-limited"])).toHaveCount(0);
+    expect(failed.calls()).toBe(2);
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.messages.map(({ role }) => role)).toEqual(["user"]);
+    await expect(conversation.getByText(QUESTION)).toHaveCount(1);
+  });
+
+  test("«Nueva conversación» clears the error", async ({ page }) => {
+    await failTutor(page, "unavailable");
+    await page.goto("/gravitation");
+    const { panel, restart } = await openTutor(page);
+    await ask(page, QUESTION);
+    await expect(noticeIn(panel, tutor.errors.unavailable)).toBeVisible();
+
+    await restart.click();
+
+    await expect(noticeIn(panel, tutor.errors.unavailable)).toHaveCount(0);
+  });
+
+  test("the thirty-first message is not sent", async ({ page }) => {
+    const { requests } = await serveTutor(page);
+    await page.goto("/gravitation");
+    const { panel, conversation, input, send } = await openTutor(page);
+    const exchanges = MAX_CONVERSATION_MESSAGES / 2;
+    for (let turn = 1; turn <= exchanges; turn++) {
+      await ask(page, QUESTION);
+      await expect(
+        conversation.getByText(tutor.tutor, { exact: true }),
+      ).toHaveCount(turn);
+      // The last answer fills the conversation, so nothing more is accepted.
+      if (turn < exchanges) {
+        await expect(send).toBeEnabled();
+      }
+    }
+
+    await expect(noticeIn(panel, tutor.errors["too-long"])).toBeVisible();
+    await expect(input).toHaveAttribute("readonly", "");
+    await expect(send).toBeDisabled();
+    await expect(panel.getByRole("button", { name: tutor.retry })).toHaveCount(
+      0,
+    );
+    expect(requests).toHaveLength(exchanges);
+  });
+});
+
+// Spec 05, Decision 12 and T16.
+test.describe("without a key", () => {
+  test("the panel explains how to enable the tutor", async ({ page }) => {
+    await serveAvailability(page, { available: false });
+    await page.goto("/gravitation");
+    const { panel, input, send, answerAnnouncement } = await openTutor(page);
+
+    await expect(noticeIn(panel, tutor.notSet)).toBeVisible();
+    await expect(answerAnnouncement).toHaveText(tutor.notSet);
+    await expect(input).toHaveAttribute("readonly", "");
+    await expect(send).toBeDisabled();
+    await expect(panel.getByRole("button", { name: tutor.retry })).toHaveCount(
+      0,
+    );
+  });
+
+  test("the panel asks once", async ({ page }) => {
+    const { checks } = await serveAvailability(page, { available: true });
+    await page.goto("/gravitation");
+    const { close, toggle, input } = await openTutor(page);
+    await expect(input).not.toHaveAttribute("readonly", "");
+
+    await close.click();
+    await toggle.click();
+    await close.click();
+    await toggle.click();
+
+    expect(checks()).toBe(1);
+  });
+
+  test("it does not ask before the panel opens", async ({ page }) => {
+    const { checks } = await serveAvailability(page, { available: true });
+    await page.goto("/gravitation");
+    await expect(tutorOf(page).toggle).toBeEnabled();
+
+    expect(checks()).toBe(0);
+  });
+
+  test("a failed check offers to retry", async ({ page }) => {
+    await serveAvailability(page, "fails", { available: true });
+    await page.goto("/gravitation");
+    const { panel, input } = await openTutor(page);
+    await expect(noticeIn(panel, tutor.errors.unavailable)).toBeVisible();
+
+    await panel.getByRole("button", { name: tutor.retry }).click();
+
+    await expect(noticeIn(panel, tutor.errors.unavailable)).toHaveCount(0);
+    await expect(input).not.toHaveAttribute("readonly", "");
+  });
+});
+
 for (const viewport of [PHONE, WIDE]) {
   test.describe(`at ${viewport.width} px`, () => {
     test.use({ viewport });
@@ -509,6 +738,20 @@ for (const viewport of [PHONE, WIDE]) {
       await expect(conversation).toContainText(
         recordedText("launch-continuation"),
       );
+
+      const results = await new AxeBuilder({ page })
+        .withTags(WCAG_TAGS)
+        .analyze();
+
+      expect(results.violations).toEqual([]);
+    });
+
+    test("no axe violations with an error shown", async ({ page }) => {
+      await failTutor(page, "rate-limited");
+      await page.goto("/gravitation");
+      const { panel } = await openTutor(page);
+      await ask(page, QUESTION);
+      await expect(noticeIn(panel, tutor.errors["rate-limited"])).toBeVisible();
 
       const results = await new AxeBuilder({ page })
         .withTags(WCAG_TAGS)
