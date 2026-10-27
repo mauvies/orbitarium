@@ -336,3 +336,40 @@ Draft, to be reviewed by a human and recorded in "Results". Every sentence that 
 
 - The path colours and the number of faint paths (Decision 11).
 - The timing of `#falling`'s sequence, and whether 1,024 px leaves each part's text and picture enough room side by side (Decision 4).
+
+## Results
+
+Measured on 2026-10-27, Apple M2 Pro, Node 24.22.1.
+
+### The simulation agrees with the outcome (L8)
+
+`trajectory.test.ts`, "the simulation agrees with the outcome": 126 launches (the 31 speeds at 4 angles, plus 7.91 and 7.94 km/s at 0°), all agreeing with `launchOutcome`.
+
+| Outcome | Launches |
+|---|---|
+| Ballistic | 85 |
+| Circular orbit | 2 |
+| Elliptical orbit | 7 |
+| Escape | 32 |
+
+- **Return error of the elliptical orbits:** the largest is 2.0e-7 radii, at 11.0 km/s and 0°, ten times below the test's tolerance (2e-6).
+- **Time:** the grid test takes about 1.4 s, and the whole file about 3 s.
+
+### Controls at three widths (L15)
+
+The sweep in `responsive.spec.ts` ("lesson controls stay inside the viewport, apart, with 24 px targets") measures every visible button, input and select of `/gravitation`, the tutor's toggle included, at 360, 768 and 1,280 px. It found one failure at all three widths: the label of «Mostrar trayectoria prevista» was 20 px tall. It now has `min-h-6`, and the sweep passes: no control leaves the viewport, none overlaps another, and all are at least 24 × 24 px.
+
+### Physics accuracy review (L19)
+
+Mechanical check, before the human review: the 22 sentences of the table match `src/content/es.ts` (five of them are assembled in code from their parts), and the numbers they state hold when recomputed:
+
+| Claim | Recomputed |
+|---|---|
+| The apple falls 4.9 m in one second; 4.9 m / 3600 | 1.36 mm |
+| The Moon's fall in one second, 4π²r/T²/2 | 1.36 mm |
+| The Moon's distance in Earth radii, 384,400 / 6,371 | 60.3 |
+| Gravity at 420 km, (6,371 / 6,791)² | 0.88 |
+| The Moon's orbital speed | 1.02 km/s |
+| The Earth's acceleration under 0.98 N | 1.6 × 10⁻²⁵ m/s² |
+
+Reviewed by a human: pending.
