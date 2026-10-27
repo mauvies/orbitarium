@@ -457,14 +457,6 @@ export const es = {
         },
       },
     },
-    // Spec 04, Decision 4 and L14: distances from the Earth's centre.
-    distance: {
-      label: "Distancia al centro de la Tierra",
-      valueText: (radii: number, denominator: number) =>
-        radii === 1
-          ? "En la superficie: toda la atracción."
-          : `A ${radii} veces la distancia al centro de la Tierra: 1/${wholeNumber.format(denominator)} de la atracción en la superficie.`,
-    },
     // Spec 04, Decision 4: each symbol names what it is and the step where the
     // learner saw it; the operators are read as words.
     law: {
