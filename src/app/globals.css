@@ -20,9 +20,8 @@
   --color-apple: #e5484d;
 }
 
-/* The type scale of the design note. The default sizes are removed too. */
+/* The type scale of the design note, next to Tailwind's default sizes (`text-xs`, `text-lg`...). */
 @theme {
-  --text-*: initial;
   --text-display: clamp(2.5rem, 2rem + 2.5vw, 3.75rem);
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.025em;

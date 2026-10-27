@@ -1,12 +1,13 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { launchRadius } from "@/cannon";
 import { usePrefersReducedMotion } from "@/components/use-prefers-reduced-motion";
 import { es } from "@/content/es";
 import { useLessonSession } from "../lesson-provider";
-import type { Launch } from "../lesson-session";
-import { returnsFromBeyondView } from "../outcome-label";
 import { type CannonAnimation, startCannonAnimation } from "./cannon-animation";
+import { CannonOutcomeLabel } from "./cannon-outcome-label";
+import { ReferenceSpeedBadges } from "./reference-speed-badges";
 
 const { cannon } = es.gravitation;
 
@@ -18,7 +19,7 @@ const { cannon } = es.gravitation;
  * Decision 11).
  */
 export function CannonCanvas() {
-  const { launches } = useLessonSession();
+  const { launches, cannon: settings } = useLessonSession();
   const lastLaunch = launches.at(-1);
   const earlierPaths = useMemo(
     () => launches.slice(0, -1).map(({ trace }) => trace),
@@ -52,6 +53,10 @@ export function CannonCanvas() {
   }, [earlierPaths]);
 
   useLayoutEffect(() => {
+    animationRef.current?.setLaunchRadius(launchRadius(settings.altitudeKm));
+  }, [settings.altitudeKm]);
+
+  useLayoutEffect(() => {
     playingLaunchId.current = lastLaunch?.id ?? null;
     animationRef.current?.show(lastLaunch?.trace ?? null, !reducedMotion);
   }, [lastLaunch, reducedMotion]);
@@ -72,37 +77,13 @@ export function CannonCanvas() {
             : cannon.canvasLabel.launched(
                 lastLaunch.settings.speedKmPerSecond,
                 lastLaunch.settings.angleDegrees,
+                lastLaunch.settings.altitudeKm,
               )
         }
         className="block aspect-square w-full rounded-xl bg-bg-bottom"
       />
-      <OutcomeLabel launch={shownLaunch} />
+      <ReferenceSpeedBadges altitudeKm={settings.altitudeKm} />
+      <CannonOutcomeLabel launch={shownLaunch} />
     </div>
-  );
-}
-
-/**
- * The outcome, once it can be seen: a label on the canvas, and a polite live
- * region that says it (spec 04, Decision 11). The region is always there, so
- * screen readers announce the change.
- */
-function OutcomeLabel({ launch }: { launch: Launch | null }) {
-  const outcome = launch === null ? null : cannon.outcomes[launch.outcome];
-  const fromAfar = launch !== null && returnsFromBeyondView(launch);
-  return (
-    <>
-      <p
-        data-testid="cannon-outcome"
-        aria-hidden="true"
-        className={`absolute top-3 left-3 max-w-[calc(100%-1.5rem)] rounded-[10px] border border-line bg-surface px-3 py-1.5 font-semibold text-small text-strong ${outcome === null ? "invisible" : ""}`}
-      >
-        {outcome === null ? "" : cannon.outcomeLabel(outcome.label, fromAfar)}
-      </p>
-      <output className="sr-only">
-        {outcome === null
-          ? ""
-          : cannon.outcomeAnnouncement(outcome.announced, fromAfar)}
-      </output>
-    </>
   );
 }

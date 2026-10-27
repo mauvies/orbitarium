@@ -1,17 +1,20 @@
-import { EARTH_RADIUS, LAUNCH_RADIUS } from "@/cannon";
+import { EARTH_RADIUS } from "@/cannon";
 import { type CanvasTransform, toCanvas } from "@/drawing/transform";
 import type { Vec2 } from "@/physics";
 
-// In CSS pixels. The mountain is exaggerated: drawn to scale, 10 km would be
-// a quarter of a pixel (spec 04, Decision 8).
+// In CSS pixels. The mountain is drawn to scale, but never lower than 3 px:
+// 10 km would be a fifth of a pixel, and on a 640 px canvas it grows from
+// about 180 km (spec 04, Decision 8).
 const EARTH_EDGE_WIDTH_PX = 1;
-const MOUNTAIN_HEIGHT_PX = 8;
-const MOUNTAIN_HALF_WIDTH_PX = 5;
+const MOUNTAIN_MIN_HEIGHT_PX = 3;
+// A base 1.25 times as wide as the mountain is high, at any height.
+const MOUNTAIN_HALF_WIDTH_PER_HEIGHT = 0.625;
 const PATH_WIDTH_PX = 2;
 const SHOT_RADIUS_PX = 3.5;
-// Spec 04, Decision 11: earlier paths stay faint, like the gallery's path
-// (spec 03, Decision 6).
-const EARLIER_PATH_ALPHA = 0.3;
+// Spec 04, Decision 11: earlier paths stay faint and thin, under the
+// current one.
+const EARLIER_PATH_ALPHA = 0.2;
+const EARLIER_PATH_WIDTH_PX = 1;
 
 export function drawEarth(
   context: CanvasRenderingContext2D,
@@ -38,17 +41,29 @@ export function drawEarth(
   context.stroke();
 }
 
-/** The cannon's mountain, rising from the launch point at the top of the Earth. */
+/**
+ * The cannon's mountain, on top of the Earth, up to the launch point
+ * `launchRadius` from the centre.
+ */
 export function drawMountain(
   context: CanvasRenderingContext2D,
   transform: CanvasTransform,
+  launchRadius: number,
   color: string,
 ): void {
-  const foot = toCanvas({ x: 0, y: LAUNCH_RADIUS }, transform);
+  const top = toCanvas({ x: 0, y: EARTH_RADIUS }, transform);
+  const height = Math.max(
+    MOUNTAIN_MIN_HEIGHT_PX,
+    (launchRadius - EARTH_RADIUS) * transform.scale,
+  );
+  const halfWidth = height * MOUNTAIN_HALF_WIDTH_PER_HEIGHT;
+  // The base sinks as far as the Earth curves away under its corners, so a
+  // wide mountain still stands on the ground.
+  const sag = (halfWidth * halfWidth) / (2 * EARTH_RADIUS * transform.scale);
   context.beginPath();
-  context.moveTo(foot.x - MOUNTAIN_HALF_WIDTH_PX, foot.y);
-  context.lineTo(foot.x, foot.y - MOUNTAIN_HEIGHT_PX);
-  context.lineTo(foot.x + MOUNTAIN_HALF_WIDTH_PX, foot.y);
+  context.moveTo(top.x - halfWidth, top.y + sag);
+  context.lineTo(top.x, top.y - height);
+  context.lineTo(top.x + halfWidth, top.y + sag);
   context.closePath();
   context.fillStyle = color;
   context.fill();
@@ -62,7 +77,10 @@ export function drawShotPath(
   transform: CanvasTransform,
   color: string,
 ): void {
-  strokePath(context, points.slice(0, count), transform, color);
+  strokePath(context, points.slice(0, count), transform, {
+    color,
+    width: PATH_WIDTH_PX,
+  });
 }
 
 /** An earlier launch's whole path, faint, to compare with the current one. */
@@ -73,7 +91,10 @@ export function drawEarlierPath(
   color: string,
 ): void {
   context.globalAlpha = EARLIER_PATH_ALPHA;
-  strokePath(context, points, transform, color);
+  strokePath(context, points, transform, {
+    color,
+    width: EARLIER_PATH_WIDTH_PX,
+  });
   context.globalAlpha = 1;
 }
 
@@ -94,7 +115,7 @@ function strokePath(
   context: CanvasRenderingContext2D,
   points: readonly Vec2[],
   transform: CanvasTransform,
-  color: string,
+  { color, width }: { readonly color: string; readonly width: number },
 ): void {
   if (points.length < 2) {
     return;
@@ -109,7 +130,7 @@ function strokePath(
     }
   }
   context.strokeStyle = color;
-  context.lineWidth = PATH_WIDTH_PX;
+  context.lineWidth = width;
   context.lineJoin = "round";
   context.lineCap = "round";
   context.stroke();

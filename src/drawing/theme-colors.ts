@@ -3,10 +3,9 @@ export type ThemeColors = {
   readonly accent: string;
   /** The bodies. */
   readonly strong: string;
-  /** The Earth's disc and its edge, in the lesson's cannon. */
-  readonly surfaceRaised: string;
+  /** The Earth's disc, in the lesson's cannon. */
   readonly line: string;
-  /** The cannon's mountain. */
+  /** The Earth's edge and the cannon's mountain. */
   readonly muted: string;
 };
 
@@ -16,7 +15,6 @@ export function readThemeColors(element: Element): ThemeColors {
   return {
     accent: readToken(style, "--color-accent"),
     strong: readToken(style, "--color-strong"),
-    surfaceRaised: readToken(style, "--color-surface-raised"),
     line: readToken(style, "--color-line"),
     muted: readToken(style, "--color-muted"),
   };

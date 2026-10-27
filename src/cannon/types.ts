@@ -5,6 +5,8 @@ export type CannonSettings = {
   readonly speedKmPerSecond: number;
   /** Above the local horizontal: 0° fires along the ground, 90° straight up. */
   readonly angleDegrees: number;
+  /** The launch point's height above the ground. */
+  readonly altitudeKm: number;
 };
 
 export type CannonOutcome =

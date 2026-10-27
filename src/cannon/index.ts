@@ -6,9 +6,11 @@ export {
 export { circularSpeed, launchState } from "./launch";
 export { launchOutcome } from "./outcome";
 export {
+  CANNON_PRESET_IDS,
   CANNON_PRESETS,
-  REFERENCE_SPEEDS,
+  type CannonPresetId,
   type ReferenceSpeeds,
+  referenceSpeeds,
 } from "./presets";
 export {
   finalFrame,
@@ -35,7 +37,8 @@ export {
   engineToKmPerSecond,
   kmPerSecondToEngine,
   kmPerSecondToKmPerHour,
-  LAUNCH_RADIUS,
+  launchRadius,
+  MOUNTAIN_ALTITUDE_KM,
   SPEED_UNIT_KM_PER_SECOND,
   TIME_UNIT_SECONDS,
 } from "./units";

@@ -6,8 +6,10 @@ import type { CannonRequest, CannonSettings } from "./types";
 const CURRENT: CannonSettings = Object.freeze({
   speedKmPerSecond: 7,
   angleDegrees: 45,
+  altitudeKm: 10,
 });
 const SPEED_STEPS = 1_500; // 0 to 15 km/s by 0.01
+const HEIGHT_STEPS = 199; // 10 to 2,000 km by 10
 
 function applied(request: CannonRequest) {
   const result = resolveRequest(CURRENT, request);
@@ -24,7 +26,7 @@ describe("resolveRequest: rejecting", () => {
     { name: "a string", value: "8" },
     { name: "null", value: null },
     { name: "undefined", value: undefined },
-  ])("rejects $name as a speed or an angle", ({ value }) => {
+  ])("rejects $name as a speed, an angle or a height", ({ value }) => {
     expect(resolveRequest(CURRENT, { speedKmPerSecond: value })).toEqual({
       status: "rejected",
       field: "speedKmPerSecond",
@@ -33,6 +35,11 @@ describe("resolveRequest: rejecting", () => {
     expect(resolveRequest(CURRENT, { angleDegrees: value })).toEqual({
       status: "rejected",
       field: "angleDegrees",
+      reason: "must be a finite number",
+    });
+    expect(resolveRequest(CURRENT, { altitudeKm: value })).toEqual({
+      status: "rejected",
+      field: "altitudeKm",
       reason: "must be a finite number",
     });
   });
@@ -49,6 +56,15 @@ describe("resolveRequest: rejecting", () => {
     });
   });
 
+  it("checks the angle before the height", () => {
+    const result = resolveRequest(CURRENT, {
+      angleDegrees: Number.NaN,
+      altitudeKm: Number.NaN,
+    });
+
+    expect(result).toMatchObject({ status: "rejected", field: "angleDegrees" });
+  });
+
   it("applies nothing when one field is rejected", () => {
     const result = resolveRequest(CURRENT, {
       speedKmPerSecond: 9,
@@ -60,7 +76,11 @@ describe("resolveRequest: rejecting", () => {
       field: "angleDegrees",
       reason: "must be a finite number",
     });
-    expect(CURRENT).toEqual({ speedKmPerSecond: 7, angleDegrees: 45 });
+    expect(CURRENT).toEqual({
+      speedKmPerSecond: 7,
+      angleDegrees: 45,
+      altitudeKm: 10,
+    });
   });
 });
 
@@ -85,6 +105,23 @@ describe("resolveRequest: rounding", () => {
 
   it("an angle rounds to whole degrees", () => {
     expect(applied({ angleDegrees: 29.6 }).angleDegrees).toBe(30);
+  });
+
+  it("2,004 km is applied as 2,000", () => {
+    expect(applied({ altitudeKm: 2_004 }).altitudeKm).toBe(2_000);
+  });
+
+  it("every height from 10 to 2,000 km in steps of 10 is applied as itself", () => {
+    const heights = Array.from(
+      { length: HEIGHT_STEPS + 1 },
+      (_, i) => 10 + i * 10,
+    );
+    const mismatches = heights.filter(
+      (altitudeKm) => applied({ altitudeKm }).altitudeKm !== altitudeKm,
+    );
+
+    expect(mismatches).toEqual([]);
+    expect(applied({ altitudeKm: 415 }).altitudeKm).toBe(420);
   });
 
   it("-0 becomes 0", () => {
@@ -119,6 +156,27 @@ describe("resolveRequest: clamping", () => {
     });
   });
 
+  it("0 km is clamped to 10", () => {
+    expect(applied({ altitudeKm: 0 })).toMatchObject({
+      altitudeKm: 10,
+      clamped: ["altitudeKm"],
+    });
+  });
+
+  it("5 km rounds to 10 and is not reported as clamped", () => {
+    expect(applied({ altitudeKm: 5 })).toMatchObject({
+      altitudeKm: 10,
+      clamped: [],
+    });
+  });
+
+  it("a height over 2,000 km is clamped to 2,000", () => {
+    expect(applied({ altitudeKm: 36_000 })).toMatchObject({
+      altitudeKm: 2_000,
+      clamped: ["altitudeKm"],
+    });
+  });
+
   it("15.004 is not reported as clamped", () => {
     expect(applied({ speedKmPerSecond: 15.004 })).toMatchObject({
       speedKmPerSecond: 15,
@@ -133,12 +191,21 @@ describe("resolveRequest: absent fields", () => {
       status: "applied",
       speedKmPerSecond: 9,
       angleDegrees: 45,
+      altitudeKm: 10,
       clamped: [],
     });
     expect(applied({ angleDegrees: 10 })).toEqual({
       status: "applied",
       speedKmPerSecond: 7,
       angleDegrees: 10,
+      altitudeKm: 10,
+      clamped: [],
+    });
+    expect(applied({ altitudeKm: 400 })).toEqual({
+      status: "applied",
+      speedKmPerSecond: 7,
+      angleDegrees: 45,
+      altitudeKm: 400,
       clamped: [],
     });
   });

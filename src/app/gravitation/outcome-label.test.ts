@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { CannonSettings } from "@/cannon";
+import type { CannonRequest } from "@/cannon";
 import { initialSession, type Launch, launchCannon } from "./lesson-session";
 import { returnsFromBeyondView } from "./outcome-label";
 
 // Spec 04, Decision 11: a shot that will come back but passes the stop
-// radius, the corner of the view, would otherwise look like an escape.
-function launchOf(settings: CannonSettings): Launch {
-  const launch = launchCannon(initialSession("cannon"), settings).session
+// radius, the corner of the view, would otherwise look like an escape. The
+// session starts on Newton's mountain, 10 km up.
+function launchOf(request: CannonRequest): Launch {
+  const launch = launchCannon(initialSession("cannon"), request).session
     .launches[0];
   if (launch === undefined) {
     throw new Error("expected a launch");

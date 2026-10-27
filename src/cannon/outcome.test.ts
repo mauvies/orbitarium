@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { circularSpeed } from "./launch";
 import { launchOrbit, launchOutcome } from "./outcome";
 import type { CannonOutcome } from "./types";
-import { EARTH_RADIUS_KM } from "./units";
+import { EARTH_RADIUS_KM, engineToKmPerSecond, launchRadius } from "./units";
 
 // Spec 04, L6. The expected values were computed independently with the
 // orbital formulas during the plan review, not read back from this code.
 const HORIZONTAL = 0;
 const STRAIGHT_UP = 90;
+// Newton's mountain, where every boundary below is measured.
+const MOUNTAIN_KM = 10;
+// Spec 04, Decision 8: the height's range, in its steps.
+const HEIGHTS_KM = Array.from({ length: 200 }, (_, i) => 10 + i * 10);
 const ESCAPE_SPEED_STEPS = 1_118; // 11.18 km/s, in steps of 0.01 km/s
 
 /** Every speed below escape, as two-decimal literals: 0, 0.01, … 11.17. */
@@ -19,20 +24,28 @@ function outcome(
   speedKmPerSecond: number,
   angleDegrees: number,
 ): CannonOutcome {
-  return launchOutcome({ speedKmPerSecond, angleDegrees });
+  return launchOutcome({
+    speedKmPerSecond,
+    angleDegrees,
+    altitudeKm: MOUNTAIN_KM,
+  });
 }
 
 function perigeeAltitudeKm(speedKmPerSecond: number): number {
   const { periapsisRadius } = launchOrbit({
     speedKmPerSecond,
     angleDegrees: HORIZONTAL,
+    altitudeKm: MOUNTAIN_KM,
   });
   return (periapsisRadius - 1) * EARTH_RADIUS_KM;
 }
 
 function eccentricity(speedKmPerSecond: number): number {
-  return launchOrbit({ speedKmPerSecond, angleDegrees: HORIZONTAL })
-    .eccentricity;
+  return launchOrbit({
+    speedKmPerSecond,
+    angleDegrees: HORIZONTAL,
+    altitudeKm: MOUNTAIN_KM,
+  }).eccentricity;
 }
 
 describe("launchOutcome: hitting the ground or orbiting", () => {
@@ -121,5 +134,34 @@ describe("launchOutcome: angled shots", () => {
     expect(new Set(orbiting.map((speed) => outcome(speed, angle)))).toEqual(
       new Set(["elliptical-orbit"]),
     );
+  });
+});
+
+describe("launchOutcome: other heights", () => {
+  /** Rounded up to the controls' 0.01 km/s, so the launch point is the perigee. */
+  const roundedUp = (speedKmPerSecond: number) =>
+    Math.ceil(speedKmPerSecond * 100) / 100;
+
+  it("at every height, the circular and escape speeds give their outcomes", () => {
+    const mismatches = HEIGHTS_KM.flatMap((altitudeKm) => {
+      const circular = engineToKmPerSecond(
+        circularSpeed(launchRadius(altitudeKm)),
+      );
+      const atCircular = launchOutcome({
+        speedKmPerSecond: roundedUp(circular),
+        angleDegrees: HORIZONTAL,
+        altitudeKm,
+      });
+      const atEscape = launchOutcome({
+        speedKmPerSecond: roundedUp(Math.SQRT2 * circular),
+        angleDegrees: HORIZONTAL,
+        altitudeKm,
+      });
+      return atCircular === "circular-orbit" && atEscape === "escape"
+        ? []
+        : [{ altitudeKm, atCircular, atEscape }];
+    });
+
+    expect(mismatches).toEqual([]);
   });
 });

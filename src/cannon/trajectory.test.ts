@@ -4,7 +4,7 @@ import { circularSpeed, launchState } from "./launch";
 import { launchOutcome } from "./outcome";
 import { finalFrame, type Trace, traceFrame, traceLaunch } from "./trajectory";
 import type { CannonOutcome, CannonSettings } from "./types";
-import { EARTH_RADIUS, LAUNCH_RADIUS } from "./units";
+import { EARTH_RADIUS, launchRadius, MOUNTAIN_ALTITUDE_KM } from "./units";
 
 // Spec 04, L8. The grid of the criterion: 0 to 15 km/s by 0.5, at four angles.
 const GRID_SPEEDS_KM_PER_SECOND = Array.from({ length: 31 }, (_, i) => i / 2);
@@ -13,7 +13,7 @@ const GRID_ANGLES_DEGREES = [0, 30, 60, 90];
 // Nor any launch within 1 % of the escape speed, which the criterion leaves
 // out because a period there needs millions of steps: the nearest are 11.0
 // and 11.5 km/s.
-const CIRCULAR_LAUNCHES: readonly CannonSettings[] = [
+const CIRCULAR_LAUNCHES: readonly MountainShot[] = [
   { speedKmPerSecond: 7.91, angleDegrees: 0 },
   { speedKmPerSecond: 7.94, angleDegrees: 0 },
 ];
@@ -26,6 +26,8 @@ const CIRCULAR_SPREAD = 0.01;
 // Spec 01, "Measured tolerances": measured 2.0e-7 radii at 11.0 km/s, 4th
 // order (1.3e-8 at half the step); Verlet at the same step: 2.1e-5 at 8 km/s.
 const RETURN_TOLERANCE = 2e-6;
+// Every launch below fires from Newton's mountain, 10 km up.
+const LAUNCH_RADIUS = launchRadius(MOUNTAIN_ALTITUDE_KM);
 // The home page's thumbnail fires from a taller, illustrative mountain.
 const THUMBNAIL_LAUNCH_RADIUS = 1.35;
 // Far above Yoshida's error at 2,000 steps per turn, far below a pixel.
@@ -44,8 +46,15 @@ const STEP_LIMIT_TIMEOUT_MS = 30_000;
 
 const radius = ({ x, y }: Vec2) => Math.sqrt(x * x + y * y);
 
-function trace(settings: CannonSettings, stopRadius: number): Trace {
-  return traceLaunch(launchState(settings), { stopRadius });
+/** A launch from Newton's mountain, where every boundary here is measured. */
+type MountainShot = Omit<CannonSettings, "altitudeKm">;
+
+function onMountain(shot: MountainShot): CannonSettings {
+  return { ...shot, altitudeKm: MOUNTAIN_ALTITUDE_KM };
+}
+
+function trace(shot: MountainShot, stopRadius: number): Trace {
+  return traceLaunch(launchState(onMountain(shot)), { stopRadius });
 }
 
 function lastPoint(points: readonly Vec2[]): Vec2 {
@@ -113,7 +122,7 @@ function agreesWithOutcome(
   }
 }
 
-const gridLaunches: readonly CannonSettings[] = [
+const gridLaunches: readonly MountainShot[] = [
   ...GRID_ANGLES_DEGREES.flatMap((angleDegrees) =>
     GRID_SPEEDS_KM_PER_SECOND.map((speedKmPerSecond) => ({
       speedKmPerSecond,
@@ -125,7 +134,9 @@ const gridLaunches: readonly CannonSettings[] = [
 
 describe("traceLaunch", () => {
   it("starts at the launch point", () => {
-    const launch = launchState({ speedKmPerSecond: 7, angleDegrees: 45 });
+    const launch = launchState(
+      onMountain({ speedKmPerSecond: 7, angleDegrees: 45 }),
+    );
 
     expect(
       traceLaunch(launch, { stopRadius: BOUND_STOP_RADIUS }).points[0],
@@ -178,7 +189,7 @@ describe("traceLaunch", () => {
     "the simulation agrees with the outcome",
     () => {
       const disagreements = gridLaunches.flatMap((settings) => {
-        const outcome = launchOutcome(settings);
+        const outcome = launchOutcome(onMountain(settings));
         const stopRadius =
           outcome === "escape" ? ESCAPE_STOP_RADIUS : BOUND_STOP_RADIUS;
         const simulated = trace(settings, stopRadius);
@@ -206,7 +217,9 @@ describe("traceLaunch", () => {
   });
 
   it("rejects a stop radius that does not leave the launch point", () => {
-    const launch = launchState({ speedKmPerSecond: 7, angleDegrees: 0 });
+    const launch = launchState(
+      onMountain({ speedKmPerSecond: 7, angleDegrees: 0 }),
+    );
 
     expect(() => traceLaunch(launch, { stopRadius: LAUNCH_RADIUS })).toThrow(
       "stopRadius",
@@ -222,7 +235,9 @@ describe("traceLaunch", () => {
       // 11.17 km/s horizontal swings out to 760 radii, with a period of
       // about 46,500 time units: its period does not fit the engine's limit,
       // and it never reaches 1,000 radii.
-      const launch = launchState({ speedKmPerSecond: 11.17, angleDegrees: 0 });
+      const launch = launchState(
+        onMountain({ speedKmPerSecond: 11.17, angleDegrees: 0 }),
+      );
 
       expect(() => traceLaunch(launch, { stopRadius: 1_000 })).toThrow(
         RangeError,

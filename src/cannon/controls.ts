@@ -8,10 +8,12 @@ import type {
 } from "./types";
 
 // Spec 04, Decision 8: 0.01 km/s is the finest step that separates a crash
-// from a circular orbit at 10 km.
+// from a circular orbit at 10 km; the height goes from Newton's mountain to
+// the top of low orbit.
 export const CANNON_LIMITS: Readonly<Record<CannonField, FieldLimits>> = {
   speedKmPerSecond: { min: 0, max: 15, resolution: 0.01 },
   angleDegrees: { min: 0, max: 90, resolution: 1 },
+  altitudeKm: { min: 10, max: 2_000, resolution: 10 },
 };
 
 export type ResolvedRequest =
@@ -29,7 +31,8 @@ type ResolvedField =
 /**
  * Applies `request` to the `current` settings (spec 04, Decision 13). Each
  * field present is checked, rounded to its resolution and clamped to its
- * range. The speed is checked first, and a rejected field applies nothing.
+ * range: the speed first, then the angle, then the height. A rejected field
+ * applies nothing.
  */
 export function resolveRequest(
   current: CannonSettings,
@@ -43,6 +46,10 @@ export function resolveRequest(
   if (angle.status === "rejected") {
     return angle;
   }
+  const altitude = resolveField("altitudeKm", current, request);
+  if (altitude.status === "rejected") {
+    return altitude;
+  }
   const clamped: CannonField[] = [];
   if (speed.clamped) {
     clamped.push("speedKmPerSecond");
@@ -50,10 +57,14 @@ export function resolveRequest(
   if (angle.clamped) {
     clamped.push("angleDegrees");
   }
+  if (altitude.clamped) {
+    clamped.push("altitudeKm");
+  }
   return {
     status: "applied",
     speedKmPerSecond: speed.value,
     angleDegrees: angle.value,
+    altitudeKm: altitude.value,
     clamped,
   };
 }
@@ -82,13 +93,17 @@ function resolveField(
 }
 
 /**
- * Rounds to a multiple of `resolution`. Multiplying back by the resolution
- * would leave float noise (0.35 → 0.35000000000000003), so it divides by the
- * whole number of steps per unit instead.
+ * Rounds to a multiple of `resolution`. Below 1, multiplying back by the
+ * resolution would leave float noise (0.35 → 0.35000000000000003), so it
+ * divides by the whole number of steps per unit instead. A whole resolution,
+ * such as the height's 10 km, multiplies back exactly.
  */
 function roundToResolution(value: number, resolution: number): number {
-  const stepsPerUnit = Math.round(1 / resolution);
-  const rounded = Math.round(value * stepsPerUnit) / stepsPerUnit;
+  const rounded =
+    resolution >= 1
+      ? Math.round(value / resolution) * resolution
+      : Math.round(value * Math.round(1 / resolution)) /
+        Math.round(1 / resolution);
   // Spanish formatting shows -0 as "-0,00".
   return rounded === 0 ? 0 : rounded;
 }

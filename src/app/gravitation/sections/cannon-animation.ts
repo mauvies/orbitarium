@@ -27,6 +27,8 @@ export type CannonAnimation = {
   readonly show: (trace: Trace | null, animate: boolean) => void;
   /** The earlier launches' paths, drawn faint under the current one. */
   readonly setEarlierPaths: (traces: readonly Trace[]) => void;
+  /** Where the mountain's top is, as the height control moves. */
+  readonly setLaunchRadius: (launchRadius: number) => void;
   readonly stop: () => void;
 };
 
@@ -54,6 +56,7 @@ export function startCannonAnimation(
   let view: View | null = null;
   let trace: Trace | null = null;
   let earlierPaths: readonly Trace[] = [];
+  let mountainRadius: number | null = null;
   let animate = false;
   let elapsedTime = 0;
   let outcomeReported = false;
@@ -73,10 +76,12 @@ export function startCannonAnimation(
     context.setTransform(size.pixelRatio, 0, 0, size.pixelRatio, 0, 0);
     context.clearRect(0, 0, size.width, size.height);
     drawEarth(context, transform, {
-      fill: colors.surfaceRaised,
-      edge: colors.line,
+      fill: colors.line,
+      edge: colors.muted,
     });
-    drawMountain(context, transform, colors.muted);
+    if (mountainRadius !== null) {
+      drawMountain(context, transform, mountainRadius, colors.muted);
+    }
     for (const earlier of earlierPaths) {
       drawEarlierPath(context, earlier.points, transform, colors.accent);
     }
@@ -117,6 +122,10 @@ export function startCannonAnimation(
     },
     setEarlierPaths: (traces) => {
       earlierPaths = traces;
+      loop.requestFrame();
+    },
+    setLaunchRadius: (launchRadius) => {
+      mountainRadius = launchRadius;
       loop.requestFrame();
     },
     stop: () => {

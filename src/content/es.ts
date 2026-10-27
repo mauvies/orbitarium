@@ -72,6 +72,11 @@ const twoDecimals = new Intl.NumberFormat("es", {
 });
 // "0,5×", "1×".
 const speedFormat = new Intl.NumberFormat("es", { maximumFractionDigits: 1 });
+// "7,9", "11,0": the reference speeds keep their decimal at every height.
+const oneDecimal = new Intl.NumberFormat("es", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 // Spec 04, "Physics accuracy review (L19)", sentence 7: Newton's Moon test,
 // in the correct option's feedback.
@@ -183,8 +188,9 @@ export const es = {
     // Spec 04, Decision 4: the cannon's band.
     cannon: {
       controlsLabel: "Controles del cañón",
+      // Spec 04, L19, sentence 10.
       caption:
-        "El cañón dispara desde una montaña de 10 km, algo más alta que el Everest, y aquí no hay aire que frene la bala.",
+        "Al principio, el cañón dispara desde una montaña de 10 km, algo más alta que el Everest; puedes subirla hasta 2.000 km. Aquí no hay aire que frene la bala.",
       speed: "Velocidad",
       speedField: "Velocidad en km/s",
       speedUnit: "km/s",
@@ -192,17 +198,39 @@ export const es = {
       speedValue: (kmPerSecond: number, kmPerHour: number) =>
         `${twoDecimals.format(kmPerSecond)} km/s, ${wholeNumber.format(Math.round(kmPerHour))} km/h`,
       angle: "Ángulo",
+      angleField: "Ángulo en grados",
+      angleUnit: "°",
       angleValue: (degrees: number) => `${wholeNumber.format(degrees)}°`,
+      altitude: "Altura",
+      altitudeField: "Altura en km",
+      altitudeUnit: "km",
+      altitudeValue: (altitudeKm: number) =>
+        `${wholeNumber.format(altitudeKm)} km`,
       launch: "Disparar",
-      // Spec 04, L19, sentence 11: computed from the model, rounded.
-      circularReference: (kmPerSecond: number, kmPerHour: number) =>
-        `Para dar la vuelta sin caer: ≈${NBSP}${speedFormat.format(kmPerSecond)}${NBSP}km/s (≈${NBSP}${wholeNumber.format(Math.round(kmPerHour / 1_000) * 1_000)}${NBSP}km/h)`,
+      // Spec 04, L19, sentence 11: computed from the model, rounded, as
+      // badges on the canvas.
+      circularReference: (kmPerSecond: number) =>
+        `Para orbitar: ≈${NBSP}${oneDecimal.format(kmPerSecond)}${NBSP}km/s`,
       escapeReference: (kmPerSecond: number) =>
-        `Para escapar de la Tierra: ≈${NBSP}${speedFormat.format(kmPerSecond)}${NBSP}km/s`,
+        `Para escapar: ≈${NBSP}${oneDecimal.format(kmPerSecond)}${NBSP}km/s`,
+      // Below 640 px the badges name only the purpose.
+      circularReferenceShort: (kmPerSecond: number) =>
+        `Órbita: ≈${NBSP}${oneDecimal.format(kmPerSecond)}${NBSP}km/s`,
+      escapeReferenceShort: (kmPerSecond: number) =>
+        `Escape: ≈${NBSP}${oneDecimal.format(kmPerSecond)}${NBSP}km/s`,
       presets: "Ejemplos",
+      // Spec 04, Decision 11: four presets are named after their outcome;
+      // the long ellipse stands for a transfer orbit.
+      presetLabels: {
+        ballistic: "Cae al suelo",
+        "circular-orbit": "Órbita circular",
+        "elliptical-orbit": "Órbita elíptica",
+        "long-ellipse": "Elipse muy alargada",
+        escape: "Escapa de la Tierra",
+      },
       clearPaths: "Borrar trayectorias",
-      // Spec 04, Decision 11: each outcome's name, on its label and its
-      // preset, and as the live region says it.
+      // Spec 04, Decision 11: each outcome's name, on its label, and as the
+      // live region says it.
       outcomes: {
         ballistic: { label: "Cae al suelo", announced: "cae al suelo" },
         "circular-orbit": {
@@ -225,8 +253,8 @@ export const es = {
       // Spec 04, Decision 16: the canvas's text alternative.
       canvasLabel: {
         idle: "La Tierra y el cañón en lo alto de la montaña, todavía sin disparar.",
-        launched: (kmPerSecond: number, degrees: number) =>
-          `La Tierra y la trayectoria del último disparo: ${twoDecimals.format(kmPerSecond)} km/s a ${wholeNumber.format(degrees)}°.`,
+        launched: (kmPerSecond: number, degrees: number, altitudeKm: number) =>
+          `La Tierra y la trayectoria del último disparo: ${twoDecimals.format(kmPerSecond)} km/s a ${wholeNumber.format(degrees)}°, desde ${wholeNumber.format(altitudeKm)} km de altura.`,
       },
     },
     // Spec 04, Decision 4: an illustration, an intro of one or two lines,
@@ -275,8 +303,6 @@ export const es = {
       },
       cannon: {
         title: "El cañón de Newton",
-        intro:
-          "Elige la velocidad y el ángulo, y dispara. ¿A qué velocidad deja de caer la bala?",
       },
       law: {
         title: "La ley completa",

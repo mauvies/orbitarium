@@ -7,12 +7,21 @@ const SECONDS_PER_HOUR = 3_600;
 /** The Earth's radius in engine units. */
 export const EARTH_RADIUS = 1;
 
-/** A mountain a little taller than Everest, as in Newton's drawing (spec 04, Decision 8). */
-export const LAUNCH_ALTITUDE_KM = 10;
+/**
+ * A mountain a little taller than Everest, as in Newton's drawing: every
+ * launch and every preset starts there (spec 04, Decision 8).
+ */
+export const MOUNTAIN_ALTITUDE_KM = 10;
 
-/** The launch point's distance from the Earth's centre, in engine units. */
-export const LAUNCH_RADIUS =
-  EARTH_RADIUS + LAUNCH_ALTITUDE_KM / EARTH_RADIUS_KM;
+/** The distance from the Earth's centre of a launch point `altitudeKm` high, in engine units. */
+export function launchRadius(altitudeKm: number): number {
+  if (!(Number.isFinite(altitudeKm) && altitudeKm > 0)) {
+    throw new RangeError(
+      `altitudeKm must be a positive finite number, got ${altitudeKm}`,
+    );
+  }
+  return EARTH_RADIUS + altitudeKm / EARTH_RADIUS_KM;
+}
 
 /** One engine speed unit: the circular speed at the surface, √(GM/R). */
 export const SPEED_UNIT_KM_PER_SECOND = Math.sqrt(

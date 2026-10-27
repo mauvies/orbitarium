@@ -23,3 +23,30 @@ export function waitForFrames(page: Page, count: number): Promise<void> {
     }
   }, count);
 }
+
+/**
+ * The WCAG contrast ratio between two computed colours, given as
+ * `rgb(r, g, b)` or `rgba(r, g, b, a)`; transparency is not supported.
+ */
+export function contrastRatio(first: string, second: string): number {
+  const [lighter, darker] = [luminance(first), luminance(second)].sort(
+    (a, b) => b - a,
+  );
+  if (lighter === undefined || darker === undefined) {
+    throw new Error("contrastRatio needs two colours");
+  }
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function luminance(color: string): number {
+  const channels = color.match(/[\d.]+/g)?.map(Number);
+  const [r, g, b, alpha = 1] = channels ?? [];
+  if (r === undefined || g === undefined || b === undefined || alpha !== 1) {
+    throw new Error(`color must be an opaque rgb() colour, got ${color}`);
+  }
+  const [red, green, blue] = [r, g, b].map((channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * (red ?? 0) + 0.7152 * (green ?? 0) + 0.0722 * (blue ?? 0);
+}

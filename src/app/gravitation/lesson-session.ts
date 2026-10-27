@@ -110,10 +110,11 @@ export function setCannon(
   if (resolved.status === "rejected") {
     return { session, result: resolved };
   }
-  const { speedKmPerSecond, angleDegrees, clamped } = resolved;
+  const { speedKmPerSecond, angleDegrees, altitudeKm, clamped } = resolved;
+  const settings = { speedKmPerSecond, angleDegrees, altitudeKm };
   return {
-    session: { ...session, cannon: { speedKmPerSecond, angleDegrees } },
-    result: { status: "set", speedKmPerSecond, angleDegrees, clamped },
+    session: { ...session, cannon: settings },
+    result: { status: "set", ...settings, clamped },
   };
 }
 
@@ -131,8 +132,8 @@ export function launchCannon(
   if (resolved.status === "rejected") {
     return { session, result: resolved, navigateTo: null };
   }
-  const { speedKmPerSecond, angleDegrees, clamped } = resolved;
-  const settings = { speedKmPerSecond, angleDegrees };
+  const { speedKmPerSecond, angleDegrees, altitudeKm, clamped } = resolved;
+  const settings = { speedKmPerSecond, angleDegrees, altitudeKm };
   const outcome = launchOutcome(settings);
   const launch: Launch = {
     id: session.nextLaunchId,

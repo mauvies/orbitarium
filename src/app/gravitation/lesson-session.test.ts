@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CANNON_PRESETS, type CannonSettings } from "@/cannon";
+import { CANNON_PRESETS, type CannonRequest } from "@/cannon";
 import {
   answerQuestion,
   clearEarlierPaths,
@@ -17,8 +17,8 @@ const AT_FALLING = initialSession("falling");
 const AT_CANNON = initialSession("cannon");
 const ELLIPTICAL = CANNON_PRESETS["elliptical-orbit"];
 
-function launched(session: LessonSession, settings: CannonSettings) {
-  const { session: next, result } = launchCannon(session, settings);
+function launched(session: LessonSession, request: CannonRequest) {
+  const { session: next, result } = launchCannon(session, request);
   if (result.status !== "launched") {
     throw new Error(`expected a launch, got ${result.reason}`);
   }
@@ -68,6 +68,7 @@ describe("setCannon", () => {
       status: "set",
       speedKmPerSecond: 9.5,
       angleDegrees: AT_CANNON.cannon.angleDegrees,
+      altitudeKm: AT_CANNON.cannon.altitudeKm,
       clamped: [],
     });
     expect(session.cannon.speedKmPerSecond).toBe(9.5);
@@ -92,6 +93,7 @@ describe("launchCannon", () => {
       status: "launched",
       speedKmPerSecond: 15,
       angleDegrees: AT_CANNON.cannon.angleDegrees,
+      altitudeKm: AT_CANNON.cannon.altitudeKm,
       clamped: ["speedKmPerSecond"],
       outcome: "escape",
     });

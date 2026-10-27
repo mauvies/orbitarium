@@ -1,12 +1,18 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import {
-  CANNON_PRESETS,
+  CANNON_PRESET_IDS,
   type CannonOutcome,
+  type CannonPresetId,
   kmPerSecondToKmPerHour,
-  REFERENCE_SPEEDS,
+  referenceSpeeds,
 } from "@/cannon";
 import { es } from "@/content/es";
-import { canvasSnapshot, hasDrawing, waitForFrames } from "./support";
+import {
+  canvasSnapshot,
+  contrastRatio,
+  hasDrawing,
+  waitForFrames,
+} from "./support";
 
 const {
   title,
@@ -102,6 +108,13 @@ test("a path below /gravitation is a 404", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: es.notFound.title }),
   ).toBeVisible();
+});
+
+// The folder of the page's parts sits below it but has no page of its own.
+test("the folder of the page's parts is not a route", async ({ page }) => {
+  const response = await page.goto("/gravitation/sections");
+
+  expect(response?.status()).toBe(404);
 });
 
 // Spec 04, L2 and L3.
@@ -317,13 +330,15 @@ function cannonOf(page: Page) {
     speedSlider: band.getByRole("slider", { name: cannon.speed }),
     speedField: band.getByRole("spinbutton", { name: cannon.speedField }),
     angleSlider: band.getByRole("slider", { name: cannon.angle }),
+    angleField: band.getByRole("spinbutton", { name: cannon.angleField }),
+    altitudeSlider: band.getByRole("slider", { name: cannon.altitude }),
+    altitudeField: band.getByRole("spinbutton", {
+      name: cannon.altitudeField,
+    }),
     launchButton: band.getByRole("button", { name: cannon.launch }),
     clearButton: band.getByRole("button", { name: cannon.clearPaths }),
-    preset: (outcome: CannonOutcome) =>
-      band.getByRole("button", {
-        name: cannon.outcomes[outcome].label,
-        exact: true,
-      }),
+    preset: (id: CannonPresetId) =>
+      band.getByRole("button", { name: cannon.presetLabels[id], exact: true }),
     status: band.getByRole("status"),
     label: band.getByTestId("cannon-outcome"),
   };
@@ -339,7 +354,12 @@ async function readyCannon(page: Page) {
 
 const SPEED_STEP_KM_PER_SECOND = 0.01;
 // The ballistic preset, the session's first settings (spec 04, Decision 11).
-const FIRST_SETTINGS = { speedKmPerSecond: 7, angleDegrees: 45 };
+const FIRST_SETTINGS = {
+  speedKmPerSecond: 7,
+  angleDegrees: 45,
+  altitudeKm: 10,
+};
+const HIGHEST_KM = 2_000;
 
 function speedText(speedKmPerSecond: number): string {
   return cannon.speedValue(
@@ -370,6 +390,7 @@ test("the canvas describes the last launch", async ({ page }) => {
     cannon.canvasLabel.launched(
       FIRST_SETTINGS.speedKmPerSecond,
       FIRST_SETTINGS.angleDegrees,
+      FIRST_SETTINGS.altitudeKm,
     ),
   );
 });
@@ -381,16 +402,19 @@ test("the cannon works with the keyboard", async ({ page }) => {
 
   await speedSlider.focus();
   await page.keyboard.press("ArrowRight");
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
+  // The launch button comes first, just before the speed (spec 04, Decision 8).
+  await page.keyboard.press("Shift+Tab");
   await expect(launchButton).toBeFocused();
   await page.keyboard.press("Enter");
 
   const raisedSpeed =
     FIRST_SETTINGS.speedKmPerSecond + SPEED_STEP_KM_PER_SECOND;
   await expect(canvas).toHaveAccessibleName(
-    cannon.canvasLabel.launched(raisedSpeed, FIRST_SETTINGS.angleDegrees),
+    cannon.canvasLabel.launched(
+      raisedSpeed,
+      FIRST_SETTINGS.angleDegrees,
+      FIRST_SETTINGS.altitudeKm,
+    ),
   );
   expect(await canvasSnapshot(canvas)).not.toBe(beforeLaunch);
 });
@@ -444,14 +468,24 @@ function announcement(outcome: CannonOutcome, returnsFromAfar = false) {
   );
 }
 
+// Spec 04, Decision 11: the long ellipse stands for a transfer orbit.
+const PRESET_OUTCOMES: Readonly<Record<CannonPresetId, CannonOutcome>> = {
+  ballistic: "ballistic",
+  "circular-orbit": "circular-orbit",
+  "elliptical-orbit": "elliptical-orbit",
+  "long-ellipse": "elliptical-orbit",
+  escape: "escape",
+};
+
 test("each preset shows its outcome label", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/gravitation");
   const { preset, status, label } = await readyCannon(page);
 
-  for (const outcome of Object.keys(CANNON_PRESETS) as CannonOutcome[]) {
-    await preset(outcome).click();
+  for (const id of CANNON_PRESET_IDS) {
+    await preset(id).click();
 
+    const outcome = PRESET_OUTCOMES[id];
     await expect(status).toHaveText(announcement(outcome));
     await expect(label).toHaveText(cannon.outcomes[outcome].label);
   }
@@ -528,22 +562,176 @@ test("earlier paths stay faint until cleared", async ({ page }) => {
   await expect(first.clearButton).toBeDisabled();
 });
 
-test("the reference speeds are shown next to the speed control", async ({
+function referenceTexts(altitudeKm: number) {
+  const { circularKmPerSecond, escapeKmPerSecond } =
+    referenceSpeeds(altitudeKm);
+  return [
+    cannon.circularReference(circularKmPerSecond),
+    cannon.escapeReference(escapeKmPerSecond),
+  ];
+}
+
+test("the reference speeds are shown on the canvas", async ({ page }) => {
+  await page.goto("/gravitation");
+  const canvas = page.getByTestId("cannon-canvas");
+
+  for (const text of referenceTexts(FIRST_SETTINGS.altitudeKm)) {
+    await expect(canvas.getByText(text)).toBeVisible();
+  }
+});
+
+// Spec 04, L7 and L13: the height.
+test("the reference speeds follow the height", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { altitudeField } = await readyCannon(page);
+  const canvas = page.getByTestId("cannon-canvas");
+
+  await altitudeField.fill(String(HIGHEST_KM));
+
+  for (const text of referenceTexts(HIGHEST_KM)) {
+    await expect(canvas.getByText(text)).toBeVisible();
+  }
+});
+
+test("the height field adjusts by 10 km", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { altitudeField, altitudeSlider } = await readyCannon(page);
+
+  await altitudeField.focus();
+  await page.keyboard.press("ArrowUp");
+
+  await expect(altitudeField).toHaveValue("20");
+  await expect(altitudeSlider).toHaveAttribute(
+    "aria-valuetext",
+    cannon.altitudeValue(20),
+  );
+});
+
+// Spec 04, L23.
+test("the launch and clear buttons come first and each setting is one row", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/gravitation");
+  const controls = await readyCannon(page);
+  const launch = await place(controls.launchButton);
+  const clear = await place(controls.clearButton);
+  expect(clear.y).toBeGreaterThan(launch.y);
+  expect(clear.width).toBe(launch.width);
+  const units = page
+    .getByRole("group", { name: cannon.controlsLabel })
+    .locator("[data-unit]");
+  const rows = [
+    [controls.speedSlider, controls.speedField, units.nth(0)],
+    [controls.angleSlider, controls.angleField, units.nth(1)],
+    [controls.altitudeSlider, controls.altitudeField, units.nth(2)],
+  ] as const;
+
+  for (const [slider, field, unit] of rows) {
+    const sliderBox = await place(slider);
+    const fieldBox = await place(field);
+    const unitBox = await place(unit);
+    const middle = (box: { y: number; height: number }) =>
+      box.y + box.height / 2;
+
+    expect(sliderBox.y).toBeGreaterThan(clear.y + clear.height);
+    expect(sliderBox.width).toBeGreaterThan(fieldBox.width);
+    expect(fieldBox.x).toBeGreaterThanOrEqual(sliderBox.x + sliderBox.width);
+    expect(unitBox.x).toBeGreaterThanOrEqual(fieldBox.x + fieldBox.width);
+    for (const box of [fieldBox, unitBox]) {
+      expect(Math.abs(middle(box) - middle(sliderBox))).toBeLessThan(
+        fieldBox.height / 2,
+      );
+    }
+  }
+});
+
+// WCAG 1.4.11: a field whose background matches the panel's is identified
+// only by its border, which needs 3:1 against that background. Axe does not
+// check it.
+const MIN_BOUNDARY_CONTRAST = 3;
+
+test("the cannon's number fields have borders of at least 3:1", async ({
   page,
 }) => {
   await page.goto("/gravitation");
-  const controls = page.getByRole("group", { name: cannon.controlsLabel });
-  const { circularKmPerSecond, escapeKmPerSecond } = REFERENCE_SPEEDS;
+  const { speedField, angleField, altitudeField } = await readyCannon(page);
+  const background = await page
+    .locator("#cannon")
+    .evaluate((band) => getComputedStyle(band).backgroundColor);
 
-  await expect(
-    controls.getByText(
-      cannon.circularReference(
-        circularKmPerSecond,
-        kmPerSecondToKmPerHour(circularKmPerSecond),
-      ),
-    ),
-  ).toBeVisible();
-  await expect(
-    controls.getByText(cannon.escapeReference(escapeKmPerSecond)),
-  ).toBeVisible();
+  for (const field of [speedField, angleField, altitudeField]) {
+    const border = await field.evaluate(
+      (element) => getComputedStyle(element).borderTopColor,
+    );
+    expect(contrastRatio(border, background)).toBeGreaterThanOrEqual(
+      MIN_BOUNDARY_CONTRAST,
+    );
+  }
+});
+
+// Chrome's DevTools flags form fields without an id or name.
+test("every field of the cannon has an id and a name", async ({ page }) => {
+  await page.goto("/gravitation");
+  await readyCannon(page);
+
+  const unnamed = await page
+    .locator("#cannon input")
+    .evaluateAll((inputs) =>
+      inputs
+        .filter((input) => !(input.id && input.getAttribute("name")))
+        .map((input) => input.getAttribute("aria-label") ?? input.outerHTML),
+    );
+
+  expect(unnamed).toEqual([]);
+});
+
+// Spec 04, Decision 11: on a phone the badges are small and name only the
+// speed's purpose, and the caption leaves the view to screen readers.
+const PHONE_BADGE_MAX_FONT_SIZE_PX = 12;
+
+test("on a phone the reference badges are short", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto("/gravitation");
+  const { circularKmPerSecond, escapeKmPerSecond } = referenceSpeeds(
+    FIRST_SETTINGS.altitudeKm,
+  );
+  const canvas = page.getByTestId("cannon-canvas");
+
+  const orbit = canvas.getByText(
+    cannon.circularReferenceShort(circularKmPerSecond),
+  );
+  const escapeBadge = canvas.getByText(
+    cannon.escapeReferenceShort(escapeKmPerSecond),
+  );
+  await expect(orbit).toBeVisible();
+  await expect(escapeBadge).toBeVisible();
+  // The full text is still there for screen readers, but 1 px wide.
+  const full = await place(
+    canvas.getByText(cannon.circularReference(circularKmPerSecond)),
+  );
+  expect(full.width).toBeLessThanOrEqual(1);
+  const badge = canvas.getByRole("listitem").first();
+  const fontSize = await badge.evaluate((element) =>
+    Number.parseFloat(getComputedStyle(element).fontSize),
+  );
+  expect(fontSize).toBeLessThanOrEqual(PHONE_BADGE_MAX_FONT_SIZE_PX);
+  expect((await place(badge)).height).toBeLessThanOrEqual(24);
+});
+
+test("on a phone the caption is left to screen readers", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto("/gravitation");
+
+  // Still in the page for screen readers, but 1 px wide.
+  const caption = page.getByText(cannon.caption);
+  expect((await place(caption)).width).toBeLessThanOrEqual(1);
+  await expect(caption).toHaveCount(1);
+});
+
+test("from 640 px the caption is visible", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/gravitation");
+
+  await expect(page.getByText(cannon.caption)).toBeVisible();
 });
