@@ -8,6 +8,7 @@ import {
 } from "@/cannon";
 import { es } from "@/content/es";
 import {
+  accentPixels,
   canvasSnapshot,
   contrastRatio,
   hasDrawing,
@@ -339,6 +340,7 @@ function cannonOf(page: Page) {
     clearButton: band.getByRole("button", { name: cannon.clearPaths }),
     preset: (id: CannonPresetId) =>
       band.getByRole("button", { name: cannon.presetLabels[id], exact: true }),
+    predictedPath: band.getByRole("checkbox", { name: cannon.predictedPath }),
     status: band.getByRole("status"),
     label: band.getByTestId("cannon-outcome"),
   };
@@ -778,3 +780,85 @@ for (const section of ANSWERABLE) {
     expect(question.y).toBeGreaterThan(heading.y);
   });
 }
+
+// Spec 04, L24: the predicted path, on by default.
+test("the predicted path is on by default", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { canvas, predictedPath } = await readyCannon(page);
+  await expect(predictedPath).toBeChecked();
+  const withPath = await canvasSnapshot(canvas);
+
+  await predictedPath.uncheck();
+  await waitForFrames(page, 5);
+
+  expect(await canvasSnapshot(canvas)).not.toBe(withPath);
+});
+
+test("the predicted path is drawn in the theme's accent", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { canvas, predictedPath } = await readyCannon(page);
+  await predictedPath.uncheck();
+  await waitForFrames(page, 5);
+  const before = await accentPixels(canvas);
+
+  await predictedPath.check();
+  await waitForFrames(page, 5);
+
+  expect(await accentPixels(canvas)).toBeGreaterThan(before);
+});
+
+// The canvas does not redraw while idle, so with the toggle off moving a
+// control leaves it unchanged.
+test("with the toggle off, moving a control draws no path", async ({
+  page,
+}) => {
+  await page.goto("/gravitation");
+  const { canvas, predictedPath, speedSlider } = await readyCannon(page);
+  await predictedPath.uncheck();
+  await waitForFrames(page, 5);
+  const before = await canvasSnapshot(canvas);
+
+  await speedSlider.focus();
+  for (let step = 0; step < 20; step++) {
+    await page.keyboard.press("ArrowRight");
+  }
+  await waitForFrames(page, 5);
+
+  expect(await canvasSnapshot(canvas)).toBe(before);
+});
+
+test("the predicted path follows the speed control and never fires", async ({
+  page,
+}) => {
+  await page.goto("/gravitation");
+  const { canvas, speedSlider, label, clearButton, preset } =
+    await readyCannon(page);
+  const withPath = await canvasSnapshot(canvas);
+
+  await speedSlider.focus();
+  for (let step = 0; step < 20; step++) {
+    await page.keyboard.press("ArrowRight");
+  }
+  await waitForFrames(page, 5);
+  const faster = await canvasSnapshot(canvas);
+  expect(faster).not.toBe(withPath);
+
+  // A prediction, not a launch.
+  await expect(label).toHaveText("");
+  await expect(clearButton).toBeDisabled();
+  await expect(canvas).toHaveAccessibleName(cannon.canvasLabel.idle);
+
+  await preset("elliptical-orbit").click();
+  await waitForFrames(page, 5);
+  expect(await canvasSnapshot(canvas)).not.toBe(faster);
+});
+
+test("the predicted path resets on reload", async ({ page }) => {
+  await page.goto("/gravitation");
+  const { predictedPath } = await readyCannon(page);
+  await predictedPath.uncheck();
+
+  await page.reload();
+
+  await expect((await readyCannon(page)).predictedPath).toBeChecked();
+});

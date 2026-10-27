@@ -16,6 +16,7 @@ import {
   clearEarlierPaths,
   initialSession,
   type LessonSession,
+  setPredictedPathShown,
   syncStep,
 } from "./lesson-session";
 import { createLessonStore, type LessonStore } from "./lesson-store";
@@ -29,6 +30,8 @@ type Lesson = {
   readonly answer: (questionId: QuestionId, optionId: string) => void;
   /** Like answering, clearing the faint paths is the learner's alone. */
   readonly clearEarlierPaths: () => void;
+  /** The learner's preference too: the tutor never shows the prediction. */
+  readonly setPredictedPathShown: (shown: boolean) => void;
 };
 
 const LessonContext = createContext<Lesson | null>(null);
@@ -56,6 +59,8 @@ export function LessonProvider({ children }: { children: ReactNode }) {
         store.replace(answerQuestion(store.getSession(), questionId, optionId)),
       clearEarlierPaths: () =>
         store.replace(clearEarlierPaths(store.getSession())),
+      setPredictedPathShown: (shown: boolean) =>
+        store.replace(setPredictedPathShown(store.getSession(), shown)),
     }),
     [store, controls],
   );
@@ -72,6 +77,10 @@ export function useAnswerQuestion(): Lesson["answer"] {
 
 export function useClearEarlierPaths(): Lesson["clearEarlierPaths"] {
   return useLesson().clearEarlierPaths;
+}
+
+export function useSetPredictedPathShown(): Lesson["setPredictedPathShown"] {
+  return useLesson().setPredictedPathShown;
 }
 
 export function useLessonSession(): LessonSession {

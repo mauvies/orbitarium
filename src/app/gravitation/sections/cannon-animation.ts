@@ -1,13 +1,20 @@
-import { finalFrame, type Trace, type TraceFrame, traceFrame } from "@/cannon";
+import {
+  type CannonSettings,
+  finalFrame,
+  type Trace,
+  type TraceFrame,
+  traceFrame,
+} from "@/cannon";
 import { startAnimationLoop } from "@/drawing/animation-loop";
 import { type CanvasSize, observeCanvasSize } from "@/drawing/canvas-size";
 import { readThemeColors } from "@/drawing/theme-colors";
 import { type CanvasTransform, fitTransform } from "@/drawing/transform";
-import { CANNON_VIEW_RADIUS } from "../cannon-view";
+import { CANNON_VIEW_RADIUS, viewTrace } from "../cannon-view";
 import {
   drawEarlierPath,
   drawEarth,
   drawMountain,
+  drawPredictedPath,
   drawShot,
   drawShotPath,
 } from "./cannon-draw";
@@ -29,6 +36,12 @@ export type CannonAnimation = {
   readonly setEarlierPaths: (traces: readonly Trace[]) => void;
   /** Where the mountain's top is, as the height control moves. */
   readonly setLaunchRadius: (launchRadius: number) => void;
+  /**
+   * The settings whose path to predict, or null to hide it. The path is
+   * traced in the next frame, so dragging a slider traces at most once per
+   * frame (spec 04, Decision 11).
+   */
+  readonly setPrediction: (settings: CannonSettings | null) => void;
   readonly stop: () => void;
 };
 
@@ -57,6 +70,18 @@ export function startCannonAnimation(
   let trace: Trace | null = null;
   let earlierPaths: readonly Trace[] = [];
   let mountainRadius: number | null = null;
+  let predictionSettings: CannonSettings | null = null;
+  let predictedFor: CannonSettings | null = null;
+  let predictedPath: Trace | null = null;
+
+  const refreshPrediction = () => {
+    if (predictionSettings === predictedFor) {
+      return;
+    }
+    predictedFor = predictionSettings;
+    predictedPath =
+      predictionSettings === null ? null : viewTrace(predictionSettings);
+  };
   let animate = false;
   let elapsedTime = 0;
   let outcomeReported = false;
@@ -82,6 +107,14 @@ export function startCannonAnimation(
     if (mountainRadius !== null) {
       drawMountain(context, transform, mountainRadius, colors.muted);
     }
+    if (predictedPath !== null) {
+      drawPredictedPath(
+        context,
+        predictedPath.points,
+        transform,
+        colors.accent,
+      );
+    }
     for (const earlier of earlierPaths) {
       drawEarlierPath(context, earlier.points, transform, colors.accent);
     }
@@ -103,6 +136,7 @@ export function startCannonAnimation(
   });
   const loop = startAnimationLoop((elapsedMs) => {
     elapsedTime += elapsedMs / MS_PER_SECOND;
+    refreshPrediction();
     const frame = currentFrame();
     draw(frame);
     if (frame?.outcomeShown && !outcomeReported) {
@@ -126,6 +160,10 @@ export function startCannonAnimation(
     },
     setLaunchRadius: (launchRadius) => {
       mountainRadius = launchRadius;
+      loop.requestFrame();
+    },
+    setPrediction: (settings) => {
+      predictionSettings = settings;
       loop.requestFrame();
     },
     stop: () => {

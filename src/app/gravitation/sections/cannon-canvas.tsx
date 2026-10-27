@@ -19,7 +19,7 @@ const { cannon } = es.gravitation;
  * Decision 11).
  */
 export function CannonCanvas() {
-  const { launches, cannon: settings } = useLessonSession();
+  const { launches, cannon: settings, showPredictedPath } = useLessonSession();
   const lastLaunch = launches.at(-1);
   const earlierPaths = useMemo(
     () => launches.slice(0, -1).map(({ trace }) => trace),
@@ -55,6 +55,10 @@ export function CannonCanvas() {
   useLayoutEffect(() => {
     animationRef.current?.setLaunchRadius(launchRadius(settings.altitudeKm));
   }, [settings.altitudeKm]);
+
+  useLayoutEffect(() => {
+    animationRef.current?.setPrediction(showPredictedPath ? settings : null);
+  }, [showPredictedPath, settings]);
 
   useLayoutEffect(() => {
     playingLaunchId.current = lastLaunch?.id ?? null;

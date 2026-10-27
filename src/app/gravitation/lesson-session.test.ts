@@ -9,6 +9,7 @@ import {
   launchCannon,
   RECENT_LAUNCHES,
   setCannon,
+  setPredictedPathShown,
   syncStep,
 } from "./lesson-session";
 
@@ -155,6 +156,29 @@ describe("launchCannon", () => {
       speeds.slice(-RECENT_LAUNCHES),
     );
     expect(new Set(kept.map((launch) => launch.id)).size).toBe(RECENT_LAUNCHES);
+  });
+});
+
+// Spec 04, L24: a learner preference, not one of the tutor's controls.
+describe("setPredictedPathShown", () => {
+  it("the predicted path starts shown", () => {
+    expect(AT_CANNON.showPredictedPath).toBe(true);
+  });
+
+  it("hiding the predicted path changes nothing else", () => {
+    const hidden = setPredictedPathShown(AT_CANNON, false);
+
+    expect(hidden.showPredictedPath).toBe(false);
+    expect({ ...hidden, showPredictedPath: true }).toEqual(AT_CANNON);
+  });
+
+  it("showing it again restores the session", () => {
+    const shown = setPredictedPathShown(
+      setPredictedPathShown(AT_CANNON, false),
+      true,
+    );
+
+    expect(shown).toEqual(AT_CANNON);
   });
 });
 

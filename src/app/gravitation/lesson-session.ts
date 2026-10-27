@@ -5,13 +5,11 @@ import {
   type CannonRequest,
   type CannonSettings,
   launchOutcome,
-  launchState,
   type Rejected,
   resolveRequest,
   type Trace,
-  traceLaunch,
 } from "@/cannon";
-import { CANNON_STOP_RADIUS } from "./cannon-view";
+import { viewTrace } from "./cannon-view";
 import { type Answers, grade, type QuestionId } from "./questions";
 import { parseStep, STEP_IDS, type StepId } from "./steps";
 
@@ -37,6 +35,8 @@ export type LessonSession = {
   readonly launches: readonly Launch[];
   readonly nextLaunchId: number;
   readonly answers: Answers;
+  /** The learner's preference, on at first (spec 04, Decision 11). */
+  readonly showPredictedPath: boolean;
 };
 
 export type SetResult = ({ readonly status: "set" } & Applied) | Rejected;
@@ -69,6 +69,7 @@ export function initialSession(step: StepId): LessonSession {
     launches: [],
     nextLaunchId: 1,
     answers: {},
+    showPredictedPath: true,
   };
 }
 
@@ -139,9 +140,7 @@ export function launchCannon(
     id: session.nextLaunchId,
     settings,
     outcome,
-    trace: traceLaunch(launchState(settings), {
-      stopRadius: CANNON_STOP_RADIUS,
-    }),
+    trace: viewTrace(settings),
   };
   return {
     session: {
@@ -154,6 +153,19 @@ export function launchCannon(
     result: { status: "launched", ...settings, clamped, outcome },
     navigateTo: session.step === "cannon" ? null : "cannon",
   };
+}
+
+/**
+ * Shows or hides the predicted path. Like clearing the paths, it is the
+ * learner's alone, not one of the tutor's controls (spec 04, Decision 11).
+ */
+export function setPredictedPathShown(
+  session: LessonSession,
+  shown: boolean,
+): LessonSession {
+  return shown === session.showPredictedPath
+    ? session
+    : { ...session, showPredictedPath: shown };
 }
 
 /**

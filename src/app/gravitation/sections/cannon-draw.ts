@@ -15,6 +15,10 @@ const SHOT_RADIUS_PX = 3.5;
 // current one.
 const EARLIER_PATH_ALPHA = 0.2;
 const EARLIER_PATH_WIDTH_PX = 1;
+// Spec 04, Decision 11: the predicted path is dashed, so it reads as a
+// forecast and not as a shot.
+const PREDICTED_PATH_WIDTH_PX = 1.5;
+const PREDICTED_PATH_DASH_PX = [6, 4];
 
 export function drawEarth(
   context: CanvasRenderingContext2D,
@@ -96,6 +100,22 @@ export function drawEarlierPath(
     width: EARLIER_PATH_WIDTH_PX,
   });
   context.globalAlpha = 1;
+}
+
+/** The path the current settings would give, dashed, before any launch. */
+export function drawPredictedPath(
+  context: CanvasRenderingContext2D,
+  points: readonly Vec2[],
+  transform: CanvasTransform,
+  color: string,
+): void {
+  context.save();
+  context.setLineDash(PREDICTED_PATH_DASH_PX);
+  strokePath(context, points, transform, {
+    color,
+    width: PREDICTED_PATH_WIDTH_PX,
+  });
+  context.restore();
 }
 
 export function drawShot(

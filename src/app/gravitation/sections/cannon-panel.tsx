@@ -12,6 +12,7 @@ import {
   useLessonSession,
 } from "../lesson-provider";
 import { useHydrated } from "../use-hydrated";
+import { PredictedPathToggle } from "./predicted-path-toggle";
 import { SettingRow } from "./setting-row";
 
 const { cannon } = es.gravitation;
@@ -21,11 +22,11 @@ const PRESET_BUTTON =
 
 /**
  * The cannon's controls, in the order of spec 04, Decision 8: the launch
- * button and clearing the paths, the speed, the angle, the height and the
- * presets. They change the cannon only through the lesson's controller, as the
- * tutor will (Decision 12): moving a control sets, the launch button and the
- * presets launch. Disabled until the page hydrates: a click before then
- * would be lost.
+ * button and clearing the paths, the speed, the angle, the height, the
+ * predicted path's toggle and the presets. They change the cannon only
+ * through the lesson's controller, as the tutor will (Decision 12): moving a
+ * control sets, the launch button and the presets launch. Disabled until the
+ * page hydrates: a click before then would be lost.
  */
 export function CannonPanel() {
   const { set, launch, limits } = useLessonControls().cannon;
@@ -88,6 +89,7 @@ export function CannonPanel() {
         valueText={cannon.altitudeValue(altitudeKm)}
         onChange={(value) => set({ altitudeKm: value })}
       />
+      <PredictedPathToggle />
       <fieldset className="grid gap-2">
         <legend className="mb-2 text-muted text-small">{cannon.presets}</legend>
         <div className="grid grid-cols-2 gap-2">

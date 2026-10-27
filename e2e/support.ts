@@ -50,3 +50,29 @@ function luminance(color: string): number {
   });
   return 0.2126 * (red ?? 0) + 0.7152 * (green ?? 0) + 0.0722 * (blue ?? 0);
 }
+
+/**
+ * How many pixels of the canvas are close to the theme's accent, a warm
+ * yellow: strong red, medium green, little blue.
+ */
+export function accentPixels(canvas: Locator): Promise<number> {
+  return canvas.evaluate((element: HTMLCanvasElement) => {
+    const context = element.getContext("2d");
+    if (context === null) {
+      throw new Error("the canvas has no 2D context");
+    }
+    const { data } = context.getImageData(0, 0, element.width, element.height);
+    let count = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const [red = 0, green = 0, blue = 0] = [
+        data[i],
+        data[i + 1],
+        data[i + 2],
+      ];
+      if (red > 180 && green > 120 && blue < 90) {
+        count++;
+      }
+    }
+    return count;
+  });
+}

@@ -218,6 +218,7 @@ export const es = {
         `Órbita: ≈${NBSP}${oneDecimal.format(kmPerSecond)}${NBSP}km/s`,
       escapeReferenceShort: (kmPerSecond: number) =>
         `Escape: ≈${NBSP}${oneDecimal.format(kmPerSecond)}${NBSP}km/s`,
+      predictedPath: "Mostrar trayectoria prevista",
       presets: "Ejemplos",
       // Spec 04, Decision 11: four presets are named after their outcome;
       // the long ellipse stands for a transfer orbit.
