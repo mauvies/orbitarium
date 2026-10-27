@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { es } from "@/content/es";
 import { useAnswerQuestion, useLessonSession } from "../lesson-provider";
 import { grade, type Question, questionText } from "../questions";
-import type { StepId } from "../steps";
 import { useHydrated } from "../use-hydrated";
 
 const ui = es.gravitation.question;
@@ -17,12 +16,7 @@ type FocusTarget = "explanation" | "options" | null;
  * options' place; «Ver opciones» brings them back, with that answer marked,
  * so the learner can read the other explanations.
  */
-export function CheckQuestion({
-  question,
-}: {
-  question: Question;
-  continueTo: StepId | null;
-}) {
+export function CheckQuestion({ question }: { question: Question }) {
   const answered = useLessonSession().answers[question.id];
   const answer = useAnswerQuestion();
   const hydrated = useHydrated();

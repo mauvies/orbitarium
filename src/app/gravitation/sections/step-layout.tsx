@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { questionsFor } from "../questions";
-import type { StepId } from "../steps";
+import { SECTION_SCROLL_MARGIN_PX, type SectionId } from "../section-ids";
 import { CheckQuestion } from "./check-question";
 
 /**
@@ -18,7 +18,7 @@ export function LessonSection({
   questions,
   textFirst = false,
 }: {
-  id: StepId;
+  id: SectionId;
   title: string;
   intro: ReactNode;
   picture: ReactNode;
@@ -31,11 +31,15 @@ export function LessonSection({
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-8 py-12 lg:py-16"
+      // The same margin the part at the top is measured against (Decision 14).
+      style={{ scrollMarginTop: SECTION_SCROLL_MARGIN_PX }}
+      className="py-12 lg:py-16"
     >
       <div className="grid lg:grid-cols-2 lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-16">
+        {/* Focusable, so the tutor's navigation can move focus to it (spec 04, Decision 14). */}
         <h2
           id={`${id}-title`}
+          tabIndex={-1}
           className={`font-heading font-semibold text-section text-strong lg:row-start-2 ${text}`}
         >
           {title}
@@ -88,8 +92,8 @@ export function StepIntro({ children }: { children: string }) {
 }
 
 /** The part's question. */
-export function StepQuestions({ step }: { step: StepId }) {
-  return questionsFor(step).map((question) => (
-    <CheckQuestion key={question.id} question={question} continueTo={null} />
+export function StepQuestions({ section }: { section: SectionId }) {
+  return questionsFor(section).map((question) => (
+    <CheckQuestion key={question.id} question={question} />
   ));
 }

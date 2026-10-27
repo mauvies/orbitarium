@@ -12,7 +12,7 @@ test("home links to the gallery and the lesson", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: es.gravitation.title }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: es.gravitation.steps.cannon.title }),
+    page.getByRole("heading", { name: es.gravitation.sections.cannon.title }),
   ).toBeInViewport();
 
   await page.goBack();

@@ -3,15 +3,15 @@ import { grade, QUESTIONS, questionText } from "./questions";
 
 // Spec 04, L3 and Decision 5: the five questions of "Questions and misconceptions".
 const SPEC_QUESTIONS = [
-  { id: "two-falls", step: "falling", concept: "fall-direction" },
-  { id: "who-pulls-harder", step: "mutual", concept: "mutual-attraction" },
-  { id: "twice-as-far", step: "moon", concept: "inverse-square" },
+  { id: "two-falls", section: "falling", concept: "fall-direction" },
+  { id: "who-pulls-harder", section: "mutual", concept: "mutual-attraction" },
+  { id: "twice-as-far", section: "moon", concept: "inverse-square" },
   {
     id: "why-the-moon-does-not-fall",
-    step: "orbit",
+    section: "orbit",
     concept: "orbit-as-falling",
   },
-  { id: "twice-the-mass", step: "law", concept: "full-law" },
+  { id: "twice-the-mass", section: "law", concept: "full-law" },
 ];
 
 const allOptions = QUESTIONS.flatMap((question) =>
@@ -19,9 +19,9 @@ const allOptions = QUESTIONS.flatMap((question) =>
 );
 
 describe("questions", () => {
-  it("are the spec's five, in order, with their steps and concepts", () => {
+  it("are the spec's five, in order, with their parts and concepts", () => {
     expect(
-      QUESTIONS.map(({ id, step, concept }) => ({ id, step, concept })),
+      QUESTIONS.map(({ id, section, concept }) => ({ id, section, concept })),
     ).toEqual(SPEC_QUESTIONS);
   });
 

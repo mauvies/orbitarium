@@ -2,7 +2,7 @@ import { es } from "@/content/es";
 import { PausableAnimation } from "./pausable-animation";
 import { StepIllustration, StepIntro } from "./step-layout";
 
-const { intro, illustration } = es.gravitation.steps.falling;
+const { intro, illustration } = es.gravitation.sections.falling;
 
 // In the drawing's units. The fall distance matches the `fall-down`
 // keyframes (40 units).

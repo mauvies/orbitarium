@@ -11,7 +11,7 @@ import { MutualIntro, MutualPicture } from "./sections/mutual-step";
 import { OrbitIntro, OrbitPicture } from "./sections/orbit-step";
 import { LessonSection, StepQuestions } from "./sections/step-layout";
 
-const { title, lead, steps } = es.gravitation;
+const { title, lead, sections } = es.gravitation;
 
 export const metadata: Metadata = { title };
 
@@ -38,41 +38,41 @@ export default function GravitationPage() {
       <div className="divide-y divide-line">
         <LessonSection
           id="falling"
-          title={steps.falling.title}
+          title={sections.falling.title}
           intro={<FallingIntro />}
           picture={<FallingPicture />}
-          questions={<StepQuestions step="falling" />}
+          questions={<StepQuestions section="falling" />}
           textFirst
         />
         <LessonSection
           id="mutual"
-          title={steps.mutual.title}
+          title={sections.mutual.title}
           intro={<MutualIntro />}
           picture={<MutualPicture />}
-          questions={<StepQuestions step="mutual" />}
+          questions={<StepQuestions section="mutual" />}
         />
         <LessonSection
           id="moon"
-          title={steps.moon.title}
+          title={sections.moon.title}
           intro={<MoonIntro />}
           picture={<MoonPicture />}
-          questions={<StepQuestions step="moon" />}
+          questions={<StepQuestions section="moon" />}
           textFirst
         />
         <LessonSection
           id="orbit"
-          title={steps.orbit.title}
+          title={sections.orbit.title}
           intro={<OrbitIntro />}
           picture={<OrbitPicture />}
-          questions={<StepQuestions step="orbit" />}
+          questions={<StepQuestions section="orbit" />}
         />
         <CannonBand />
         <LessonSection
           id="law"
-          title={steps.law.title}
+          title={sections.law.title}
           intro={<LawIntro />}
           picture={<LawPicture />}
-          questions={<StepQuestions step="law" />}
+          questions={<StepQuestions section="law" />}
           textFirst
         />
       </div>

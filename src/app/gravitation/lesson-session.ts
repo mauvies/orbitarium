@@ -11,7 +11,6 @@ import {
 } from "@/cannon";
 import { viewTrace } from "./cannon-view";
 import { type Answers, grade, type QuestionId } from "./questions";
-import { parseStep, STEP_IDS, type StepId } from "./steps";
 
 // Spec 04, Decision 11: the current path and up to four faint ones.
 export const RECENT_LAUNCHES = 5;
@@ -24,12 +23,12 @@ export type Launch = {
 };
 
 /**
- * What the lesson remembers while the learner moves between its steps. It
- * lives in the `/gravitation` layout, so it resets on reload (spec 04,
- * Decision 2).
+ * What the lesson remembers while the learner reads it. It lives in the
+ * `/gravitation` layout, so it resets on reload (spec 04, Decision 2). Where
+ * the learner is on the page is not part of it: that is the page's view
+ * (Decision 14).
  */
 export type LessonSession = {
-  readonly step: StepId;
   readonly cannon: CannonSettings;
   /** Oldest first. */
   readonly launches: readonly Launch[];
@@ -45,61 +44,14 @@ export type LaunchResult =
   | ({ readonly status: "launched"; readonly outcome: CannonOutcome } & Applied)
   | Rejected;
 
-export type NavigationResult =
-  | { readonly status: "moved"; readonly step: StepId }
-  | {
-      readonly status: "rejected";
-      readonly field: "step";
-      readonly reason: string;
-    };
-
-/** A change of session, what its caller gets back, and the step the browser must move to, if any. */
-export type Transition<Result> = {
-  readonly session: LessonSession;
-  readonly result: Result;
-  readonly navigateTo: StepId | null;
-};
-
-const STEP_REASON = `must be one of ${STEP_IDS.join(", ")}`;
-
-export function initialSession(step: StepId): LessonSession {
+export function initialSession(): LessonSession {
   return {
-    step,
     cannon: CANNON_PRESETS.ballistic,
     launches: [],
     nextLaunchId: 1,
     answers: {},
     showPredictedPath: true,
   };
-}
-
-/**
- * Moves to `value` as a link would (spec 04, Decision 14). The tutor's input
- * is untyped, so the step is checked at runtime. Moving to the current step
- * adds no history entry.
- */
-export function goToStep(
-  session: LessonSession,
-  value: unknown,
-): Transition<NavigationResult> {
-  const step = typeof value === "string" ? parseStep(value) : null;
-  if (step === null) {
-    return {
-      session,
-      result: { status: "rejected", field: "step", reason: STEP_REASON },
-      navigateTo: null,
-    };
-  }
-  return {
-    session: syncStep(session, step),
-    result: { status: "moved", step },
-    navigateTo: step === session.step ? null : step,
-  };
-}
-
-/** Follows the URL after a link or the browser's Back button. */
-export function syncStep(session: LessonSession, step: StepId): LessonSession {
-  return step === session.step ? session : { ...session, step };
 }
 
 /** Moves the cannon's controls without firing (spec 04, Decision 12). */
@@ -122,16 +74,15 @@ export function setCannon(
 /**
  * Applies `request` as `setCannon` does, then fires: the outcome is known at
  * once and the path is traced now, so the canvas can play it whenever it
- * mounts (spec 04, Decision 10). A launch from another step moves to the
- * cannon, so the learner sees it (Decision 14).
+ * mounts (spec 04, Decision 10).
  */
 export function launchCannon(
   session: LessonSession,
   request: CannonRequest,
-): Transition<LaunchResult> {
+): { readonly session: LessonSession; readonly result: LaunchResult } {
   const resolved = resolveRequest(session.cannon, request);
   if (resolved.status === "rejected") {
-    return { session, result: resolved, navigateTo: null };
+    return { session, result: resolved };
   }
   const { speedKmPerSecond, angleDegrees, altitudeKm, clamped } = resolved;
   const settings = { speedKmPerSecond, angleDegrees, altitudeKm };
@@ -145,13 +96,11 @@ export function launchCannon(
   return {
     session: {
       ...session,
-      step: "cannon",
       cannon: settings,
       launches: [...session.launches, launch].slice(-RECENT_LAUNCHES),
       nextLaunchId: session.nextLaunchId + 1,
     },
     result: { status: "launched", ...settings, clamped, outcome },
-    navigateTo: session.step === "cannon" ? null : "cannon",
   };
 }
 

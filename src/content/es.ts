@@ -260,7 +260,7 @@ export const es = {
     },
     // Spec 04, Decision 4: an illustration, an intro of one or two lines,
     // then the question.
-    steps: {
+    sections: {
       falling: {
         title: "La manzana cae",
         intro:
@@ -310,16 +310,6 @@ export const es = {
         intro:
           "Todo junto: la fuerza crece con cada masa y se debilita con el cuadrado de la distancia entre sus centros.",
       },
-    },
-    navigation: {
-      label: "Pasos de la lección",
-      // Spec 04, Decision 3: a visible mark and an accessible text.
-      answeredMark: "✓",
-      answered: "(respondido)",
-      // Visual only: the list is ordered, so screen readers announce it.
-      number: (position: number) => `${position}. `,
-      previous: (title: string) => `Anterior: ${title}`,
-      next: (title: string) => `Siguiente: ${title}`,
     },
     question: {
       answer: "Responder",

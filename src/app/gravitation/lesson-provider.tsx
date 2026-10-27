@@ -1,31 +1,38 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   type ReactNode,
   useContext,
-  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
+import type { CannonRequest } from "@/cannon";
 import { createLessonControls, type LessonControls } from "./lesson-controls";
 import {
   answerQuestion,
   clearEarlierPaths,
   initialSession,
+  type LaunchResult,
   type LessonSession,
+  launchCannon,
   setPredictedPathShown,
-  syncStep,
 } from "./lesson-session";
 import { createLessonStore, type LessonStore } from "./lesson-store";
+import { createLessonView } from "./lesson-view";
 import type { QuestionId } from "./questions";
-import { parseStep, type StepId, stepPath } from "./steps";
 
 type Lesson = {
   readonly store: LessonStore;
+  /** The tutor's way in (spec 05); they may move the page. */
   readonly controls: LessonControls;
+  /**
+   * The band's own launch: the same transition as the tutor's, but it never
+   * scrolls or moves focus, because the learner is looking at the cannon
+   * (spec 04, Decision 12).
+   */
+  readonly launch: (request: CannonRequest) => LaunchResult;
   /** Answering is the learner's alone, so it is not one of the tutor's controls. */
   readonly answer: (questionId: QuestionId, optionId: string) => void;
   /** Like answering, clearing the faint paths is the learner's alone. */
@@ -37,24 +44,24 @@ type Lesson = {
 const LessonContext = createContext<Lesson | null>(null);
 
 /**
- * Keeps the lesson's session while the learner moves between steps (spec 04,
- * Decision 2) and exposes its controls.
+ * Keeps the lesson's session while the learner reads it (spec 04, Decision
+ * 2) and exposes its controls.
  */
 export function LessonProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const step = stepFromPathname(usePathname());
-  const [store] = useState(() => createLessonStore(initialSession(step)));
+  const [store] = useState(() => createLessonStore(initialSession()));
   const controls = useMemo(
-    () => createLessonControls(store, (next) => router.push(stepPath(next))),
-    [store, router],
+    () => createLessonControls(store, createLessonView()),
+    [store],
   );
-  useEffect(() => {
-    store.replace(syncStep(store.getSession(), step));
-  }, [store, step]);
   const lesson = useMemo(
     () => ({
       store,
       controls,
+      launch: (request: CannonRequest) => {
+        const { session, result } = launchCannon(store.getSession(), request);
+        store.replace(session);
+        return result;
+      },
       answer: (questionId: QuestionId, optionId: string) =>
         store.replace(answerQuestion(store.getSession(), questionId, optionId)),
       clearEarlierPaths: () =>
@@ -69,6 +76,10 @@ export function LessonProvider({ children }: { children: ReactNode }) {
 
 export function useLessonControls(): LessonControls {
   return useLesson().controls;
+}
+
+export function useLaunchCannon(): Lesson["launch"] {
+  return useLesson().launch;
 }
 
 export function useAnswerQuestion(): Lesson["answer"] {
@@ -98,9 +109,4 @@ function useLesson(): Lesson {
     throw new Error("useLesson must be used inside LessonProvider");
   }
   return lesson;
-}
-
-// Prototype: one page, so the step is not in the path.
-function stepFromPathname(pathname: string): StepId {
-  return parseStep(pathname.split("/").at(-1) ?? "") ?? "falling";
 }

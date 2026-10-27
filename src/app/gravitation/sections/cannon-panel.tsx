@@ -8,6 +8,7 @@ import {
 import { es } from "@/content/es";
 import {
   useClearEarlierPaths,
+  useLaunchCannon,
   useLessonControls,
   useLessonSession,
 } from "../lesson-provider";
@@ -24,12 +25,14 @@ const PRESET_BUTTON =
  * The cannon's controls, in the order of spec 04, Decision 8: the launch
  * button and clearing the paths, the speed, the angle, the height, the
  * predicted path's toggle and the presets. They change the cannon only
- * through the lesson's controller, as the tutor will (Decision 12): moving a
- * control sets, the launch button and the presets launch. Disabled until the
- * page hydrates: a click before then would be lost.
+ * through the session's transitions, which the tutor's controller also uses
+ * (Decision 12): moving a control sets, the launch button and the presets
+ * launch. Unlike the tutor's launch, theirs never scrolls the page. Disabled
+ * until the page hydrates: a click before then would be lost.
  */
 export function CannonPanel() {
-  const { set, launch, limits } = useLessonControls().cannon;
+  const { set, limits } = useLessonControls().cannon;
+  const launch = useLaunchCannon();
   const session = useLessonSession();
   const { speedKmPerSecond, angleDegrees, altitudeKm } = session.cannon;
   const clearEarlierPaths = useClearEarlierPaths();
@@ -41,7 +44,7 @@ export function CannonPanel() {
       <div className="grid gap-2">
         <button
           type="button"
-          onClick={() => launch()}
+          onClick={() => launch({})}
           className="rounded-[10px] bg-accent px-4 py-1.5 font-semibold text-bg-bottom disabled:opacity-50"
         >
           {cannon.launch}

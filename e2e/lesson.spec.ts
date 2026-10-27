@@ -17,7 +17,7 @@ import {
 
 const {
   title,
-  steps,
+  sections,
   questions,
   question: ui,
   animation,
@@ -91,14 +91,14 @@ test("the lesson is one page with its sections in order", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: title }),
   ).toBeVisible();
   const headings = await page.locator("main h2, main h3").allInnerTexts();
-  expect(headings).toEqual(SECTIONS.map((section) => steps[section].title));
+  expect(headings).toEqual(SECTIONS.map((section) => sections[section].title));
 });
 
 test("an anchor opens its part", async ({ page }) => {
   await page.goto("/gravitation#law");
 
   await expect(
-    page.getByRole("heading", { name: steps.law.title }),
+    page.getByRole("heading", { name: sections.law.title }),
   ).toBeInViewport();
 });
 
@@ -281,7 +281,7 @@ test("the lead links to the cannon", async ({ page }) => {
 
   await expect(page).toHaveURL("/gravitation#cannon");
   await expect(
-    page.getByRole("heading", { name: steps.cannon.title }),
+    page.getByRole("heading", { name: sections.cannon.title }),
   ).toBeInViewport();
 });
 
@@ -861,4 +861,45 @@ test("the predicted path resets on reload", async ({ page }) => {
   await page.reload();
 
   await expect((await readyCannon(page)).predictedPath).toBeChecked();
+});
+
+// Spec 04, Decisions 12 and 14, L11: only the tutor's launches may scroll.
+// The band's own button never moves the page or adds a history entry.
+test("launching from the band neither scrolls the page nor adds a history entry", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto("/gravitation");
+  const { canvas, launchButton } = await readyCannon(page);
+  await launchButton.scrollIntoViewIfNeeded();
+
+  // Precondition: the learner sees the cannon and the button.
+  const viewportHeight = 740;
+  const canvasBox = await canvas.boundingBox();
+  if (canvasBox === null) {
+    throw new Error("the canvas has no box");
+  }
+  const visible =
+    Math.min(canvasBox.y + canvasBox.height, viewportHeight) -
+    Math.max(canvasBox.y, 0);
+  expect(visible).toBeGreaterThanOrEqual(
+    Math.min(canvasBox.height, viewportHeight) / 2,
+  );
+  await expect(launchButton).toBeInViewport();
+  const before = await page.evaluate(() => ({
+    scrollY: Math.round(scrollY),
+    history: history.length,
+    url: location.href,
+  }));
+
+  await launchButton.click();
+  await waitForFrames(page, 30);
+
+  expect(
+    await page.evaluate(() => ({
+      scrollY: Math.round(scrollY),
+      history: history.length,
+      url: location.href,
+    })),
+  ).toEqual(before);
 });

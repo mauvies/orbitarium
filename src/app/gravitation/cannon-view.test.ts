@@ -59,8 +59,7 @@ describe("viewTrace", () => {
   ])("the predicted path is the trace a launch records: $name", ({
     settings,
   }) => {
-    const [launch] = launchCannon(initialSession("cannon"), settings).session
-      .launches;
+    const [launch] = launchCannon(initialSession(), settings).session.launches;
 
     expect(launch?.trace).toEqual(viewTrace(settings));
   });

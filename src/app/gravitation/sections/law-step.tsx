@@ -1,7 +1,7 @@
 import { es } from "@/content/es";
 import { StepIntro } from "./step-layout";
 
-const { intro } = es.gravitation.steps.law;
+const { intro } = es.gravitation.sections.law;
 const { law } = es.gravitation;
 
 /**

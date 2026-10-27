@@ -2,7 +2,7 @@ import { es } from "@/content/es";
 import { PausableAnimation } from "./pausable-animation";
 import { StepIllustration, StepIntro } from "./step-layout";
 
-const { intro, illustration } = es.gravitation.steps.mutual;
+const { intro, illustration } = es.gravitation.sections.mutual;
 
 // In the drawing's units: the top of the Earth, the apple and the arrows,
 // which are the same length because the two forces are equal.

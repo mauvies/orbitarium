@@ -1,7 +1,7 @@
 import { es } from "@/content/es";
 import { StepIllustration, StepIntro } from "./step-layout";
 
-const { intro, illustration } = es.gravitation.steps.moon;
+const { intro, illustration } = es.gravitation.sections.moon;
 
 // In the drawing's units. The bodies are to scale with each other (the
 // Moon's radius is 0.27 of the Earth's); the distance between them is not.

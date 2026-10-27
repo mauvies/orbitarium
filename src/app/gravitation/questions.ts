@@ -1,5 +1,5 @@
 import { es } from "@/content/es";
-import type { StepId } from "./steps";
+import type { SectionId } from "./section-ids";
 
 export type Concept =
   | "fall-direction"
@@ -39,7 +39,7 @@ export type QuestionOption = {
 
 export type Question = {
   readonly id: QuestionId;
-  readonly step: StepId;
+  readonly section: SectionId;
   readonly concept: Concept;
   readonly options: readonly QuestionOption[];
 };
@@ -67,7 +67,7 @@ const QUESTION_TEXT: Readonly<
 export const QUESTIONS: readonly Question[] = [
   {
     id: "two-falls",
-    step: "falling",
+    section: "falling",
     concept: "fall-direction",
     options: [
       { id: "centre", misconception: null },
@@ -78,7 +78,7 @@ export const QUESTIONS: readonly Question[] = [
   },
   {
     id: "who-pulls-harder",
-    step: "mutual",
+    section: "mutual",
     concept: "mutual-attraction",
     options: [
       { id: "earth", misconception: "larger-body-pulls-harder" },
@@ -89,7 +89,7 @@ export const QUESTIONS: readonly Question[] = [
   },
   {
     id: "twice-as-far",
-    step: "moon",
+    section: "moon",
     concept: "inverse-square",
     options: [
       { id: "half", misconception: "linear-with-distance" },
@@ -100,7 +100,7 @@ export const QUESTIONS: readonly Question[] = [
   },
   {
     id: "why-the-moon-does-not-fall",
-    step: "orbit",
+    section: "orbit",
     concept: "orbit-as-falling",
     options: [
       { id: "no-gravity", misconception: "no-gravity-in-space" },
@@ -111,7 +111,7 @@ export const QUESTIONS: readonly Question[] = [
   },
   {
     id: "twice-the-mass",
-    step: "law",
+    section: "law",
     concept: "full-law",
     options: [
       { id: "double", misconception: null },
@@ -121,8 +121,8 @@ export const QUESTIONS: readonly Question[] = [
   },
 ];
 
-export function questionsFor(step: StepId): readonly Question[] {
-  return QUESTIONS.filter((question) => question.step === step);
+export function questionsFor(section: SectionId): readonly Question[] {
+  return QUESTIONS.filter((question) => question.section === section);
 }
 
 /** Graded by the app, because the correct option is known (spec 04, Decision 5). */

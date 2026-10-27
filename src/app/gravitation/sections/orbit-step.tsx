@@ -2,7 +2,7 @@ import { CannonThumbnail } from "@/app/(home)/cannon-thumbnail";
 import { es } from "@/content/es";
 import { StepIntro } from "./step-layout";
 
-const { intro } = es.gravitation.steps.orbit;
+const { intro } = es.gravitation.sections.orbit;
 
 /** Newton's own drawing: shots that fall back ever farther, and one that circles. */
 export function OrbitPicture() {

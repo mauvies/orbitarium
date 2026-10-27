@@ -1,8 +1,9 @@
 import { es } from "@/content/es";
+import { SECTION_SCROLL_MARGIN_PX } from "../section-ids";
 import { CannonCanvas } from "./cannon-canvas";
 import { CannonPanel } from "./cannon-panel";
 
-const { title } = es.gravitation.steps.cannon;
+const { title } = es.gravitation.sections.cannon;
 const { cannon } = es.gravitation;
 
 /**
@@ -17,10 +18,15 @@ export function CannonBand() {
       <section
         id="cannon"
         aria-labelledby="cannon-title"
-        className="scroll-mt-8 rounded-2xl border border-line bg-surface p-4 lg:p-8"
+        // The same margin the part at the top is measured against (spec 04,
+        // Decision 14).
+        style={{ scrollMarginTop: SECTION_SCROLL_MARGIN_PX }}
+        className="rounded-2xl border border-line bg-surface p-4 lg:p-8"
       >
+        {/* Focusable, so the tutor's navigation can move focus to it (spec 04, Decision 14). */}
         <h2
           id="cannon-title"
+          tabIndex={-1}
           className="font-heading font-semibold text-section text-strong"
         >
           {title}
