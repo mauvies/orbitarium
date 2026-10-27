@@ -1,6 +1,6 @@
 # Visual style (design note)
 
-Status: agreed on 2026-10-22, design system added on 2026-10-23. Applied through the theme tokens in `src/app/globals.css`.
+Status: agreed on 2026-10-22, design system added on 2026-10-23, lesson additions (spec 04) on 2026-10-27. Applied through the theme tokens in `src/app/globals.css`.
 
 ## Direction
 
@@ -25,6 +25,8 @@ Read from the fonts embedded in the brief's PDF. Both are Google Fonts, loaded w
 | Body | Roboto 400 | 1rem | 1.6 | 0 |
 | Small and data | Roboto 400 | 0.875rem | 1.45 | 0 |
 
+Tailwind's default sizes stay available next to these roles. The only one in use is `text-xs` (0.75rem), for the lesson's reference badges below 640 px.
+
 Rules: sentence case everywhere, no all-caps labels, no eyebrow labels above headings. Running text is at most 60 characters wide (`max-w-[60ch]`). Numbers use Spanish formatting ("17,33").
 
 ## Colour tokens
@@ -41,7 +43,10 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 | `accent` | `#FCB810` | Orbit lines, active navigation, primary actions, focus ring |
 | `strong` | `#F5F1F8` | Headings, bodies in the simulation |
 | `body` | `#C8C1D0` | Body text |
-| `muted` | `#97919B` | Secondary text and data |
+| `muted` | `#97919B` | Secondary text and data; borders that identify a control |
+| `apple` | `#E5484D` | The apples of the lesson's illustrations, nothing else |
+
+`apple` is the one colour outside the night-sky palette: an apple that is not red is hard to read (spec 04).
 
 ## Contrast (WCAG AA requires 4.5:1 for body text)
 
@@ -53,6 +58,8 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 | `muted` on `surface-raised` | about 5.3:1 |
 | `accent` on `surface` | 10.3:1 |
 | `bg-bottom` (dark text) on `accent` | 11.4:1 |
+
+A border that is what identifies a control needs 3:1 against its background (WCAG 1.4.11). `line` on `surface` is 1.2:1, so it is only for dividers and card borders, and control borders use `muted` (5.9:1).
 
 ## Layout and spacing
 
@@ -88,6 +95,12 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 
 **Links and buttons.** Text links are `accent`. Primary buttons are `accent` with `bg-bottom` text; secondary buttons are `surface` with a `line` border. No arrows appended to link or button text.
 
+**Lesson controls.** The cannon's number fields, presets, «Borrar trayectorias» and outcome label sit on `surface` with a 1 px `muted` border (see "Contrast").
+
+**Reference badges.** Two pills at the top right of the cannon's canvas: `surface`, a 1 px `muted` border, `body` text in small size with tabular figures; below 640 px `text-xs` and a shorter label.
+
+**Tutor's panel.** From 1,280 px a floating card at the bottom right, set apart from the page by a `surface-raised` background, a 1 px `strong` border and a 12 px radius, with no shadow. Below, a full-width bottom sheet on `surface` with a `muted` top border.
+
 **Focus.** A 2 px `accent` ring with a 3 px offset on every interactive element.
 
 **Page titles.** The browser title is "Página | Orbitarium".
@@ -101,7 +114,7 @@ Three amber orbits crossing at the centre: three identical ellipses, rotated 0°
 
 ## Motion
 
-One orchestrated moment: on the home page, the hero orbit draws itself once on load (about 2.4 s), then its bodies start moving. Everything else moves only in response to the user (the simulation, hover and focus states). With `prefers-reduced-motion: reduce`, the hero shows the finished drawing and the bodies stay still.
+One orchestrated moment: on the home page, the hero orbit draws itself once on load (about 2.4 s), then its bodies start moving. The lesson's two illustrations, `#falling` and `#mutual`, also move on their own: each loops, with a «Pausar»/«Reanudar» button at a corner of its drawing (WCAG 2.2.2). Everything else moves only in response to the user (the simulation, hover and focus states). With `prefers-reduced-motion: reduce`, the hero shows the finished drawing and the bodies stay still, and the two illustrations show their final frame, with no pause button.
 
 ## Rules
 

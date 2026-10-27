@@ -53,11 +53,7 @@ Five short steps. Each step has one idea, one visual or interaction and one chec
 
 - **Idea:** an orbit is falling while moving sideways fast enough to keep missing the ground.
 - **Interaction:** the cannon simulator (see below).
-- **Question, asked before firing (predict, observe, explain):** "What do you think will happen if you launch at 12 km/s?"
-  - It falls back to Earth.
-  - It goes into orbit.
-  - It escapes and never comes back. (correct)
-- **Question after experimenting:** "Why doesn't the Moon fall onto the Earth?"
+- **Question:** "Why doesn't the Moon fall onto the Earth?"
   - There is no gravity in space. (misconception: very common, floating astronauts)
   - It does fall, but it moves sideways so fast that it never reaches the ground. (correct)
   - The Earth pushes it away. (misconception)
@@ -93,7 +89,7 @@ Inspired by existing orbit simulators in functionality only. The visual design i
 - Trajectory trail.
 - Outcome label: ballistic (suborbital), circular orbit, elliptical orbit, escape.
 - Presets for each outcome.
-- Two reference speeds shown next to the speed control, valid near the surface and ignoring air: orbital speed ≈ 7.9 km/s and escape speed ≈ 11.2 km/s. Also shown in km/h (7.9 km/s ≈ 28,000 km/h), which means more to a non-physicist.
+- Two reference speeds shown as badges on the canvas, ignoring air and computed for the launch height: orbital speed ≈ 7.9 km/s and escape speed ≈ 11.2 km/s near the surface. In km/s only, so each badge stays short; the speed slider's value text still gives km/h, which means more to a non-physicist.
 
 **Out of scope (to be stated in the README)**
 

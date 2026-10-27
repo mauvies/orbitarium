@@ -8,7 +8,7 @@ Learn Newton's law of universal gravitation by playing with it, with an AI tutor
 
 ## Run locally
 
-Requirements: Node 24 and pnpm 12.
+Requirements: Node 24 and pnpm 10.
 
 ```bash
 pnpm install
