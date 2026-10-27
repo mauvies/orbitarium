@@ -46,7 +46,7 @@ Builds on spec 04 (the panel's shell, `LessonControls`, the learner profile, Dec
    | `launchCannon` | the same, all optional | `cannon.launch` | `LaunchResult` |
    | `goToSection` | `section` | `navigation.goToSection` | `NavigationResult` |
 
-   The tools have no `execute`, so the model's call reaches the page, which runs it through the controller and sends back what really happened; the spike showed that without the result the model guesses. The schemas only say "a number" or "a string": the controller validates, rounds and clamps (spec 04, Decision 13), and its rejection goes back to the model as the tool's result, so the learner always gets a reply. One pure function dispatches a tool call to the controls; an unknown tool is a rejection naming it. Reading the state needs no tool, because it travels with every message (Decision 4).
+   The tools have no `execute`, so the model's call reaches the page, which runs it through the controller and sends back what really happened; the spike showed that without the result the model guesses. The schemas only say "a number" or "a string", and the SDK does not validate the input against them (`jsonSchema` without a validator), so a malformed call reaches the page instead of ending in a `tool-input-error` with no reply, as in the spike. The dispatcher rejects a field that is not a number, naming it; the controller validates, rounds and clamps the numbers (spec 04, Decision 13); either rejection goes back to the model as the tool's result, so the learner always gets a reply. One pure function dispatches a tool call to the controls; an unknown tool is a rejection naming it. Reading the state needs no tool, because it travels with every message (Decision 4).
 7. **At most three tool calls per learner message.** After each tool result the page sends the conversation again automatically (`sendAutomaticallyWhen`), so a model that keeps calling tools would keep spending requests. The route counts the tool calls since the learner's last message, and from the third on it runs the model without tools, so it has to answer in text. Cost: a request such as "compare five speeds" gets three launches and an explanation.
 8. **Every action is visible in the conversation.** Each tool call shows a short line built from its result, from `es.ts`: «Ajusto el cañón: 8,00 km/s, 0°, 10 km.», «Disparo el cañón a 8,00 km/s: órbita elíptica.», «Voy a “El cañón de Newton”.», or «No he podido ajustar el cañón: …» for a rejection. The learner sees what the tutor did to the page, and a clamped value says so («15 km/s es el máximo»).
 
@@ -92,9 +92,9 @@ Builds on spec 04 (the panel's shell, `LessonControls`, the learner profile, Dec
 | ID | Criterion | Source | Verification |
 |---|---|---|---|
 | T1 | `POST /api/tutor` streams an answer to a valid body. A body without `messages` or `context`, or with either of the wrong shape, is a 400 naming the field; every context field is checked against its enum or as a finite number, and free text in it is refused; a learner message over 500 characters is a 400; more than 30 UI messages is `too-long`. | Decisions 2 and 3 | Route tests with the AI SDK's mock model: "streams an answer", one test per invalid field of the body and of the context (an unknown part, question, concept, misconception, outcome or clamped field, a non-finite setting, an unknown profile state, an extra text field), "a message over 500 characters is refused", "31 messages are too long" |
-| T2 | The model comes from `TUTOR_MODEL`; a missing key or an unknown model gives `unavailable` and a server log naming the variable; retries are off; a request aborts after 20 s with `unavailable`. | Decisions 1 and 2 | Route tests: "an unknown model names TUTOR_MODEL", "a missing key names the variable", "a model that does not answer in 20 s is unavailable" (fake timers) |
+| T2 | The model comes from `TUTOR_MODEL`; a missing key or an unknown model gives `unavailable` and a server log naming the variable; retries are off; a request aborts after 20 s with `unavailable`. | Decisions 1 and 2 | Route tests: "an unknown model names TUTOR_MODEL", "a missing key names the variable", "a model that does not answer within the timeout is unavailable" (the timeout is injected, so the test waits 50 ms, not 20 s) |
 | T3 | The instructions name every part with its id and title, every question with its correct option, the cannon's limits and presets, the four accuracy rules, Spanish and plain text; the context block lists the profile (correct, the misconception, or unknown, per question), the cannon's settings and last launch, and the part at the top. The same context always gives the same instructions. The page builds the context when each request is sent, the automatic resend after a tool included. | Decisions 4 and 5 | `instructions.test.ts`: one test per item, "a misconception is named in the profile", "the same context gives the same instructions"; E2E with recorded streams: "the resend after a tool carries the latest launch" |
-| T4 | Each tool dispatches to its control with its input unchanged and returns the control's result unchanged; a rejected input returns the controller's rejection; an unknown tool returns a rejection naming it. | Decision 6 | `tutor-tools.test.ts`: one test per tool, "a speed of 50 km/s comes back clamped", "a speed given as text is rejected by the controller", "an unknown tool is rejected" |
+| T4 | Each tool dispatches to its control with its input unchanged and returns the control's result unchanged; a field that is not a number is rejected, naming it, before the control is called; a number the controller rejects returns its rejection; an unknown tool returns a rejection naming it. | Decision 6 | `tutor-tools.test.ts`: one test per tool, "a speed of 50 km/s comes back clamped", "a speed given as text is rejected, naming the field", "an infinite speed is rejected by the controller", "an unknown tool is rejected" |
 | T5 | From the third tool call since the learner's last message, the model runs without tools. | Decision 7 | Route test: "a fourth tool call is not offered" |
 | T6 | Every tool call shows its line in the conversation, built from its result, including clamped values and rejections. | Decision 8 | `tool-lines.test.ts`: one test per tool and status; E2E: "a tutor's launch shows its line and its outcome" |
 | T7 | Over 8 requests per minute from one client, 12 per minute or 400 per day in all, the route answers `rate-limited` or `daily-limit` without calling the model; the windows reset. | Decision 9 | `rate-limit.test.ts` with an injected clock: one test per limit, "the minute resets", "the day resets"; route test: "a refused request never calls the model" |
@@ -134,7 +134,34 @@ CI has no key and must not spend quota. The route is tested with the AI SDK's mo
 
 ## Decided in the plan
 
-To be filled during planning: the file layout (the route in `src/app/api/tutor/`; what both the route and the lesson use, such as the tools' definition, the context's type and the error codes, in a new `src/lib/tutor/`; the panel's pieces in `src/app/gravitation/`), the dependencies' exact versions, how a refused request reaches `useChat` as a code, Google's per-day `quotaId`, the E2E fixtures (every tutor test intercepts `GET /api/tutor`, answering `available: true` for the conversation's tests and `false` for T16, so one build without a key serves the whole suite), and the Spanish texts of the greeting, the data note, the tool lines and the errors.
+### File layout
+
+| Files | What they hold |
+|---|---|
+| `src/lib/lesson/section-ids.ts`, `questions.ts`, `learner-profile.ts` | Moved from `src/app/gravitation/` (spec 04's file table), because the route needs the parts, the questions with their correct options and the profile's types; `src/lib` holds code shared by more than one route |
+| `src/lib/tutor/tools.ts`, `context.ts`, `limits.ts`, `error-codes.ts` | What the route and the page share: the three tools' definitions and the `TutorMessage` type; the context's strict schema and type; 500 characters and 30 messages; the error codes and `parseErrorCode` |
+| `src/app/api/tutor/route.ts` | `GET` and `POST`, thin, with `maxDuration` |
+| `src/app/api/tutor/tutor-handler.ts`, `model.ts`, `instructions.ts`, `tool-rounds.ts`, `error-code.ts`, `rate-limit.ts` | The request's handling, with the model, the timeout, the clock and the log injected for tests; the model from `TUTOR_MODEL` (`server-only`); the instructions; the tool calls since the learner's last message; a failure to its code; the limiter |
+| `src/app/gravitation/tutor-context.ts`, `run-tutor-tool.ts`, `tool-lines.ts` | The context from the controls, built in the transport's request preparation; a tool call to its control; a tool's result to its line |
+| `src/app/gravitation/tutor-*.tsx` | The conversation's components, one per file, inside spec 04's panel |
+| `src/cannon/types.ts` | Gains `CANNON_OUTCOMES`, the outcomes as values, for the context's schema |
+| `scripts/record-tutor-streams.mjs`, `scripts/eval-tutor.mjs` | `pnpm record:tutor` and `pnpm eval:tutor`: both post fixed bodies to a running server, so they test the real route |
+| `e2e/fixtures/tutor/`, `e2e/tutor-conversation.spec.ts` | Streams recorded from the real model; the conversation's E2E tests |
+
+### Steps
+
+Each step ends somewhere shippable:
+
+1. Move the shared lesson files (no behaviour).
+2. The route.
+3. The panel and the tools: **the tutor works locally with a key.**
+4. Errors and no-key mode: **safe to deploy without a key.**
+5. Rate limiting: **the public deployment may get the key.**
+6. The eval and the latency.
+
+### Settled during implementation
+
+Recorded here as each step settles them: the dependencies' exact versions, how a refused request reaches `useChat` as a code, Google's per-day `quotaId`, whether a tool's continuation stays in the same assistant message (Decision 3), and the Spanish texts of the greeting, the data note, the tool lines and the errors. Every tutor E2E test intercepts `GET /api/tutor`, answering `available: true` for the conversation's tests and `false` for T16, so one build without a key serves the whole suite.
 
 ## Results
 
