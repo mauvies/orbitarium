@@ -3,13 +3,13 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
-import { CannonBand } from "./_sections/cannon-band";
-import { FallingPicture, FallingText } from "./_sections/falling-step";
-import { LawPicture, LawText } from "./_sections/law-step";
-import { MoonPicture, MoonText } from "./_sections/moon-step";
-import { MutualPicture, MutualText } from "./_sections/mutual-step";
-import { OrbitPicture, OrbitText } from "./_sections/orbit-step";
-import { LessonSection } from "./_sections/step-layout";
+import { CannonBand } from "./sections/cannon-band";
+import { FallingPicture, FallingText } from "./sections/falling-step";
+import { LawPicture, LawText } from "./sections/law-step";
+import { MoonPicture, MoonText } from "./sections/moon-step";
+import { MutualPicture, MutualText } from "./sections/mutual-step";
+import { OrbitPicture, OrbitText } from "./sections/orbit-step";
+import { LessonSection } from "./sections/step-layout";
 
 const { title, lead, steps } = es.gravitation;
 
