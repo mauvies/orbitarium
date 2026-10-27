@@ -7,7 +7,7 @@ export default defineConfig({
   },
   test: {
     // The Playwright specs in e2e/ match Vitest's default pattern too.
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
     environment: "node",
     globals: false,
   },

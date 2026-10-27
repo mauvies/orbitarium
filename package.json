@@ -16,7 +16,8 @@
     "measure:orbits": "node scripts/measure-orbits.mjs",
     "measure:stability": "node scripts/measure-stability.mjs",
     "format": "biome format --write",
-    "record:tutor": "node scripts/record-tutor-streams.mjs"
+    "record:tutor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/record-tutor-streams.mjs",
+    "eval:tutor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/eval-tutor.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.105",
