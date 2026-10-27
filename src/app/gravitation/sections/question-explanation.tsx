@@ -1,5 +1,5 @@
 import { es } from "@/content/es";
-import { grade, type Question, questionText } from "../questions";
+import { grade, type Question, questionText } from "@/lib/lesson/questions";
 
 const ui = es.gravitation.question;
 

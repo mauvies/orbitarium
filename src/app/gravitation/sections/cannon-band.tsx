@@ -1,5 +1,5 @@
 import { es } from "@/content/es";
-import { SECTION_SCROLL_MARGIN_PX } from "../section-ids";
+import { SECTION_SCROLL_MARGIN_PX } from "../section-position";
 import { CannonCanvas } from "./cannon-canvas";
 import { CannonPanel } from "./cannon-panel";
 

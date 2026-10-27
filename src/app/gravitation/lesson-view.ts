@@ -1,12 +1,7 @@
 import { es } from "@/content/es";
+import { SECTION_IDS, type SectionId } from "@/lib/lesson/section-ids";
 import type { LessonView } from "./lesson-controls";
-import {
-  isMostlyVisible,
-  SECTION_IDS,
-  type SectionId,
-  sectionAt,
-  TOP_LINE_PX,
-} from "./section-ids";
+import { isMostlyVisible, sectionAt, TOP_LINE_PX } from "./section-position";
 import { TUTOR_PANEL_ID } from "./tutor-ids";
 
 const { sections, tutor } = es.gravitation;

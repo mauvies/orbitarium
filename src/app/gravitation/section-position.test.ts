@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  isMostlyVisible,
-  parseSection,
-  SECTION_IDS,
-  type SectionId,
-  sectionAt,
-  TOP_LINE_PX,
-} from "./section-ids";
+import { SECTION_IDS, type SectionId } from "@/lib/lesson/section-ids";
+import { isMostlyVisible, sectionAt, TOP_LINE_PX } from "./section-position";
 
 const VIEWPORT_HEIGHT_PX = 740;
 // A part the browser just scrolled to: its scroll margin, plus subpixel
@@ -23,26 +17,6 @@ function tops(...values: readonly number[]) {
     return { section, top };
   });
 }
-
-// Spec 04, Decision 1: the parts of the page, in order.
-describe("section ids", () => {
-  it("are the page's parts in order, the cannon band after the orbit question", () => {
-    expect(SECTION_IDS).toEqual([
-      "falling",
-      "mutual",
-      "moon",
-      "orbit",
-      "cannon",
-      "law",
-    ]);
-  });
-
-  it("parses a part and rejects anything else", () => {
-    expect(parseSection("orbit")).toBe("orbit");
-    expect(parseSection("cannon")).toBe("cannon");
-    expect(parseSection("prediction")).toBeNull();
-  });
-});
 
 // Spec 04, Decision 14 and L11: the part at the top of the viewport.
 describe("sectionAt", () => {

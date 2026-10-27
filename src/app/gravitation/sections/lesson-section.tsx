@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { SECTION_SCROLL_MARGIN_PX, type SectionId } from "../section-ids";
+import type { SectionId } from "@/lib/lesson/section-ids";
+import { SECTION_SCROLL_MARGIN_PX } from "../section-position";
 
 /**
  * One part of the lesson. Narrow screens read its title, its description, its

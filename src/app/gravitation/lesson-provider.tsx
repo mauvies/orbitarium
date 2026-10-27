@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import type { CannonRequest } from "@/cannon";
+import type { QuestionId } from "@/lib/lesson/questions";
 import { createLessonControls, type LessonControls } from "./lesson-controls";
 import {
   answerQuestion,
@@ -21,7 +22,6 @@ import {
 } from "./lesson-session";
 import { createLessonStore, type LessonStore } from "./lesson-store";
 import { createLessonView } from "./lesson-view";
-import type { QuestionId } from "./questions";
 
 type Lesson = {
   readonly store: LessonStore;

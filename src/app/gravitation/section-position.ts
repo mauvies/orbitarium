@@ -1,15 +1,4 @@
-// Spec 04, Decision 1: the parts of the lesson page, in order. `cannon` is
-// the band of Newton's cannon, between the orbit question and the law.
-export const SECTION_IDS = [
-  "falling",
-  "mutual",
-  "moon",
-  "orbit",
-  "cannon",
-  "law",
-] as const;
-
-export type SectionId = (typeof SECTION_IDS)[number];
+import type { SectionId } from "@/lib/lesson/section-ids";
 
 /** How far below the viewport's top a part stops when scrolled to. */
 export const SECTION_SCROLL_MARGIN_PX = 32;
@@ -20,10 +9,6 @@ export const SECTION_SCROLL_MARGIN_PX = 32;
  * counts (spec 04, Decision 14).
  */
 export const TOP_LINE_PX = SECTION_SCROLL_MARGIN_PX + 8;
-
-export function parseSection(value: string): SectionId | null {
-  return SECTION_IDS.find((section) => section === value) ?? null;
-}
 
 export type SectionTop = {
   readonly section: SectionId;

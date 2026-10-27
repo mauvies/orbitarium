@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { CANNON_LIMITS, CANNON_PRESETS } from "@/cannon";
+import type { SectionId } from "@/lib/lesson/section-ids";
 import { createLessonControls, type LessonView } from "./lesson-controls";
 import { answerQuestion, initialSession } from "./lesson-session";
 import { createLessonStore } from "./lesson-store";
-import type { SectionId } from "./section-ids";
 
 // Spec 04, Decisions 12 to 15: the API the tutor will use in spec 05. The
 // view stands in for the page: scrolling makes the part the one at the top.

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { es } from "@/content/es";
+import { type Question, questionText } from "@/lib/lesson/questions";
 import { useAnswerQuestion, useLessonSession } from "../lesson-provider";
-import { type Question, questionText } from "../questions";
 import { useHydrated } from "../use-hydrated";
 import { QuestionExplanation } from "./question-explanation";
 

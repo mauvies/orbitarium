@@ -1,5 +1,5 @@
-import { questionsFor } from "../questions";
-import type { SectionId } from "../section-ids";
+import { questionsFor } from "@/lib/lesson/questions";
+import type { SectionId } from "@/lib/lesson/section-ids";
 import { CheckQuestion } from "./check-question";
 
 /** The part's question. */

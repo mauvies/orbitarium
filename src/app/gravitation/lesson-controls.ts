@@ -6,7 +6,15 @@ import {
   type CannonSettings,
   type FieldLimits,
 } from "@/cannon";
-import { type LearnerProfile, learnerProfile } from "./learner-profile";
+import {
+  type LearnerProfile,
+  learnerProfile,
+} from "@/lib/lesson/learner-profile";
+import {
+  parseSection,
+  SECTION_IDS,
+  type SectionId,
+} from "@/lib/lesson/section-ids";
 import {
   type LaunchResult,
   launchCannon,
@@ -14,7 +22,6 @@ import {
   setCannon,
 } from "./lesson-session";
 import type { LessonStore } from "./lesson-store";
-import { parseSection, SECTION_IDS, type SectionId } from "./section-ids";
 
 export type NavigationResult =
   | { readonly status: "moved"; readonly section: SectionId }

@@ -9,8 +9,8 @@ import {
   resolveRequest,
   type Trace,
 } from "@/cannon";
+import { type Answers, grade, type QuestionId } from "@/lib/lesson/questions";
 import { viewTrace } from "./cannon-view";
-import { type Answers, grade, type QuestionId } from "./questions";
 
 // Spec 04, Decision 11: the current path and up to four faint ones.
 export const RECENT_LAUNCHES = 5;
