@@ -23,6 +23,8 @@ The lesson at `/gravitation` has an AI tutor that explains, answers questions an
 2. Copy `.env.example` to `.env.local` and set `GOOGLE_GENERATIVE_AI_API_KEY`.
 3. Restart the server. `TUTOR_MODEL` is optional: it names the model as `google:<model>` and defaults to `google:gemini-3.5-flash-lite`.
 
+**Limits:** the route refuses requests past 8 a minute per client (11 for the follow-up of a tool), 11 a minute and 400 a day in all, below Google's free-tier limits. They are kept in memory by each server instance, so on a platform that runs several instances they are approximate; Google's own 429 is shown the same way.
+
 **Without a key** the app works as usual. The tutor's panel opens and says that the tutor is not set up and points here, with its input disabled; the lesson, the cannon and the gallery do not depend on it. The key is read when each request arrives, so a container can receive it when it starts.
 
 **Data:** the tutor is an AI and can be wrong. What you write to it is sent to Google, whose free tier may use it to improve its products. Do not write personal data.
