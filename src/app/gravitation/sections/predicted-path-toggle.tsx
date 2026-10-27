@@ -13,7 +13,7 @@ export function PredictedPathToggle() {
   const { showPredictedPath } = useLessonSession();
   const setPredictedPathShown = useSetPredictedPathShown();
   return (
-    <label className="flex items-center gap-2 text-small">
+    <label className="flex min-h-6 items-center gap-2 text-small">
       <input
         id="cannon-predicted-path"
         name="cannon-predicted-path"
