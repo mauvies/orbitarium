@@ -16,6 +16,7 @@ import { type TutorMessage, tutorTools } from "@/lib/tutor/tools";
 import { toErrorCode } from "./error-code";
 import { tutorInstructions } from "./instructions";
 import { isTutorAvailable } from "./model-id";
+import { clientKey, type RateLimiter, type TurnKind } from "./rate-limit";
 import { MAX_TOOL_CALLS, toolCallsSinceLearnerMessage } from "./tool-rounds";
 
 export type TutorDependencies = {
@@ -24,6 +25,7 @@ export type TutorDependencies = {
   readonly log: (message: string) => void;
   /** How long a request may take before it is aborted as `unavailable`. */
   readonly timeoutMs: number;
+  readonly rateLimiter: RateLimiter;
 };
 
 type TutorRequest =
@@ -41,7 +43,7 @@ type TutorRequest =
  */
 export async function handleTutorRequest(
   request: Request,
-  { resolveModel, log, timeoutMs }: TutorDependencies,
+  { resolveModel, log, timeoutMs, rateLimiter }: TutorDependencies,
 ): Promise<Response> {
   const tutorRequest = await readTutorRequest(request);
   if (tutorRequest.status === "invalid") {
@@ -58,6 +60,15 @@ export async function handleTutorRequest(
   } catch (error) {
     log(`tutor: ${describe(error)}`);
     return new Response("unavailable", { status: 500 });
+  }
+
+  // Only a request that goes on to the model is counted (spec 05, Decision 9).
+  const decision = rateLimiter.check(
+    clientKey(request.headers),
+    turnKind(messages),
+  );
+  if (decision !== "allowed") {
+    return new Response(decision, { status: 429 });
   }
 
   const toolsUsedUp = toolCallsSinceLearnerMessage(messages) >= MAX_TOOL_CALLS;
@@ -147,6 +158,11 @@ async function readTutorRequest(request: Request): Promise<TutorRequest> {
     );
   }
   return { status: "valid", messages: messages.data, context: context.context };
+}
+
+/** A request that follows a tool result continues a turn; any other starts one. */
+function turnKind(messages: readonly TutorMessage[]): TurnKind {
+  return messages.at(-1)?.role === "user" ? "new-turn" : "continuation";
 }
 
 function isTooLong({ role, parts }: TutorMessage): boolean {

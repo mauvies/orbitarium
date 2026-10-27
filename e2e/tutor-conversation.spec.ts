@@ -617,6 +617,27 @@ test.describe("errors", () => {
     );
   });
 
+  // Spec 05, Decision 9: the route refuses with HTTP 429 and the code as body.
+  test("a request the route's limit refuses shows its text with «Reintentar»", async ({
+    page,
+  }) => {
+    await page.route("**/api/tutor", (route) =>
+      route.request().method() === "GET"
+        ? route.fallback()
+        : route.fulfill({ status: 429, body: "daily-limit" }),
+    );
+    await page.goto("/gravitation");
+    const { panel, conversation } = await openTutor(page);
+
+    await ask(page, QUESTION);
+
+    await expect(noticeIn(panel, tutor.errors["daily-limit"])).toBeVisible();
+    await expect(
+      panel.getByRole("button", { name: tutor.retry }),
+    ).toBeVisible();
+    await expect(conversation).toContainText(QUESTION);
+  });
+
   test("«Reintentar» answers the same message again", async ({ page }) => {
     const { requests } = await serveTutor(page);
     const failed = await failTutor(page, "rate-limited");

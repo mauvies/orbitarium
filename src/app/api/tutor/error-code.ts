@@ -25,7 +25,7 @@ export function toErrorCode(error: unknown): TutorErrorCode {
   ) {
     return "unavailable";
   }
-  
+
   return quotaIds(failure.data).some((id) => id.includes("PerDay"))
     ? "daily-limit"
     : "rate-limited";
@@ -37,7 +37,7 @@ function quotaIds(data: unknown): string[] {
   if (!parsed.success) {
     return [];
   }
-  
+
   return parsed.data.error.details
     .flatMap(({ violations = [] }) => violations)
     .map(({ quotaId }) => quotaId);

@@ -7,6 +7,7 @@ import {
   MAX_CONVERSATION_MESSAGES,
   MAX_LEARNER_MESSAGE_CHARACTERS,
 } from "@/lib/tutor/limits";
+import type { RateLimitDecision, RateLimiter, TurnKind } from "./rate-limit";
 import { handleAvailabilityRequest, handleTutorRequest } from "./tutor-handler";
 
 type CallOptions = Parameters<MockLanguageModelV4["doStream"]>[0];
@@ -123,23 +124,38 @@ function conversationOf(count: number): UIMessage[] {
   }));
 }
 
-function post(body: unknown): Request {
+function post(body: unknown, headers: Record<string, string> = {}): Request {
   return new Request("http://localhost/api/tutor", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...headers },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
+}
+
+/** A limiter that answers `decision` and remembers who asked, and for what. */
+function limiterSaying(decision: RateLimitDecision) {
+  const checks: { clientKey: string; turn: TurnKind }[] = [];
+  const rateLimiter: RateLimiter = {
+    check: (clientKey, turn) => {
+      checks.push({ clientKey, turn });
+      return decision;
+    },
+  };
+  return { rateLimiter, checks };
 }
 
 async function handle(
   body: unknown,
   model: MockLanguageModelV4 = answeringModel().model,
+  { rateLimiter }: { rateLimiter: RateLimiter } = limiterSaying("allowed"),
+  headers: Record<string, string> = {},
 ) {
   const logged: string[] = [];
-  const response = await handleTutorRequest(post(body), {
+  const response = await handleTutorRequest(post(body, headers), {
     resolveModel: () => model,
     log: (message) => logged.push(message),
     timeoutMs: TIMEOUT_MS,
+    rateLimiter,
   });
   return { response, text: await response.text(), logged };
 }
@@ -277,6 +293,7 @@ describe("handleTutorRequest: an invalid request", () => {
 describe("handleTutorRequest: the model", () => {
   it("a model that cannot be set up is unavailable, and the reason is logged", async () => {
     const logged: string[] = [];
+    const counted = limiterSaying("allowed");
     const response = await handleTutorRequest(
       post({ messages: [QUESTION], context: AT_THE_CANNON }),
       {
@@ -285,12 +302,14 @@ describe("handleTutorRequest: the model", () => {
         },
         log: (message) => logged.push(message),
         timeoutMs: TIMEOUT_MS,
+        rateLimiter: counted.rateLimiter,
       },
     );
 
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("unavailable");
     expect(logged.join("\n")).toContain("TUTOR_MODEL");
+    expect(counted.checks).toHaveLength(0);
   });
 
   it("a failing model call is not retried", async () => {
@@ -382,6 +401,7 @@ describe("handleTutorRequest: a model that does not answer", () => {
         resolveModel: () => silentModel(),
         log: (message) => logged.push(message),
         timeoutMs: 50,
+        rateLimiter: limiterSaying("allowed").rateLimiter,
       },
     );
 
@@ -423,5 +443,90 @@ describe("handleAvailabilityRequest", () => {
     });
 
     expect(await response.text()).not.toContain(SECRET);
+  });
+});
+
+// Spec 05, Decision 9 and T7: a request over a limit never reaches the model.
+describe("handleTutorRequest: the rate limit", () => {
+  const BODY = { messages: [QUESTION], context: AT_THE_CANNON };
+
+  it("a refused request never calls the model", async () => {
+    const { model, calls } = answeringModel();
+    const { response } = await handle(
+      BODY,
+      model,
+      limiterSaying("rate-limited"),
+    );
+
+    expect(response.status).toBe(429);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("over a minute limit the body is rate-limited", async () => {
+    const { text } = await handle(
+      BODY,
+      answeringModel().model,
+      limiterSaying("rate-limited"),
+    );
+
+    expect(text).toBe("rate-limited");
+  });
+
+  it("over the daily limit the body is daily-limit", async () => {
+    const { text } = await handle(
+      BODY,
+      answeringModel().model,
+      limiterSaying("daily-limit"),
+    );
+
+    expect(text).toBe("daily-limit");
+  });
+
+  it("asks the limiter about the first address of x-forwarded-for", async () => {
+    const limiter = limiterSaying("allowed");
+    await handle(BODY, answeringModel().model, limiter, {
+      "x-forwarded-for": "203.0.113.7, 70.41.3.18",
+    });
+
+    expect(limiter.checks[0]?.clientKey).toBe("203.0.113.7");
+  });
+
+  it("a request whose last message is the learner's is checked as a new turn", async () => {
+    const limiter = limiterSaying("allowed");
+    await handle(BODY, answeringModel().model, limiter);
+
+    expect(limiter.checks[0]?.turn).toBe("new-turn");
+  });
+
+  it("a request after a tool result is checked as a continuation", async () => {
+    const limiter = limiterSaying("allowed");
+    await handle(
+      { messages: afterLaunches(1), context: AT_THE_CANNON },
+      answeringModel().model,
+      limiter,
+    );
+
+    expect(limiter.checks[0]?.turn).toBe("continuation");
+  });
+
+  it("an invalid body is not counted", async () => {
+    const limiter = limiterSaying("allowed");
+    await handle({ context: AT_THE_CANNON }, answeringModel().model, limiter);
+
+    expect(limiter.checks).toHaveLength(0);
+  });
+
+  it("a conversation that is too long is not counted", async () => {
+    const limiter = limiterSaying("allowed");
+    await handle(
+      {
+        messages: conversationOf(MAX_CONVERSATION_MESSAGES).concat(QUESTION),
+        context: AT_THE_CANNON,
+      },
+      answeringModel().model,
+      limiter,
+    );
+
+    expect(limiter.checks).toHaveLength(0);
   });
 });
