@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { es } from "@/content/es";
 import { orbits } from "@/orbits";
 
@@ -34,30 +34,7 @@ test.describe("returning from a detail page", () => {
   test("returning to the gallery keeps its scroll position", async ({
     page,
   }) => {
-    await page.goto("/three-body");
-    const lastOrbit = orbits.at(-1);
-
-    if (lastOrbit === undefined) {
-      throw new Error("no orbit to open");
-    }
-
-    const lastCard = page
-      .getByRole("main")
-      .getByRole("link", { name: es.orbits[lastOrbit.slug].name });
-
-    await lastCard.scrollIntoViewIfNeeded();
-    const scrolledTo = await page.evaluate(() => window.scrollY);
-
-    expect(scrolledTo).toBeGreaterThan(0);
-
-    await lastCard.click();
-
-    await expect(
-      page.getByRole("heading", {
-        level: 1,
-        name: es.orbits[lastOrbit.slug].name,
-      }),
-    ).toBeVisible();
+    const scrolledTo = await openLastOrbitFromScrolledGallery(page);
 
     await page.goBack();
 
@@ -65,6 +42,38 @@ test.describe("returning from a detail page", () => {
     await expect
       .poll(() => page.evaluate(() => window.scrollY))
       .toBe(scrolledTo);
+  });
+
+  // Spec 03, Decision 15.
+  test("the back link returns to the gallery where it was", async ({
+    page,
+  }) => {
+    const scrolledTo = await openLastOrbitFromScrolledGallery(page);
+
+    await page.getByRole("link", { name: es.detail.backLink }).click();
+
+    await expect(page).toHaveURL("/three-body");
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY))
+      .toBe(scrolledTo);
+  });
+
+  test("after landing on a detail page, the back link opens the gallery", async ({
+    page,
+  }) => {
+    const orbit = lastOrbit();
+    await page.goto(`/three-body/${orbit.slug}`);
+    // Hydrated, so the link's own handler decides where it goes.
+    await expect(
+      page.getByRole("radio", { name: es.detail.player.speedOption(1) }),
+    ).toBeEnabled();
+
+    await page.getByRole("link", { name: es.detail.backLink }).click();
+
+    await expect(page).toHaveURL("/three-body");
+    await expect(
+      page.getByRole("heading", { level: 1, name: es.threeBody.title }),
+    ).toBeVisible();
   });
 });
 
@@ -79,3 +88,36 @@ test("gallery thumbnails render without JavaScript", async ({ browser }) => {
 
   await context.close();
 });
+
+/** Opens the last orbit from the gallery scrolled to its card; returns that scroll. */
+async function openLastOrbitFromScrolledGallery(page: Page) {
+  await page.goto("/three-body");
+  const orbit = lastOrbit();
+
+  const lastCard = page
+    .getByRole("main")
+    .getByRole("link", { name: es.orbits[orbit.slug].name });
+
+  await lastCard.scrollIntoViewIfNeeded();
+  const scrolledTo = await page.evaluate(() => window.scrollY);
+
+  expect(scrolledTo).toBeGreaterThan(0);
+
+  await lastCard.click();
+
+  await expect(
+    page.getByRole("heading", { level: 1, name: es.orbits[orbit.slug].name }),
+  ).toBeVisible();
+
+  return scrolledTo;
+}
+
+function lastOrbit() {
+  const orbit = orbits.at(-1);
+
+  if (orbit === undefined) {
+    throw new Error("no orbit to open");
+  }
+
+  return orbit;
+}

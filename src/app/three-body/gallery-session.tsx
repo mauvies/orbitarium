@@ -1,19 +1,17 @@
 "use client";
 
 import { createContext, type ReactNode, useContext, useState } from "react";
+import type { OrbitSlug } from "@/orbits";
 import {
   DEFAULT_DETAIL_PREFERENCES,
   type DetailPreferences,
 } from "./[slug]/detail-preferences";
 
-/**
- * What the gallery section remembers while the reader moves between its
- * pages. It lives in the gallery layout, so it resets on reload (spec 03,
- * Decision 10).
- */
 type GallerySession = {
   readonly detailPreferences: DetailPreferences;
+  readonly orbitOpenedFromCard: OrbitSlug | null;
   readonly changeDetailPreferences: (preferences: DetailPreferences) => void;
+  readonly rememberOrbitOpenedFromCard: (slug: OrbitSlug) => void;
 };
 
 const GallerySessionContext = createContext<GallerySession | null>(null);
@@ -27,9 +25,17 @@ export function GallerySessionProvider({ children }: Props) {
     DEFAULT_DETAIL_PREFERENCES,
   );
 
+  const [orbitOpenedFromCard, rememberOrbitOpenedFromCard] =
+    useState<OrbitSlug | null>(null);
+
   return (
     <GallerySessionContext
-      value={{ detailPreferences, changeDetailPreferences }}
+      value={{
+        detailPreferences,
+        orbitOpenedFromCard,
+        changeDetailPreferences,
+        rememberOrbitOpenedFromCard,
+      }}
     >
       {children}
     </GallerySessionContext>

@@ -1,7 +1,8 @@
-import { Card, CardLink } from "@/components/card";
+import { Card } from "@/components/card";
 import { OrbitThumbnail } from "@/components/orbit-thumbnail";
 import { es } from "@/content/es";
 import type { OrbitPreset } from "@/orbits";
+import { OrbitCardLink } from "./orbit-card-link";
 import { StabilityStatus } from "./stability-status";
 
 interface Props {
@@ -15,9 +16,9 @@ export function OrbitCard({ orbit }: Props) {
       <div className="px-1 pt-4 pb-1">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-heading text-card font-medium text-strong">
-            <CardLink href={`/three-body/${orbit.slug}`}>
+            <OrbitCardLink slug={orbit.slug}>
               {es.orbits[orbit.slug].name}
-            </CardLink>
+            </OrbitCardLink>
           </h2>
           <p className="shrink-0 text-small text-muted">
             {es.threeBody.period(orbit.period)}

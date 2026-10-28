@@ -45,7 +45,7 @@ export default async function OrbitPage({
             <ShareButton />
           </div>
           <p className="mt-8">
-            <BackLink />
+            <BackLink slug={orbit.slug} />
           </p>
         </div>
       </div>

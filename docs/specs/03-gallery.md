@@ -1,6 +1,6 @@
 # Spec 03: Orbit gallery (Part B)
 
-Status: implemented (2026-10-24). Approved on 2026-10-23 and amended after the implementation plan review, before any gallery code. Amended on 2026-10-28: the gallery's filter is withdrawn (Decision 8), the detail page has one canvas shape and its controls in one row (Decisions 5 and 11), and a share button (Decision 14).
+Status: implemented (2026-10-24). Approved on 2026-10-23 and amended after the implementation plan review, before any gallery code. Amended on 2026-10-28: the gallery's filter is withdrawn (Decision 8), the detail page has one canvas shape and its controls in one row (Decisions 5 and 11), a share button (Decision 14), and a back link that returns to the gallery as it was left (Decision 15).
 
 ## Goal
 
@@ -42,6 +42,7 @@ Builds on spec 02 (`@/orbits`: catalog, playback, `tracePeriod`) and on `docs/de
     - **End to end:** pages, navigation, state preservation, keyboard use and accessibility, in Playwright with axe, in Chromium, run in CI against a production build.
     - **Not asserted:** drawing itself is reviewed visually, from screenshots at the three viewports, not through screenshot comparison, which depends on the platform's rendering.
 14. **A share button on each detail page.** «Compartir», below the facts and above the back link, a secondary button with a share icon. Where the browser has a share sheet (`navigator.share`, most phones and Safari) it opens it with the page's title and URL; elsewhere it copies the URL, and «Enlace copiado» replaces the label for 2 s and is announced in a polite live region. A dismissed share sheet does nothing; a failed copy says «No se ha podido copiar el enlace». Disabled until the page hydrates, like the other controls.
+15. **«Volver a la galería» returns to the gallery as it was left.** When the reader opened the orbit from a gallery card, the link goes back in history (`router.back()`), so the router restores the gallery's scroll, as the browser's back button does. When the reader landed on the detail page from outside (a shared link, a reload), there is no gallery behind them, and the link opens `/three-body` at the top. The gallery layout remembers the orbit last opened from a card, set by the card link's `onNavigate`, so a modified click that opens a new tab sets nothing, and a reader who reaches the page by the browser's back button after landing on it directly is not sent out of the site. Cost: the back link and the gallery's card links become client components.
 
 ## Content per orbit
 
@@ -64,7 +65,7 @@ The display names are exactly the brief's, untranslated, because they are the na
 | G3 | Every orbit has a detail page at `/three-body/[slug]` that loads directly (a shared link), with its own title, and an unknown slug returns a 404. Its share button opens the share sheet or copies the URL (Decision 14). | §03 (shareable URL) | E2E: "each orbit page loads from its URL"; "an unknown orbit is a 404"; "the share button sits below the facts", "without a share sheet, the share button copies the URL"; `share-link.test.ts` |
 | G4 | The detail page animates the orbit: the bodies move along the faint path, and with correction on they stay on it indefinitely. | §03 | E2E: "the bodies move" (canvas pixels change over time, on every orbit); spec 02 O5 for staying on the path |
 | G5 | Controls work by mouse and keyboard: play and pause, restart, speed (0.5×–4×), show path, show trail, correction on and off. Turning correction off makes Lagrange and goggles leave their path within 10 periods. | §03 (playback controls) | E2E: "controls work with the keyboard"; spec 02 O6 for the drift (Lagrange at period 8, goggles at period 4) |
-| G6 | Going back from a detail page to the gallery keeps the scroll position; detail preferences persist across orbits. | §04 | E2E: "returning to the gallery keeps its state"; "detail preferences persist across orbits and reset on reload" |
+| G6 | Going back from a detail page to the gallery, by the browser or by «Volver a la galería», keeps the scroll position; a reader who landed on the detail page directly gets the gallery from that link; detail preferences persist across orbits. | §04, Decision 15 | E2E: "returning to the gallery keeps its scroll position", "the back link returns to the gallery where it was", "after landing on a detail page, the back link opens the gallery"; "detail preferences persist across orbits and reset on reload" |
 | G7 | Each preset records whether it holds within 0.1 of its path for 30 periods without correction (Decision 9), and the gallery's cards show it. | Decision 9 | `src/orbits/stability.test.ts` for figure-eight, moth I, Lagrange and goggles; `pnpm measure:stability` for all six, failing on a mismatch, recorded here. Butterfly I and yin-yang I are left to the script: in Vitest they would add about 3 s and 20 s to the suite. |
 | G8 | Accessibility: no axe violations on the home, gallery and every detail page; every control has a label; focus is visible; the canvas has a text alternative; reduced motion starts paused. | §04 | E2E with axe (WCAG 2.1 A and AA) on every page, including `/gravitation` and the 404; "focus is visible on every control"; "the canvas has a text alternative"; "reduced motion starts paused" |
 | G9 | Responsive: at 360 px, 768 px and 1280 px wide there is no horizontal scroll, the gallery grid adapts (at 1280 × 800 its six cards fit the screen, below the header) and the detail controls stay usable: inside the viewport, not overlapping, with targets of at least 24 × 24 CSS px (WCAG 2.2, 2.5.8). | §04 | E2E at three viewports: "no horizontal scroll", "the gallery grid has 1, 2 and 3 columns", "detail controls stay inside the viewport with 24 px targets"; screenshots attached to the report for visual review |
@@ -211,7 +212,7 @@ The collision message, the disabled play button and restarting after a collision
 - **The cap is a substep count, not a time.** A device slower than the reference machine spends proportionally longer per frame. The budget leaves room for a device four times slower, which the throttled Chromium run in G10 checks.
 - **E2E tests are slower and can be flaky.** Mitigation: run them against a production build, wait on visible state instead of timers, no retries (a flaky test is fixed, not retried), and keep them to the behaviours in this table.
 - **Canvas testing is shallow.** E2E can only check that pixels change; whether the drawing looks right is a visual review, recorded with screenshots at the three viewports.
-- **Scroll restoration on back navigation** relies on Next.js's client router and the browser. The G6 test checks it; if it fails, the fix is decided then.
+- **Scroll restoration on back navigation** relies on Next.js's client router and the browser, for the back button and for «Volver a la galería» alike (Decision 15). The G6 tests check both.
 
 ## Change to spec 02
 
@@ -230,11 +231,11 @@ Code used by one route lives in that route's folder in `src/app/`, with its test
 | `src/app/(home)/page.tsx` | Home (a route group, so its components sit beside it without changing the URL) |
 | `src/app/(home)/hero-orbit.tsx`, `cannon-thumbnail.tsx` | The figure-eight hero; Newton's cannon, traced with `@/cannon` at build time (spec 04) |
 | `src/app/gravitation/` | The Part A lesson; its files are listed in spec 04 |
-| `src/app/three-body/layout.tsx`, `gallery-session.tsx` | What the gallery section remembers while browsing: the detail preferences (Decision 10) |
+| `src/app/three-body/layout.tsx`, `gallery-session.tsx` | What the gallery section remembers while browsing: the detail preferences (Decision 10) and the orbit last opened from a card (Decision 15) |
 | `src/app/three-body/page.tsx` | Static gallery: thumbnails built at build time |
-| `src/app/three-body/orbit-card.tsx`, `orbit-grid.tsx` | The gallery's cards and grid |
+| `src/app/three-body/orbit-card.tsx`, `orbit-card-link.tsx`, `orbit-grid.tsx` | The gallery's cards, their links, which remember the orbit opened (Decision 15), and the grid |
 | `src/app/three-body/stability-status.tsx` | The stability label, shared by the gallery and the detail page |
-| `src/app/three-body/[slug]/page.tsx` | Static detail page: params, metadata, facts, back link, player |
+| `src/app/three-body/[slug]/page.tsx`, `back-link.tsx` | Static detail page: params, metadata, facts, back link, player; the back link (Decision 15) |
 | `src/app/three-body/[slug]/orbit-facts.tsx` | The facts list |
 | `src/app/three-body/[slug]/speed.ts`, `orbit-frame.ts`, `trail.ts` | Speeds and the frame cap; one frame of the animation, pure; the trail |
 | `src/app/three-body/[slug]/orbit-player.tsx`, `player-controls.tsx`, `orbit-canvas.tsx`, `detail-preferences.ts` | The player: play state, restart and the collision message; the controls; the canvas element; the preferences the gallery layout keeps |
