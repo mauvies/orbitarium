@@ -81,6 +81,7 @@ The lesson at `/gravitation` has an AI tutor that explains, answers questions an
 - **A guided mode for the tutor.** Today the tutor answers when asked; it does not lead. A guided mode would add a «Guíame» start and a mode flag in the context it already receives, and instructions to take the lesson one part at a time: move there, explain it in two or three sentences, ask for the part's question, and continue once the learner profile shows the answer, going back over a misconception first. The tools, the profile and the per-message context already exist, so it is mostly instructions and one button; the cost is about two requests per part, and the model's consistency over a long sequence would need testing.
 - **The tutor's hints can still give away the answer** to a question the learner has not answered ([spec 05, Decision 5](docs/specs/05-tutor.md)).
 - **The free tier can be slow or unavailable under high demand;** the tutor then falls back to a second model, says when an answer is slow, and offers to retry if both fail ([spec 05, Decision 2](docs/specs/05-tutor.md)).
+- **The rate limits are best-effort on a serverless platform.** They live in memory per server instance, so a cold start or a second instance resets the counters; with more time I'd move them to a shared store such as Redis (for example, Upstash) ([spec 05, Decision 9](docs/specs/05-tutor.md)).
 
 ## Use of AI
 
