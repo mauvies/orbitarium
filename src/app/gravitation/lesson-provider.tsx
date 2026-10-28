@@ -149,6 +149,6 @@ function useLesson(): Lesson {
   if (lesson === null) {
     throw new Error("useLesson must be used inside LessonProvider");
   }
-  
+
   return lesson;
 }

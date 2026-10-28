@@ -80,7 +80,7 @@ A border that is what identifies a control needs 3:1 against its background (WCA
 
 ```
 ┌────────────────────────────┐
-│ ┌────────────────────────┐ │  plate: bg-bottom, radius 12, aspect 2:1,
+│ ┌────────────────────────┐ │  plate: bg-bottom, radius 12, aspect 2:1 (5:2 from 1,024 px),
 │ │      orbit linework    │ │  orbit in accent at 85 % opacity, 1.25 px;
 │ │   ·  ·  ·  (3 starts)  │ │  the three bodies' starting points as
 │ └────────────────────────┘ │  small strong dots

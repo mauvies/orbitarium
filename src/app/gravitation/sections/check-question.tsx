@@ -89,7 +89,7 @@ export function CheckQuestion({ question }: Props) {
         >
           {question.options.map((option) => {
             const isAnswer = answered === option.id;
-            
+
             return (
               <button
                 key={option.id}

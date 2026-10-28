@@ -9,12 +9,9 @@ import {
 /**
  * What the gallery section remembers while the reader moves between its
  * pages. It lives in the gallery layout, so it resets on reload (spec 03,
- * Decisions 8 and 10).
+ * Decision 10).
  */
 type GallerySession = {
-  /** The gallery's query string, so the back link keeps the filter. */
-  readonly gallerySearch: string;
-  readonly rememberGallerySearch: (search: string) => void;
   readonly detailPreferences: DetailPreferences;
   readonly changeDetailPreferences: (preferences: DetailPreferences) => void;
 };
@@ -22,18 +19,12 @@ type GallerySession = {
 const GallerySessionContext = createContext<GallerySession | null>(null);
 
 export function GallerySessionProvider({ children }: { children: ReactNode }) {
-  const [gallerySearch, rememberGallerySearch] = useState("");
   const [detailPreferences, changeDetailPreferences] = useState(
     DEFAULT_DETAIL_PREFERENCES,
   );
   return (
     <GallerySessionContext
-      value={{
-        gallerySearch,
-        rememberGallerySearch,
-        detailPreferences,
-        changeDetailPreferences,
-      }}
+      value={{ detailPreferences, changeDetailPreferences }}
     >
       {children}
     </GallerySessionContext>

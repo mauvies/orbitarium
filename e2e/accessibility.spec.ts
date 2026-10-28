@@ -21,10 +21,6 @@ type CheckedPage = {
   readonly ready?: (page: Page) => Promise<void>;
 };
 
-const galleryReady = (page: Page) =>
-  expect(
-    page.getByRole("radio", { name: es.threeBody.filter.all }),
-  ).toBeEnabled();
 const detailReady = (page: Page) =>
   expect(
     page.getByRole("button", { name: es.detail.player.restart }),
@@ -32,12 +28,7 @@ const detailReady = (page: Page) =>
 
 const PAGES: readonly CheckedPage[] = [
   { name: "the home page", path: "/" },
-  { name: "the gallery", path: "/three-body", ready: galleryReady },
-  {
-    name: "a filtered gallery",
-    path: "/three-body?filter=holds",
-    ready: galleryReady,
-  },
+  { name: "the gallery", path: "/three-body" },
   ...orbits.map((orbit) => ({
     name: `the ${orbit.slug} page`,
     path: `/three-body/${orbit.slug}`,

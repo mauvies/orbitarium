@@ -14,11 +14,7 @@ interface Props {
   actions?: Actions;
 }
 
-export function QuestionExplanation({
-  question,
-  optionId,
-  actions,
-}: Props) {
+export function QuestionExplanation({ question, optionId, actions }: Props) {
   const text = questionText(question.id);
   const correctOption = question.options.find(
     ({ misconception }) => misconception === null,

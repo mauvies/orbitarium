@@ -1,19 +1,12 @@
 import type { ReactNode } from "react";
 
-/**
- * The page's h1 and lead, at the same height on every page
- * (docs/design/visual-style.md, "Page header"). `display` is the home hero's
- * larger title.
- */
-export function PageHeader({
-  title,
-  lead,
-  display = false,
-}: {
+interface Props {
   title: string;
   lead?: ReactNode;
   display?: boolean;
-}) {
+}
+
+export function PageHeader({ title, lead, display = false }: Props) {
   return (
     <div className="pt-10 lg:pt-14">
       <h1
@@ -24,7 +17,7 @@ export function PageHeader({
         {title}
       </h1>
       {lead !== undefined && (
-        <p className="mt-3 max-w-[70ch] text-lead">{lead}</p>
+        <p className="mt-3 max-w-[80ch] text-lead">{lead}</p>
       )}
     </div>
   );

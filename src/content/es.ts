@@ -121,7 +121,7 @@ export const es = {
   },
   threeBody: {
     title: "El problema de los tres cuerpos",
-    lead: "Seis soluciones periódicas: configuraciones en las que tres cuerpos se persiguen para siempre.",
+    lead: "Tres cuerpos que se atraen no tienen una fórmula general que prediga su movimiento, que suele ser caótico. Aun así, hay casos especiales en los que los tres vuelven una y otra vez a su posición de partida: las soluciones periódicas. Aquí tienes seis, cada una con su simulación.",
     description:
       "Seis soluciones periódicas del problema de los tres cuerpos. Elige una de la galería de soluciones para verla en movimiento.",
     // Spec 03, Decision 9: what the simulation shows, not a formal result.
@@ -130,15 +130,6 @@ export const es = {
       drifts: "Se deshace sin corrección",
     },
     period: (period: number) => `T = ${twoDecimals.format(period)}`,
-    // Spec 03, Decision 8.
-    filter: {
-      legend: "Filtrar por estabilidad",
-      all: "Todas",
-      holds: "Se mantienen solas",
-      drifts: "Se deshacen sin corrección",
-      shown: (count: number) =>
-        count === 1 ? "Se muestra 1 órbita" : `Se muestran ${count} órbitas`,
-    },
   },
   orbits: orbitContent,
   detail: {

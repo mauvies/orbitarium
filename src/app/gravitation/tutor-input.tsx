@@ -12,11 +12,7 @@ interface Props {
   onSend: (text: string) => void;
 }
 
-export function TutorInput({
-  waiting,
-  unavailable,
-  onSend,
-}: Props) {
+export function TutorInput({ waiting, unavailable, onSend }: Props) {
   const [draft, setDraft] = useState({ text: "", suggested: false });
   const { text } = draft;
   const { suggestion } = useTutorPanel();
@@ -61,11 +57,7 @@ export function TutorInput({
           setDraft({ text: e.currentTarget.value, suggested: false })
         }
         onKeyDown={(e) => {
-          if (
-            e.key === "Enter" &&
-            !e.shiftKey &&
-            !e.nativeEvent.isComposing
-          ) {
+          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
             e.preventDefault();
             send();
           }

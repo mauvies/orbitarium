@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
 import { orbitPath } from "@/drawing/orbit-path";
 import { getOrbit, type OrbitPreset, orbits } from "@/orbits";
-import { BackToGalleryLink } from "./back-to-gallery-link";
 import { CANVAS_MAX_WIDTH_PX } from "./orbit-animation";
 import { OrbitFacts } from "./orbit-facts";
 import { OrbitPlayer } from "./orbit-player";
@@ -44,7 +44,12 @@ export default async function OrbitPage({
             <OrbitFacts orbit={orbit} />
           </div>
           <p className="mt-8">
-            <BackToGalleryLink />
+            <Link
+              href="/three-body"
+              className="text-accent underline underline-offset-4"
+            >
+              {es.detail.backLink}
+            </Link>
           </p>
         </div>
       </div>
