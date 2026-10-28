@@ -133,7 +133,13 @@ export const es = {
   },
   orbits: orbitContent,
   detail: {
-    backLink: "Volver a la galería de soluciones",
+    backLink: "Volver a la galería",
+    // Spec 03, Decision 14.
+    share: {
+      label: "Compartir",
+      copied: "Enlace copiado",
+      failed: "No se ha podido copiar el enlace",
+    },
     facts: {
       discovery: "Descubierta por",
       period: "Período",

@@ -171,3 +171,41 @@ test("detail preferences persist across orbits and reset on reload", async ({
   await expect(trail).toBeChecked();
   await expect(correction).toBeChecked();
 });
+
+// Spec 03, Decision 14.
+test.describe("the share button", () => {
+  test.use({
+    viewport: { width: 1280, height: 800 },
+    permissions: ["clipboard-read", "clipboard-write"],
+  });
+
+  test("the share button sits below the facts", async ({ page }) => {
+    await page.goto("/three-body/moth-i");
+    const facts = await page.getByRole("main").locator("dl").boundingBox();
+    const button = await page
+      .getByRole("button", { name: es.detail.share.label })
+      .boundingBox();
+    if (facts === null || button === null) {
+      throw new Error("the facts or the button are not laid out");
+    }
+
+    expect(button.y).toBeGreaterThanOrEqual(facts.y + facts.height);
+    expect(button.x).toBeCloseTo(facts.x, 0);
+  });
+
+  test("without a share sheet, the share button copies the URL", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, "share", { value: undefined });
+    });
+    await page.goto("/three-body/moth-i");
+
+    await page.getByRole("button", { name: es.detail.share.label }).click();
+
+    await expect(page.getByRole("status")).toHaveText(es.detail.share.copied);
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      page.url(),
+    );
+  });
+});

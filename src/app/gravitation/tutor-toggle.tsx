@@ -1,23 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useHydrated } from "@/components/use-hydrated";
 import { es } from "@/content/es";
 import { useTutorPanel } from "./lesson-provider";
 import { TUTOR_PANEL_ID } from "./tutor-ids";
-import { useHydrated } from "./use-hydrated";
 
 const { tutor } = es.gravitation;
 
-// Spec 04, Decision 15: at the bottom right; open, the floating card sits
-// above it from 1,280 px, and it moves above the sheet below.
 const CLOSED = "bottom-4 right-4";
 const OPEN = "bottom-[calc(min(55dvh,32rem)+1rem)] right-4 xl:bottom-4";
 
-/**
- * Opens and closes the tutor's panel. It stays visible while the panel is
- * open: the panel is non-modal, so focus can leave it, and this is the short
- * way back. Its name stays the same; `aria-expanded` carries the state.
- */
 export function TutorToggle() {
   const { open, setOpen } = useTutorPanel();
   const hydrated = useHydrated();

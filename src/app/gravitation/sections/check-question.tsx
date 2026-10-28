@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useHydrated } from "@/components/use-hydrated";
 import { es } from "@/content/es";
 import { grade, type Question, questionText } from "@/lib/lesson/questions";
 import {
@@ -8,7 +9,6 @@ import {
   useAskTutor,
   useLessonSession,
 } from "../lesson-provider";
-import { useHydrated } from "../use-hydrated";
 import { QuestionExplanation } from "./question-explanation";
 
 const ui = es.gravitation.question;

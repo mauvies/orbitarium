@@ -5,6 +5,7 @@ import {
   CANNON_PRESETS,
   kmPerSecondToKmPerHour,
 } from "@/cannon";
+import { useHydrated } from "@/components/use-hydrated";
 import { es } from "@/content/es";
 import {
   useClearEarlierPaths,
@@ -12,7 +13,6 @@ import {
   useLessonControls,
   useLessonSession,
 } from "../lesson-provider";
-import { useHydrated } from "../use-hydrated";
 import { PredictedPathToggle } from "./predicted-path-toggle";
 import { SettingRow } from "./setting-row";
 
@@ -21,22 +21,14 @@ const { cannon } = es.gravitation;
 const PRESET_BUTTON =
   "rounded-[10px] border border-muted bg-surface px-3 py-2 text-small text-strong last:col-span-2 hover:bg-surface-raised";
 
-/**
- * The cannon's controls, in the order of spec 04, Decision 8: the launch
- * button and clearing the paths, the speed, the angle, the height, the
- * predicted path's toggle and the presets. They change the cannon only
- * through the session's transitions, which the tutor's controller also uses
- * (Decision 12): moving a control sets, the launch button and the presets
- * launch. Unlike the tutor's launch, theirs never scrolls the page. Disabled
- * until the page hydrates: a click before then would be lost.
- */
 export function CannonPanel() {
-  const { set, limits } = useLessonControls().cannon;
+  const hydrated = useHydrated();
   const launch = useLaunchCannon();
   const session = useLessonSession();
-  const { speedKmPerSecond, angleDegrees, altitudeKm } = session.cannon;
   const clearEarlierPaths = useClearEarlierPaths();
-  const hydrated = useHydrated();
+  const { set, limits } = useLessonControls().cannon;
+
+  const { speedKmPerSecond, angleDegrees, altitudeKm } = session.cannon;
 
   return (
     <fieldset disabled={!hydrated} className="grid gap-3 sm:gap-5">

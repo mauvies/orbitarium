@@ -9,6 +9,7 @@ import { BackLink } from "./back-link";
 import { CANVAS_MAX_WIDTH_PX } from "./orbit-animation";
 import { OrbitFacts } from "./orbit-facts";
 import { OrbitPlayer } from "./orbit-player";
+import { ShareButton } from "./share-button";
 
 export const dynamicParams = false;
 
@@ -39,6 +40,9 @@ export default async function OrbitPage({
         />
         <div className="max-w-[60ch]">
           <OrbitFacts orbit={orbit} />
+          <div className="mt-4">
+            <ShareButton />
+          </div>
           <p className="mt-8">
             <BackLink />
           </p>
