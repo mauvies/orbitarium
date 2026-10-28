@@ -48,15 +48,19 @@ export function ShareButton() {
         disabled={!isHydrated}
         className="inline-flex shrink-0 items-center gap-2 rounded-[10px] border border-line bg-surface px-3 py-2 text-small text-strong hover:bg-surface-raised"
       >
-        <svg aria-hidden="true" viewBox="0 0 20 20" className="size-5">
-          <path
-            d="M10 13V3M6 7l4-4 4 4M4 11v5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          className="size-5"
+        >
+          <circle cx="15" cy="4.5" r="2.5" />
+          <circle cx="5" cy="10" r="2.5" />
+          <circle cx="15" cy="15.5" r="2.5" />
+          <path d="M7.2 8.8l5.6-3.1M7.2 11.2l5.6 3.1" />
         </svg>
         <span>{message || share.label}</span>
       </button>

@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { es } from "@/content/es";
 import { type OrbitPreset, orbits } from "@/orbits";
 import { canvasSnapshot, hasDrawing, waitForFrames } from "./support";
@@ -6,6 +6,13 @@ import { canvasSnapshot, hasDrawing, waitForFrames } from "./support";
 // Enough frames for a first drawing, and for a moving orbit to change pixels.
 const FRAMES_TO_DRAW = 5;
 const FRAMES_WATCHED = 30;
+
+// The longest name must still leave room for the share button beside it.
+const longestNamed = orbits.reduce((longest, orbit) =>
+  es.orbits[orbit.slug].name.length > es.orbits[longest.slug].name.length
+    ? orbit
+    : longest,
+);
 
 const orbitCanvas = (page: Page, orbit: OrbitPreset) =>
   page.getByRole("img", {
@@ -28,6 +35,7 @@ for (const orbit of orbits) {
     await expect(
       page.getByRole("heading", { level: 1, name: content.name }),
     ).toBeVisible();
+    await expect(page.getByRole("main")).toContainText(content.description);
     await expect(page.getByRole("main")).toContainText(content.discovery);
     await expect(page.getByRole("main")).toContainText(
       es.detail.period(orbit.period),
@@ -190,27 +198,50 @@ test("detail preferences persist across orbits and reset on reload", async ({
   await expect(correction).toBeChecked();
 });
 
+// Spec 03, Decisions 14 and 15: the longest name, at the narrowest width too.
+for (const width of [360, 1280]) {
+  test.describe(`the detail page's header at ${width} px`, () => {
+    test.use({ viewport: { width, height: 800 } });
+
+    test.beforeEach(async ({ page }) => {
+      await page.goto(`/three-body/${longestNamed.slug}`);
+    });
+
+    test("the back link sits above the title", async ({ page }) => {
+      const link = await boxOf(
+        page.getByRole("link", { name: es.detail.backLink }),
+      );
+
+      const title = await boxOf(page.getByRole("heading", { level: 1 }));
+
+      expect(link.y + link.height).toBeLessThanOrEqual(title.y);
+    });
+
+    test("the share button sits on the title's row, at the canvas's right edge", async ({
+      page,
+    }) => {
+      const title = await boxOf(page.getByRole("heading", { level: 1 }));
+      const canvas = await boxOf(orbitCanvas(page, longestNamed));
+
+      const button = await boxOf(
+        page.getByRole("button", { name: es.detail.share.label }),
+      );
+
+      expect(button.x).toBeGreaterThanOrEqual(title.x + title.width);
+      expect(button.x + button.width).toBeCloseTo(canvas.x + canvas.width, 0);
+      expect(button.y + button.height / 2).toBeCloseTo(
+        title.y + title.height / 2,
+        -1,
+      );
+    });
+  });
+}
+
 // Spec 03, Decision 14.
 test.describe("the share button", () => {
   test.use({
     viewport: { width: 1280, height: 800 },
     permissions: ["clipboard-read", "clipboard-write"],
-  });
-
-  test("the share button sits below the facts", async ({ page }) => {
-    await page.goto("/three-body/moth-i");
-    const facts = await page.getByRole("main").locator("dl").boundingBox();
-
-    const button = await page
-      .getByRole("button", { name: es.detail.share.label })
-      .boundingBox();
-
-    if (facts === null || button === null) {
-      throw new Error("the facts or the button are not laid out");
-    }
-
-    expect(button.y).toBeGreaterThanOrEqual(facts.y + facts.height);
-    expect(button.x).toBeCloseTo(facts.x, 0);
   });
 
   test("without a share sheet, the share button copies the URL", async ({
@@ -230,3 +261,13 @@ test.describe("the share button", () => {
     );
   });
 });
+
+async function boxOf(locator: Locator) {
+  const box = await locator.boundingBox();
+
+  if (box === null) {
+    throw new Error("the element is not laid out");
+  }
+
+  return box;
+}

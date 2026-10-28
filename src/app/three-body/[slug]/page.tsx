@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/container";
-import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
 import { orbitPath } from "@/drawing/orbit-path";
 import { getOrbit, type OrbitPreset, orbits } from "@/orbits";
@@ -33,20 +32,25 @@ export default async function OrbitPage({
 
   return (
     <Container className="pb-16">
-      <PageHeader title={content.name} />
-      <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,45rem)_minmax(0,1fr)]">
+      <p className="pt-6">
+        <BackLink slug={orbit.slug} />
+      </p>
+      <div className="mt-4 flex max-w-180 items-center justify-between gap-4">
+        <h1 className="min-w-0 font-heading font-semibold text-strong text-title">
+          {content.name}
+        </h1>
+        <ShareButton />
+      </div>
+      <div className="mt-6 grid items-start gap-8 lg:grid-cols-[minmax(0,45rem)_minmax(0,1fr)]">
         <OrbitPlayer
           orbit={orbit}
           path={orbitPath(orbit, CANVAS_MAX_WIDTH_PX)}
         />
         <div className="max-w-[60ch]">
-          <OrbitFacts orbit={orbit} />
-          <div className="mt-4">
-            <ShareButton />
+          <p>{content.description}</p>
+          <div className="mt-6">
+            <OrbitFacts orbit={orbit} />
           </div>
-          <p className="mt-8">
-            <BackLink slug={orbit.slug} />
-          </p>
         </div>
       </div>
     </Container>
