@@ -1,23 +1,20 @@
 import type { Vec2 } from "@/physics";
 
-/** The distance from `point` to the closed path through `path`'s points. */
-export function distanceToClosedPath(
-  point: Vec2,
-  path: readonly Vec2[],
-): number {
-  return path.reduce((nearest, start, i) => {
-    const end = path[(i + 1) % path.length] ?? start;
-
-    return Math.min(nearest, distanceToSegment(point, start, end));
-  }, Number.POSITIVE_INFINITY);
-}
-
 /** The largest distance from any of `points` to the closed path. */
 export function largestDistanceToClosedPath(
   points: readonly Vec2[],
   path: readonly Vec2[],
 ): number {
   return Math.max(...points.map((point) => distanceToClosedPath(point, path)));
+}
+
+/** The distance from `point` to the closed path through `path`'s points. */
+function distanceToClosedPath(point: Vec2, path: readonly Vec2[]): number {
+  return path.reduce((nearest, start, i) => {
+    const end = path[(i + 1) % path.length] ?? start;
+
+    return Math.min(nearest, distanceToSegment(point, start, end));
+  }, Number.POSITIVE_INFINITY);
 }
 
 function distanceToSegment(point: Vec2, start: Vec2, end: Vec2): number {
