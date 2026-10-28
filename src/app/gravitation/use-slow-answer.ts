@@ -1,0 +1,20 @@
+import type { ChatStatus } from "ai";
+import { useEffect, useState } from "react";
+import { SLOW_ANSWER_MS } from "@/lib/tutor/limits";
+
+export function useSlowAnswer(status: ChatStatus): boolean {
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    if (status !== "submitted") {
+      return;
+    }
+    const timer = setTimeout(() => setSlow(true), SLOW_ANSWER_MS);
+    return () => {
+      clearTimeout(timer);
+      setSlow(false);
+    };
+  }, [status]);
+
+  return slow;
+}

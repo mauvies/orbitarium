@@ -20,12 +20,10 @@ import { clientKey, type RateLimiter, type TurnKind } from "./rate-limit";
 import { MAX_TOOL_CALLS, toolCallsSinceLearnerMessage } from "./tool-rounds";
 
 export type TutorDependencies = {
-  /** Throws, naming the variable, when the model is not configured. */
-  readonly resolveModel: () => LanguageModel;
-  readonly log: (message: string) => void;
-  /** How long a request may take before it is aborted as `unavailable`. */
   readonly timeoutMs: number;
   readonly rateLimiter: RateLimiter;
+  readonly resolveModel: () => LanguageModel;
+  readonly log: (message: string) => void;
 };
 
 type TutorRequest =
@@ -97,9 +95,9 @@ export async function handleTutorRequest(
 
 /**
  * A request that hits its timeout ends the stream with an `abort` chunk, which
- * the page reads as an empty answer. The learner may have left too, but then
- * nobody reads the stream, so any abort here is the timeout (spec 05,
- * Decision 2).
+ * the page reads as an empty answer, so it becomes `busy` (spec 05, Decision
+ * 10). The learner may have left too, but then nobody reads the stream, so
+ * any abort here is the timeout (Decision 2).
  */
 function timeoutAsError(
   log: (message: string) => void,
@@ -108,7 +106,7 @@ function timeoutAsError(
     transform(chunk, controller) {
       if (chunk.type === "abort") {
         log(`tutor: ${chunk.reason ?? "the request was aborted"}`);
-        controller.enqueue({ type: "error", errorText: "unavailable" });
+        controller.enqueue({ type: "error", errorText: "busy" });
       } else {
         controller.enqueue(chunk);
       }

@@ -1,4 +1,9 @@
-import { APICallError, simulateReadableStream, type UIMessage } from "ai";
+import {
+  APICallError,
+  type LanguageModel,
+  simulateReadableStream,
+  type UIMessage,
+} from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, it } from "vitest";
 import { learnerProfile } from "@/lib/lesson/learner-profile";
@@ -7,6 +12,7 @@ import {
   MAX_CONVERSATION_MESSAGES,
   MAX_LEARNER_MESSAGE_CHARACTERS,
 } from "@/lib/tutor/limits";
+import { withFallback } from "./fallback-model";
 import type { RateLimitDecision, RateLimiter, TurnKind } from "./rate-limit";
 import { handleAvailabilityRequest, handleTutorRequest } from "./tutor-handler";
 
@@ -146,7 +152,7 @@ function limiterSaying(decision: RateLimitDecision) {
 
 async function handle(
   body: unknown,
-  model: MockLanguageModelV4 = answeringModel().model,
+  model: LanguageModel = answeringModel().model,
   { rateLimiter }: { rateLimiter: RateLimiter } = limiterSaying("allowed"),
   headers: Record<string, string> = {},
 ) {
@@ -320,7 +326,7 @@ describe("handleTutorRequest: the model", () => {
     );
 
     expect(attempts()).toBe(1);
-    expect(text).toContain('"errorText":"unavailable"');
+    expect(text).toContain('"errorText":"busy"');
     expect(logged.join("\n")).toContain("overloaded");
   });
 });
@@ -391,9 +397,9 @@ describe("handleTutorRequest: a failing model", () => {
   });
 });
 
-// Spec 05, Decision 2 and T2: a request that hangs ends as unavailable.
+// Spec 05, Decision 2 and T2: a request that hangs ends as busy.
 describe("handleTutorRequest: a model that does not answer", () => {
-  it("is unavailable once the timeout passes", async () => {
+  it("is busy once the timeout passes", async () => {
     const logged: string[] = [];
     const response = await handleTutorRequest(
       post({ messages: [QUESTION], context: AT_THE_CANNON }),
@@ -405,7 +411,7 @@ describe("handleTutorRequest: a model that does not answer", () => {
       },
     );
 
-    expect(await response.text()).toContain('"errorText":"unavailable"');
+    expect(await response.text()).toContain('"errorText":"busy"');
     expect(logged).toHaveLength(1);
   });
 });
@@ -496,6 +502,19 @@ describe("handleTutorRequest: the rate limit", () => {
     await handle(BODY, answeringModel().model, limiter);
 
     expect(limiter.checks[0]?.turn).toBe("new-turn");
+  });
+
+  it("a fallback counts as one request", async () => {
+    const limiter = limiterSaying("allowed");
+    const model = withFallback(
+      overloadedModel().model,
+      answeringModel().model,
+      { silenceMs: TIMEOUT_MS, log: () => {} },
+    );
+    const { text } = await handle(BODY, model, limiter);
+
+    expect(text).toContain(ANSWER);
+    expect(limiter.checks).toHaveLength(1);
   });
 
   it("a request after a tool result is checked as a continuation", async () => {

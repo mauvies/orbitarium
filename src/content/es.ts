@@ -323,6 +323,9 @@ export const es = {
       learner: "Tú:",
       tutor: "Tutor:",
       thinking: "Pensando…",
+      // Spec 05, Decision 11: in place of «Pensando…» once the wait is long.
+      slowAnswer:
+        "El tutor está muy solicitado ahora mismo; la respuesta puede tardar un poco más.",
       // Spec 05, Decisions 10 and 12: why the tutor is silent, by the code the
       // route answers with.
       checking: "Comprobando el tutor…",
@@ -335,6 +338,7 @@ export const es = {
           "El tutor ya no puede responder más preguntas hoy. Vuelve mañana: la lección sigue funcionando sin él.",
         "too-long":
           "Esta conversación ya es muy larga. Empieza una nueva con «Nueva conversación».",
+        busy: "El tutor está muy solicitado ahora mismo. Inténtalo de nuevo en unos segundos.",
         unavailable:
           "El tutor no está disponible ahora mismo. Inténtalo de nuevo.",
       },

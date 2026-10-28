@@ -8,37 +8,35 @@ import { TutorChatMessage } from "./tutor-chat-message";
 import { TutorGreeting } from "./tutor-greeting";
 import { TutorInput } from "./tutor-input";
 import { announcedNotice, TutorNotice } from "./tutor-notice";
+import { useSlowAnswer } from "./use-slow-answer";
 
 const { tutor } = es.gravitation;
 
-// The failures that asking again can fix (spec 05, Decision 10).
 const RETRYABLE: readonly NoticeKind[] = [
   "rate-limited",
   "daily-limit",
+  "busy",
   "unavailable",
 ];
 
-/**
- * The conversation inside the panel (spec 05, Decision 11). The list of
- * messages is not a live region: each finished answer, and each notice, is
- * announced once, in full, through a hidden region of its own, apart from the
- * one that announces the tutor's moves.
- */
+interface Props {
+  chat: UseChatHelpers<TutorMessage>;
+  availability: Availability;
+  retryAvailability: () => void;
+  atCannon: boolean;
+}
+
 export function TutorConversation({
   chat: { messages, status, error, sendMessage, regenerate },
   availability,
   retryAvailability,
   atCannon,
-}: {
-  chat: UseChatHelpers<TutorMessage>;
-  availability: Availability;
-  retryAvailability: () => void;
-  atCannon: boolean;
-}) {
+}: Props) {
   const [announcement, setAnnouncement] = useState("");
   const announced = useRef<string | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const waiting = status === "submitted" || status === "streaming";
+  const slow = useSlowAnswer(status);
   const kind = noticeKind({
     availability,
     errorMessage: error?.message,
@@ -66,6 +64,12 @@ export function TutorConversation({
       announce(notice);
     }
   }, [notice, announce]);
+
+  useEffect(() => {
+    if (slow) {
+      announce(tutor.slowAnswer);
+    }
+  }, [slow, announce]);
 
   useEffect(() => {
     const element = list.current;
@@ -99,7 +103,9 @@ export function TutorConversation({
         )}
       </section>
       {status === "submitted" && (
-        <p className="mt-2 text-muted text-small">{tutor.thinking}</p>
+        <p className="mt-2 text-muted text-small">
+          {slow ? tutor.slowAnswer : tutor.thinking}
+        </p>
       )}
       {kind !== null && <TutorNotice kind={kind} onRetry={retryFor(kind)} />}
       <TutorInput

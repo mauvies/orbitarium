@@ -79,7 +79,7 @@ The lesson at `/gravitation` has an AI tutor that explains, answers questions an
 - **Searching for new orbits,** the brief's optional extra for Part B, is not done.
 - **The lesson does not reorder itself by the learner's answers;** adaptation lives in the tutor.
 - **The tutor's hints can still give away the answer** to a question the learner has not answered ([spec 05, Decision 5](docs/specs/05-tutor.md)).
-- **The free tier can be slow or unavailable under high demand;** the tutor then offers to retry.
+- **The free tier can be slow or unavailable under high demand;** the tutor then falls back to a second model, says when an answer is slow, and offers to retry if both fail ([spec 05, Decision 2](docs/specs/05-tutor.md)).
 
 ## Use of AI
 

@@ -75,8 +75,26 @@ describe("toErrorCode", () => {
     expect(toErrorCode(error)).toBe("rate-limited");
   });
 
-  it("an overloaded model is unavailable", () => {
-    expect(toErrorCode(googleError(503, undefined))).toBe("unavailable");
+  it("an overloaded model is busy", () => {
+    expect(toErrorCode(googleError(503, undefined))).toBe("busy");
+  });
+
+  it("any server error from the provider is busy", () => {
+    expect(toErrorCode(googleError(500, undefined))).toBe("busy");
+  });
+
+  it("an overloaded model inside a RetryError is busy", () => {
+    const error = new RetryError({
+      message: "Failed after 3 attempts",
+      reason: "maxRetriesExceeded",
+      errors: [googleError(503, undefined)],
+    });
+
+    expect(toErrorCode(error)).toBe("busy");
+  });
+
+  it("a refused request other than a 429 is unavailable", () => {
+    expect(toErrorCode(googleError(400, undefined))).toBe("unavailable");
   });
 
   it("a plain error is unavailable", () => {

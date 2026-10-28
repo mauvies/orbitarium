@@ -8,6 +8,10 @@ export type TutorModelId = `google:${string}`;
 // `.env.example` repeats it (spec 05, Decision 1).
 export const DEFAULT_TUTOR_MODEL: TutorModelId = "google:gemini-3.5-flash-lite";
 
+// Spec 05, Decision 2: asked once when the tutor's model is overloaded.
+export const FALLBACK_TUTOR_MODEL: TutorModelId =
+  "google:gemini-3.1-flash-lite";
+
 type Environment = Readonly<Record<string, string | undefined>>;
 
 type TutorSetup =

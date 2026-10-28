@@ -2,6 +2,7 @@ export const TUTOR_ERROR_CODES = [
   "rate-limited",
   "daily-limit",
   "too-long",
+  "busy",
   "unavailable",
 ] as const;
 

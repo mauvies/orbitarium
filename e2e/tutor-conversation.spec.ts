@@ -10,7 +10,7 @@ import {
 } from "@playwright/test";
 import { z } from "zod";
 import { es } from "@/content/es";
-import { MAX_CONVERSATION_MESSAGES } from "@/lib/tutor/limits";
+import { MAX_CONVERSATION_MESSAGES, SLOW_ANSWER_MS } from "@/lib/tutor/limits";
 
 const { tutor, sections, cannon, question, questions } = es.gravitation;
 
@@ -396,6 +396,26 @@ test.describe("writing", () => {
     await expect(panel.getByText(tutor.thinking)).toHaveCount(0);
     await expect(send).toBeEnabled();
   });
+
+  // Spec 05, Decision 11 and T18.
+  test("a slow answer says the tutor is in high demand", async ({ page }) => {
+    await page.clock.install();
+    const { release } = await serveTutor(page, { held: true });
+    await page.goto("/gravitation");
+    const { panel, answerAnnouncement } = await openTutor(page);
+    await ask(page, QUESTION);
+    await expect(panel.getByText(tutor.thinking)).toBeVisible();
+
+    await page.clock.runFor(SLOW_ANSWER_MS);
+
+    await expect(panel.getByText(tutor.slowAnswer)).toBeVisible();
+    await expect(panel.getByText(tutor.thinking)).toHaveCount(0);
+    await expect(answerAnnouncement).toHaveText(tutor.slowAnswer);
+
+    release();
+
+    await expect(panel.getByText(tutor.slowAnswer)).toHaveCount(0);
+  });
 });
 
 test.describe("answers", () => {
@@ -562,7 +582,12 @@ test.describe("the tutor's actions", () => {
 // Spec 05, Decision 10 and T8: a failure is shown as text, announced once,
 // and the learner's message stays.
 test.describe("errors", () => {
-  for (const code of ["rate-limited", "daily-limit", "unavailable"] as const) {
+  for (const code of [
+    "rate-limited",
+    "daily-limit",
+    "busy",
+    "unavailable",
+  ] as const) {
     test(`${code} is shown with «Reintentar», announced, and the message stays`, async ({
       page,
     }) => {
