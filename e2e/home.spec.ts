@@ -7,12 +7,9 @@ test("home links to the gallery and the lesson", async ({ page }) => {
   const main = page.getByRole("main");
 
   await main.getByRole("link", { name: es.home.gravitation.link }).click();
-  await expect(page).toHaveURL("/gravitation#cannon");
+  await expect(page).toHaveURL("/gravitation");
   await expect(
     page.getByRole("heading", { level: 1, name: es.gravitation.title }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: es.gravitation.sections.cannon.title }),
   ).toBeInViewport();
 
   await page.goBack();

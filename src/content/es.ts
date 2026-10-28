@@ -108,16 +108,15 @@ export const es = {
   },
   home: {
     title: APP_NAME,
-    lead: "La gravedad, explicada con simulaciones interactivas.",
+    lead: "La ley de gravitación universal de Newton, explicada con simulaciones interactivas.",
     gravitation: {
       link: "La ley de gravitación universal",
-      description:
-        "La ley de Newton explica por qué la fuerza que hace caer una manzana mantiene a la Luna en órbita. Compruébalo con el cañón de Newton y un tutor que se adapta a ti.",
+      description: "Una lección interactiva con el cañón de Newton y un tutor.",
     },
     threeBody: {
       link: "El problema de los tres cuerpos",
       description:
-        "El movimiento de tres cuerpos que se atraen no se puede resolver con una fórmula general, pero algunas configuraciones se repiten. Mira seis de ellas moverse en tiempo real en tu navegador.",
+        "Tres cuerpos que se atraen y seis soluciones periódicas, simuladas en tu navegador.",
     },
   },
   threeBody: {
@@ -175,9 +174,9 @@ export const es = {
     // The link to the cannon band is part of the lead (spec 04, Decision 1).
     lead: {
       before:
-        "La fuerza que hace caer una manzana es la misma que mantiene a la Luna en su órbita. Aquí verás cómo llegó Newton a esa idea y a la ley que la describe, o ",
+        "La fuerza que hace caer una manzana es la misma que mantiene a la Luna en su órbita. Aquí verás cómo llegó Newton a esa idea y a la ley que la describe. Si prefieres aprender probando, ",
       link: "ve directo al cañón",
-      after: ".",
+      after: " y descúbrelo por ti mismo.",
     },
     animation: {
       pause: "Pausar",
@@ -185,6 +184,9 @@ export const es = {
     },
     // Spec 04, Decision 4: the cannon's band.
     cannon: {
+      // Spec 04, L19, sentence 10a.
+      description:
+        "Dispara y compruébalo tú mismo: la bala siempre cae hacia la Tierra, pero si va de lado lo bastante deprisa, nunca llega al suelo y entra en órbita.",
       controlsLabel: "Controles del cañón",
       // Spec 04, L19, sentence 10.
       caption:

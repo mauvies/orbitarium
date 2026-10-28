@@ -93,7 +93,22 @@ A border that is what identifies a control needs 3:1 against its background (WCA
 - Status: a filled `accent` dot for "Se mantiene sola", a hollow `muted` ring for "Se deshace sin corrección". Both labels are full-strength text: neither should look disabled.
 - Hover and focus: the border turns `accent` at 40 % opacity, the background `surface-raised` and the orbit line full opacity. No lift, no shadow, no scaling.
 
-**Links and buttons.** Text links are `accent`. Primary buttons are `accent` with `bg-bottom` text; secondary buttons are `surface` with a `line` border. No arrows appended to link or button text.
+**Section card (home).**
+
+```
+┌──────────────────────────────────────────────┐
+│ ┌──────────┐  La ley de gravitación          │  plate: 224 px wide, 4:3, the
+│ │ drawing  │  universal                      │  same for both cards, at the
+│ │          │  A line or two of description.  │  top; title (h2, card size)
+│ └──────────┘                              →  │  and a line or two; arrow bottom right
+└──────────────────────────────────────────────┘
+```
+
+- The same card as the gallery's: `surface`, 1 px `line` border, 12 px padding, and the same hover and focus.
+- From 640 px the plate sits beside the text; below, it is above the text and 2:1. Both drawings are framed alike, so they come out the same size.
+- The text is a title and a line or two, so both cards have the same height. A 24 px arrow sits at the bottom right in `muted`, turning `accent` on hover and focus. It is decorative (`aria-hidden`): the link's name is the title only.
+
+**Links and buttons.** Text links are `accent`. Primary buttons are `accent` with `bg-bottom` text; secondary buttons are `surface` with a `line` border. No arrows appended to link or button text; the home's section cards have one of their own, outside the link's text.
 
 **Lesson controls.** The cannon's number fields, presets, «Borrar trayectorias» and outcome label sit on `surface` with a 1 px `muted` border (see "Contrast").
 

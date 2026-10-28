@@ -721,15 +721,22 @@ test("on a phone the reference badges are short", async ({ page }) => {
   expect((await place(badge)).height).toBeLessThanOrEqual(24);
 });
 
-test("on a phone the caption is left to screen readers", async ({ page }) => {
-  await page.setViewportSize({ width: 360, height: 740 });
-  await page.goto("/gravitation");
+for (const [name, text] of [
+  ["description", cannon.description],
+  ["caption", cannon.caption],
+] as const) {
+  test(`on a phone the band's ${name} is left to screen readers`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.goto("/gravitation");
 
-  // Still in the page for screen readers, but 1 px wide.
-  const caption = page.getByText(cannon.caption);
-  expect((await place(caption)).width).toBeLessThanOrEqual(1);
-  await expect(caption).toHaveCount(1);
-});
+    // Still in the page for screen readers, but 1 px wide.
+    const element = page.getByText(text);
+    expect((await place(element)).width).toBeLessThanOrEqual(1);
+    await expect(element).toHaveCount(1);
+  });
+}
 
 test("from 640 px the caption is visible", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
