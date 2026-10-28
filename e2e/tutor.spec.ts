@@ -13,8 +13,8 @@ const FLOATING_PANEL_MAX_PX = 448;
 // Spec 04, Decision 15: the card is min(28 rem, viewport − 14 rem) tall.
 const VIEWPORT_MARGIN_PX = 224;
 const EDGE_PX = 16;
-const SHEET_MAX_PX = 512;
-const SHEET_SHARE = 0.55;
+const SHEET_MAX_PX = 384;
+const SHEET_SHARE = 0.4;
 
 const WIDE = { width: 1280, height: 800 };
 const PHONE = { width: 360, height: 740 };

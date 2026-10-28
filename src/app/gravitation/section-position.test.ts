@@ -49,34 +49,36 @@ describe("sectionAt", () => {
   });
 });
 
-// Spec 04, Decision 14: the cannon is in view when at least half of its
+// Spec 04, Decision 14: the cannon is in view when at least 90 % of its
 // canvas, or of the viewport if the canvas is taller, is visible.
 describe("isMostlyVisible", () => {
-  it("at least half visible", () => {
-    expect(
-      isMostlyVisible({ top: -100, height: 300 }, VIEWPORT_HEIGHT_PX),
-    ).toBe(true);
-    expect(isMostlyVisible({ top: 590, height: 300 }, VIEWPORT_HEIGHT_PX)).toBe(
+  it("at least 90 % visible", () => {
+    expect(isMostlyVisible({ top: -20, height: 300 }, VIEWPORT_HEIGHT_PX)).toBe(
+      true,
+    );
+    expect(isMostlyVisible({ top: 460, height: 300 }, VIEWPORT_HEIGHT_PX)).toBe(
       true,
     );
   });
 
-  it("less than half", () => {
-    expect(
-      isMostlyVisible({ top: -200, height: 300 }, VIEWPORT_HEIGHT_PX),
-    ).toBe(false);
-    expect(isMostlyVisible({ top: 600, height: 300 }, VIEWPORT_HEIGHT_PX)).toBe(
+  it("less than 90 %", () => {
+    expect(isMostlyVisible({ top: -40, height: 300 }, VIEWPORT_HEIGHT_PX)).toBe(
+      false,
+    );
+    expect(isMostlyVisible({ top: 480, height: 300 }, VIEWPORT_HEIGHT_PX)).toBe(
       false,
     );
   });
 
   it("with the sheet open, the cannon is measured against the page above it", () => {
-    // 360 × 740 with the tutor's sheet open: the page shows above 333 px.
-    const pageAboveSheetPx = 333;
-    const canvasAfterScroll = { top: 88, height: 290 };
+    // 360 × 640 just after a scroll to the cannon, as measured in Chromium.
+    const canvasAfterScroll = { top: 90.8, height: 294 };
+    const pageAboveSheetPx = 384;
+    const pageAboveTallerSheetPx = 288;
 
     expect(isMostlyVisible(canvasAfterScroll, pageAboveSheetPx)).toBe(true);
-    expect(isMostlyVisible({ top: 220, height: 290 }, pageAboveSheetPx)).toBe(
+    // A sheet that hides the canvas's lower third, where the shot lands.
+    expect(isMostlyVisible(canvasAfterScroll, pageAboveTallerSheetPx)).toBe(
       false,
     );
   });

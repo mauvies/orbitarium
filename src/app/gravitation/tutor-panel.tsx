@@ -63,7 +63,7 @@ export function TutorPanel() {
           setOpen(false);
         }
       }}
-      className="fixed inset-x-0 top-auto bottom-0 z-30 m-0 flex-col overflow-hidden overscroll-contain open:flex h-[min(55dvh,32rem)] max-h-none w-full max-w-none border-0 border-muted border-t bg-surface p-4 text-body xl:right-4 xl:bottom-18 xl:left-auto xl:h-[min(28rem,calc(100dvh-14rem))] xl:w-96 xl:rounded-xl xl:border xl:border-strong xl:bg-surface-raised"
+      className="fixed inset-x-0 top-auto bottom-0 z-30 m-0 flex-col overflow-hidden overscroll-contain open:flex h-[min(40svh,24rem)] max-h-none w-full max-w-none border-0 border-muted border-t bg-surface p-4 text-body xl:right-4 xl:bottom-18 xl:left-auto xl:h-[min(28rem,calc(100svh-14rem))] xl:w-96 xl:rounded-xl xl:border xl:border-strong xl:bg-surface-raised"
     >
       <div className="flex items-center justify-between gap-2">
         <h2

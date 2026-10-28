@@ -9,7 +9,7 @@ import { TUTOR_PANEL_ID } from "./tutor-ids";
 const { tutor } = es.gravitation;
 
 const CLOSED = "bottom-4 right-4";
-const OPEN = "bottom-[calc(min(55dvh,32rem)+1rem)] right-4 xl:bottom-4";
+const OPEN = "bottom-[calc(min(40svh,24rem)+1rem)] right-4 xl:bottom-4";
 
 export function TutorToggle() {
   const { open, setOpen } = useTutorPanel();

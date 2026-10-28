@@ -9,7 +9,7 @@ import { useTutorPanel } from "./lesson-provider";
 // there. Only the page's end grows; nothing above the reader moves.
 const CLOSED = "pb-20";
 const OPEN =
-  "pb-[calc(min(55dvh,32rem)_+_5rem)] xl:pb-[calc(min(28rem,calc(100dvh_-_14rem))_+_5.5rem)]";
+  "pb-[calc(min(40svh,24rem)_+_5rem)] xl:pb-[calc(min(28rem,calc(100svh_-_14rem))_+_5.5rem)]";
 
 /** The page, with room for the tutor's toggle and, when open, its panel. */
 export function TutorSpace({ children }: { children: ReactNode }) {

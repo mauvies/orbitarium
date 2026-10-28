@@ -37,14 +37,18 @@ export function sectionAt(
   return tops.findLast(({ top }) => top <= line)?.section ?? first.section;
 }
 
+// Spec 04, Decision 14: not half, which let the tutor's sheet hide where the
+// shot lands; not all, which a phone's canvas misses by a pixel.
+const IN_VIEW_SHARE = 0.9;
+
 /**
- * Whether at least half of a rect is in the viewport: half of its height, or
- * of the viewport if the rect is taller (spec 04, Decision 14).
+ * Whether at least 90 % of a rect is in the viewport: of its height, or of
+ * the viewport if the rect is taller (spec 04, Decision 14).
  */
 export function isMostlyVisible(
   { top, height }: { readonly top: number; readonly height: number },
   viewportHeight: number,
 ): boolean {
   const visible = Math.min(top + height, viewportHeight) - Math.max(top, 0);
-  return visible >= Math.min(height, viewportHeight) / 2;
+  return visible >= Math.min(height, viewportHeight) * IN_VIEW_SHARE;
 }
