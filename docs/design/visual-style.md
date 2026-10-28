@@ -1,6 +1,6 @@
 # Visual style (design note)
 
-Status: agreed on 2026-10-22, design system added on 2026-10-23, lesson additions (spec 04) on 2026-10-27. Applied through the theme tokens in `src/app/globals.css`.
+Status: agreed on 2026-10-22, design system added on 2026-10-23, lesson additions (spec 04) on 2026-10-27, the detail page's header (spec 03) on 2026-10-28. Applied through the theme tokens in `src/app/globals.css`.
 
 ## Direction
 
@@ -74,7 +74,7 @@ A border that is what identifies a control needs 3:1 against its background (WCA
 
 **Header.** Logo mark (28 px) and the wordmark "Orbitarium" (Poppins 600, 1.125rem) on the left, linking home. Navigation on the right: "Gravitación" and "Tres cuerpos", in `body`, turning `strong` on hover. The current section has `aria-current="page"`, `strong` text and a 2 px `accent` underline 6 px below the baseline. A detail page marks "Tres cuerpos" as current.
 
-**Page header.** The h1 and an optional lead, using the rhythm above. One shared component, so every page starts at the same height.
+**Page header.** The h1 and an optional lead, using the rhythm above. One shared component, so every page starts at the same height, except the detail page (below).
 
 **Orbit card (gallery).**
 
@@ -114,7 +114,7 @@ A border that is what identifies a control needs 3:1 against its background (WCA
 
 **Reference badges.** Two pills at the top right of the cannon's canvas: `surface`, a 1 px `muted` border, `body` text in small size with tabular figures; below 640 px `text-xs` and a shorter label.
 
-**Detail page.** The canvas (3:2, up to 720 px) and, 32 px to its right from 1,024 px, the facts, «Compartir» (a secondary button with a share icon) and the back link. Below the canvas, the controls in one row of bordered options in `text-small`, spread across its width: playback on the left, speed in the middle, what is drawn on the right. In the facts, each term is in Poppins 500 `strong` and its value in small text, with a `line` hairline between them.
+**Detail page.** «Volver a la galería» first, 24 px below the header and 16 px above the title, which leaves about the same space on either side of it. On the title's row, «Compartir» (a secondary button with the three-node share icon) sits at the right, lined up with the canvas's right edge. Then the canvas (4:3, up to 720 px) and, 32 px to its right from 1,024 px, the orbit's description in body text and, 24 px below it, the facts. Below the canvas, the controls in one row of bordered options in `text-small`, spread across its width: playback on the left, speed in the middle, what is drawn on the right. In the facts, each term is in Poppins 500 `strong` and its value in small text, with a `line` hairline between them.
 
 **Tutor's panel.** From 1,280 px a floating card at the bottom right, set apart from the page by a `surface-raised` background, a 1 px `strong` border and a 12 px radius, with no shadow. Below, a full-width bottom sheet on `surface` with a `muted` top border.
 
