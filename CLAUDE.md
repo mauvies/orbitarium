@@ -50,8 +50,8 @@ Biome formats; these rules cover what it leaves to us.
 - Types and interfaces: data properties first, function-typed members last.
 - Components: `interface Props` right above the component, typing its argument (`FooProps` only when exported and used elsewhere). Inside, with a blank line between groups: local state (`useState`, `useReducer`, `useRef`), custom and context hooks, derived values, handlers, effects, early returns, then the JSX. When one value needs another, the data decides the order; no hook after an early return. A new local function inside a component is an arrow function. No nested ternaries in JSX.
 - Structure: guard clauses instead of nesting, and no `else` after a branch that returns. File order: imports, types, constants, then the file's main function or component, then the helpers below it; a helper a constant calls at load stays above it, and a type read off a constant (`typeof`) follows it.
-- Functions keep the form they were written in: never convert between arrow functions and declarations. `describe` and `it` callbacks are arrows. Explicit return types only on exported functions.
-- Names: a number that does not explain itself becomes an `UPPER_SNAKE_CASE` constant at the top of the file; physics symbols (`r`, `v`, `G`, `dt`) stay short. Handlers are `handleX` inside a component and `onX` as props. Booleans start with `is`, `has`, `can` or `should`.
+- Functions keep the form they were written in: never convert between arrow functions and declarations. `describe` and `it` callbacks are arrows. New code puts explicit return types only on exported functions; existing helpers that have one keep it.
+- Names: a number that does not explain itself becomes an `UPPER_SNAKE_CASE` constant at the top of the file; physics symbols (`r`, `v`, `G`, `dt`) stay short. Handlers are `handleX` inside a component and `onX` as props. New booleans start with `is`, `has`, `can` or `should`; existing names (`playing`, `drifting`) are not renamed for it.
 - Tests: arrange, act and assert separated by blank lines. Consecutive `expect` calls form one block, with no blank line inside it.
 
 ## Checks
