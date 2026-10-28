@@ -3,27 +3,30 @@ import { grade, type Question, questionText } from "@/lib/lesson/questions";
 
 const ui = es.gravitation.question;
 
-/**
- * The verdict, the correct option when this one is wrong, why, and the way
- * back to the options. Without `onShowOptions` it only takes up the room it
- * needs.
- */
+type Actions = {
+  readonly onShowOptions: () => void;
+  readonly onAskTutor: () => void;
+};
+
+interface Props {
+  question: Question;
+  optionId: string;
+  actions?: Actions;
+}
+
 export function QuestionExplanation({
   question,
   optionId,
-  onShowOptions,
-}: {
-  question: Question;
-  optionId: string;
-  onShowOptions?: () => void;
-}) {
+  actions,
+}: Props) {
   const text = questionText(question.id);
   const correctOption = question.options.find(
     ({ misconception }) => misconception === null,
   );
   const correct = grade(question.id, optionId).status === "correct";
-  const backClasses =
+  const linkClasses =
     "shrink-0 rounded-lg text-accent text-small underline-offset-4 hover:underline";
+
   return (
     <span className="block px-2 py-1 text-small">
       <span className="block">
@@ -35,13 +38,29 @@ export function QuestionExplanation({
         )}
       </span>
       <span className="mt-1 block">{text.option(optionId).feedback}</span>
-      <span className="mt-1 flex justify-end">
-        {onShowOptions === undefined ? (
-          <span className={backClasses}>{ui.showOptions}</span>
+      <span className="mt-3 flex flex-wrap justify-end gap-x-4">
+        {actions === undefined ? (
+          <>
+            <span className={linkClasses}>{ui.askTutor}</span>
+            <span className={linkClasses}>{ui.showOptions}</span>
+          </>
         ) : (
-          <button type="button" onClick={onShowOptions} className={backClasses}>
-            {ui.showOptions}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={actions.onAskTutor}
+              className={linkClasses}
+            >
+              {ui.askTutor}
+            </button>
+            <button
+              type="button"
+              onClick={actions.onShowOptions}
+              className={linkClasses}
+            >
+              {ui.showOptions}
+            </button>
+          </>
         )}
       </span>
     </span>

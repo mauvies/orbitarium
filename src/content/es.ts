@@ -20,8 +20,6 @@ const SUVAKOV_DISCOVERY = "Milovan Šuvakov y Veljko Dmitrašinović, 2013";
 const SUVAKOV_SOURCE =
   "Šuvakov y Dmitrašinović, Physical Review Letters 110, 114301 (2013); valores iniciales refinados en este proyecto.";
 
-// The brief's names, untranslated: they are the names used in the literature
-// (spec 03, "Content per orbit").
 const orbitContent = {
   lagrange: {
     name: "Lagrange",
@@ -367,7 +365,6 @@ export const es = {
         notLaunched: "No he podido disparar el cañón.",
         notMoved: "No he podido ir a esa parte de la lección.",
       },
-      // Spec 04, Decision 14: a tutor's move, announced in the panel.
       movedTo: (title: string) => `Ahora estás en “${title}”.`,
     },
     question: {
@@ -375,14 +372,15 @@ export const es = {
       correct: "Correcto.",
       wrong: "No exactamente.",
       correctAnswer: (label: string) => `La correcta: ${label}`,
-      // Spec 04, Decision 5: the first answer stays recorded; the options
-      // can be seen again to read the other explanations.
       showOptions: "Ver opciones",
+      askTutor: "Preguntar al tutor",
+      askAboutWrongAnswer: (sectionTitle: string) =>
+        `Sobre la pregunta de “${sectionTitle}”: ¿por qué mi respuesta no es correcta?`,
+      askAboutCorrectAnswer: (sectionTitle: string) =>
+        `Sobre la pregunta de “${sectionTitle}”: ¿me lo explicas con otro ejemplo?`,
       yourAnswer: "Tu respuesta",
       continue: "Continuar",
     },
-    // Spec 04, Decisions 5 and 18: the design note's questions. Each wrong
-    // option's feedback answers the belief it reveals.
     questions: {
       "two-falls": {
         prompt: "¿Qué tienen en común estas dos caídas?",

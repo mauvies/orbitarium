@@ -25,45 +25,32 @@ import { createLessonView } from "./lesson-view";
 
 type Lesson = {
   readonly store: LessonStore;
-  /** The tutor's way in (spec 05); they may move the page. */
   readonly controls: LessonControls;
-  /**
-   * The band's own launch: the same transition as the tutor's, but it never
-   * scrolls or moves focus, because the learner is looking at the cannon
-   * (spec 04, Decision 12).
-   */
   readonly launch: (request: CannonRequest) => LaunchResult;
-  /** Answering is the learner's alone, so it is not one of the tutor's controls. */
   readonly answer: (questionId: QuestionId, optionId: string) => void;
-  /** Like answering, clearing the faint paths is the learner's alone. */
   readonly clearEarlierPaths: () => void;
-  /** The learner's preference too: the tutor never shows the prediction. */
   readonly setPredictedPathShown: (shown: boolean) => void;
 };
 
 const LessonContext = createContext<Lesson | null>(null);
 
-/**
- * Whether the tutor's panel is open, and its last announcement: page state,
- * not lesson state, kept apart so opening the panel re-renders only what
- * shows it (spec 04, Decisions 14 and 15).
- */
 type TutorPanelState = {
   readonly open: boolean;
-  readonly setOpen: (open: boolean) => void;
   readonly announcement: string;
+  readonly suggestion: { readonly text: string } | null;
+  readonly suggest: (text: string) => void;
+  readonly setOpen: (open: boolean) => void;
 };
 
 const TutorPanelContext = createContext<TutorPanelState | null>(null);
 
-/**
- * Keeps the lesson's session while the learner reads it (spec 04, Decision
- * 2) and exposes its controls.
- */
 export function LessonProvider({ children }: { children: ReactNode }) {
   const [store] = useState(() => createLessonStore(initialSession()));
   const [tutorOpen, setTutorOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [suggestion, setSuggestion] =
+    useState<TutorPanelState["suggestion"]>(null);
+
   const controls = useMemo(
     () =>
       createLessonControls(
@@ -76,9 +63,19 @@ export function LessonProvider({ children }: { children: ReactNode }) {
       ),
     [store],
   );
+
   const tutorPanel = useMemo(
-    () => ({ open: tutorOpen, setOpen: setTutorOpen, announcement }),
-    [tutorOpen, announcement],
+    () => ({
+      open: tutorOpen,
+      setOpen: setTutorOpen,
+      announcement,
+      suggestion,
+      suggest: (text: string) => {
+        setSuggestion({ text });
+        setTutorOpen(true);
+      },
+    }),
+    [tutorOpen, announcement, suggestion],
   );
   const lesson = useMemo(
     () => ({
@@ -117,6 +114,10 @@ export function useAnswerQuestion(): Lesson["answer"] {
   return useLesson().answer;
 }
 
+export function useAskTutor(): TutorPanelState["suggest"] {
+  return useTutorPanel().suggest;
+}
+
 export function useClearEarlierPaths(): Lesson["clearEarlierPaths"] {
   return useLesson().clearEarlierPaths;
 }
@@ -144,8 +145,10 @@ export function useTutorPanel(): TutorPanelState {
 
 function useLesson(): Lesson {
   const lesson = useContext(LessonContext);
+
   if (lesson === null) {
     throw new Error("useLesson must be used inside LessonProvider");
   }
+  
   return lesson;
 }

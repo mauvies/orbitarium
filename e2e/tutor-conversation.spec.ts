@@ -12,7 +12,7 @@ import { z } from "zod";
 import { es } from "@/content/es";
 import { MAX_CONVERSATION_MESSAGES } from "@/lib/tutor/limits";
 
-const { tutor, sections, cannon } = es.gravitation;
+const { tutor, sections, cannon, question, questions } = es.gravitation;
 
 // Spec 03, G8: WCAG 2.1 levels A and AA.
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
@@ -742,6 +742,95 @@ test.describe("without a key", () => {
 
     await expect(noticeIn(panel, tutor.errors.unavailable)).toHaveCount(0);
     await expect(input).not.toHaveAttribute("readonly", "");
+  });
+});
+
+async function answerMoonQuestionWrongly(page: Page) {
+  const box = page.locator("#moon fieldset");
+  await box
+    .getByRole("button", { name: questions["twice-as-far"].options.half.label })
+    .click();
+  return {
+    box,
+    ask: box.getByRole("button", { name: question.askTutor }),
+    showOptions: box.getByRole("button", { name: question.showOptions }),
+  };
+}
+
+for (const viewport of [PHONE, WIDE]) {
+  test.describe(`asking from a question at ${viewport.width} px`, () => {
+    test.use({ viewport });
+
+    test("«Preguntar al tutor» opens the panel with the question written and sends nothing", async ({
+      page,
+    }) => {
+      const { requests } = await serveTutor(page);
+      await page.goto("/gravitation");
+      const { ask } = await answerMoonQuestionWrongly(page);
+
+      await ask.click();
+
+      const { panel, input } = tutorOf(page);
+      await expect(panel).toBeVisible();
+      await expect(input).toHaveValue(
+        question.askAboutWrongAnswer(sections.moon.title),
+      );
+      expect(requests).toHaveLength(0);
+    });
+
+    test("no axe violations on the question with both buttons", async ({
+      page,
+    }) => {
+      await page.goto("/gravitation");
+      const { ask, showOptions } = await answerMoonQuestionWrongly(page);
+      await expect(ask).toBeVisible();
+      await expect(showOptions).toBeVisible();
+
+      const results = await new AxeBuilder({ page })
+        .withTags(WCAG_TAGS)
+        .include("#moon fieldset")
+        .analyze();
+
+      expect(results.violations).toEqual([]);
+    });
+  });
+}
+
+test.describe("asking again from a question", () => {
+  test("after choosing another option, the question follows it", async ({
+    page,
+  }) => {
+    await page.goto("/gravitation");
+    const { box, ask, showOptions } = await answerMoonQuestionWrongly(page);
+    await ask.click();
+    const { input } = tutorOf(page);
+    await expect(input).toHaveValue(
+      question.askAboutWrongAnswer(sections.moon.title),
+    );
+
+    await showOptions.click();
+    await box
+      .getByRole("button", {
+        name: questions["twice-as-far"].options.quarter.label,
+      })
+      .click();
+    await ask.click();
+
+    await expect(input).toHaveValue(
+      question.askAboutCorrectAnswer(sections.moon.title),
+    );
+  });
+
+  test("what the learner wrote is kept", async ({ page }) => {
+    await page.goto("/gravitation");
+    const { ask } = await answerMoonQuestionWrongly(page);
+    await ask.click();
+    const { input } = tutorOf(page);
+    await input.fill(QUESTION);
+
+    await ask.click();
+
+    await expect(input).toHaveValue(QUESTION);
   });
 });
 

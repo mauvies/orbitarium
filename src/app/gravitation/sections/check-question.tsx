@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { es } from "@/content/es";
-import { type Question, questionText } from "@/lib/lesson/questions";
-import { useAnswerQuestion, useLessonSession } from "../lesson-provider";
+import { grade, type Question, questionText } from "@/lib/lesson/questions";
+import {
+  useAnswerQuestion,
+  useAskTutor,
+  useLessonSession,
+} from "../lesson-provider";
 import { useHydrated } from "../use-hydrated";
 import { QuestionExplanation } from "./question-explanation";
 
@@ -11,27 +15,26 @@ const ui = es.gravitation.question;
 
 type FocusTarget = "explanation" | "options" | null;
 
-/**
- * A single-choice check question (spec 04, Decision 5). One click answers,
- * and the first answer is the one recorded. Its explanation then takes the
- * options' place; «Ver opciones» brings them back, with that answer marked,
- * so the learner can read the other explanations.
- */
-export function CheckQuestion({ question }: { question: Question }) {
-  const answered = useLessonSession().answers[question.id];
-  const answer = useAnswerQuestion();
-  const hydrated = useHydrated();
+interface Props {
+  question: Question;
+}
+
+export function CheckQuestion({ question }: Props) {
   const [shownOption, setShownOption] = useState<string | null>(null);
   const [browsing, setBrowsing] = useState(false);
   const [focusTarget, setFocusTarget] = useState<FocusTarget>(null);
   const explanation = useRef<HTMLOutputElement>(null);
   const options = useRef<HTMLDivElement>(null);
+
+  const answered = useLessonSession().answers[question.id];
+  const answer = useAnswerQuestion();
+  const suggestToTutor = useAskTutor();
+  const hydrated = useHydrated();
+
   const text = questionText(question.id);
   const locked = answered !== undefined;
   const explained = locked && !browsing ? (shownOption ?? answered) : null;
 
-  // The control that was used disappears, so focus moves to what replaced it
-  // instead of falling back to the start of the page.
   useEffect(() => {
     if (focusTarget === "explanation") {
       explanation.current?.focus();
@@ -44,6 +47,7 @@ export function CheckQuestion({ question }: { question: Question }) {
     if (!locked) {
       answer(question.id, optionId);
     }
+
     setShownOption(optionId);
     setBrowsing(false);
     setFocusTarget("explanation");
@@ -54,18 +58,21 @@ export function CheckQuestion({ question }: { question: Question }) {
     setFocusTarget("options");
   }
 
+  function askTutor(optionId: string): void {
+    const sectionTitle = es.gravitation.sections[question.section].title;
+
+    suggestToTutor(
+      grade(question.id, optionId).status === "correct"
+        ? ui.askAboutCorrectAnswer(sectionTitle)
+        : ui.askAboutWrongAnswer(sectionTitle),
+    );
+  }
+
   return (
     <fieldset className="mt-6 max-w-xl rounded-xl border border-line bg-surface px-4 py-3">
-      {/* Floated, so the legend sits inside the box instead of across its border. */}
       <legend className="float-left w-full font-medium text-strong">
         {text.prompt}
       </legend>
-      {/*
-        One grid cell holds, stacked: every possible explanation, invisible,
-        so the box keeps the height of the longest one from the start; the
-        options; and the explanation shown. Switching between them moves
-        nothing on the page.
-      */}
       <div className="clear-left grid pt-1.5">
         {question.options.map((option) => (
           <div
@@ -76,17 +83,13 @@ export function CheckQuestion({ question }: { question: Question }) {
             <QuestionExplanation question={question} optionId={option.id} />
           </div>
         ))}
-        {/*
-          Buttons, not radio buttons: one click answers. With radio buttons
-          the arrow keys select as they move, so a keyboard user would answer
-          by accident.
-        */}
         <div
           ref={options}
           className={`col-start-1 row-start-1 flex flex-col ${explained === null ? "" : "invisible"}`}
         >
           {question.options.map((option) => {
             const isAnswer = answered === option.id;
+            
             return (
               <button
                 key={option.id}
@@ -122,7 +125,10 @@ export function CheckQuestion({ question }: { question: Question }) {
             <QuestionExplanation
               question={question}
               optionId={explained}
-              onShowOptions={showOptions}
+              actions={{
+                onShowOptions: showOptions,
+                onAskTutor: () => askTutor(explained),
+              }}
             />
           )}
         </output>

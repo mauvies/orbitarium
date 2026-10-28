@@ -1,47 +1,54 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { es } from "@/content/es";
 import { MAX_LEARNER_MESSAGE_CHARACTERS } from "@/lib/tutor/limits";
+import { useTutorPanel } from "./lesson-provider";
 import { TUTOR_INPUT_ID } from "./tutor-ids";
 
 const { tutor } = es.gravitation;
 
-/**
- * Where the learner writes: one field that grows with the text, with
- * «Enviar» inside it (visual style, "Tutor's panel"). Enter sends and
- * Shift+Enter adds a line; Enter while composing an accent with a dead key
- * does neither. Nothing is sent while an answer is on its way (spec 05,
- * Decision 11), nor while the tutor is not ready to take a question (spec 05,
- * Decision 12): then the field is read-only, not disabled, so that it keeps
- * the focus that opening the panel gave it.
- */
+interface Props {
+  waiting: boolean;
+  unavailable: boolean;
+  onSend: (text: string) => void;
+}
+
 export function TutorInput({
   waiting,
   unavailable,
   onSend,
-}: {
-  waiting: boolean;
-  unavailable: boolean;
-  onSend: (text: string) => void;
-}) {
-  const [text, setText] = useState("");
+}: Props) {
+  const [draft, setDraft] = useState({ text: "", suggested: false });
+  const { text } = draft;
+  const { suggestion } = useTutorPanel();
+
+  // A suggested question is written, never sent.
+  useEffect(() => {
+    if (suggestion !== null) {
+      setDraft((current) =>
+        current.suggested || current.text.trim() === ""
+          ? { text: suggestion.text, suggested: true }
+          : current,
+      );
+    }
+  }, [suggestion]);
 
   function send(): void {
     const message = text.trim();
+
     if (waiting || unavailable || message === "") {
       return;
     }
+
     onSend(message);
-    setText("");
+    setDraft({ text: "", suggested: false });
   }
 
   return (
     <form
-      onSubmit={(event) => {
-        event.preventDefault();
+      onSubmit={(e) => {
+        e.preventDefault();
         send();
       }}
-      // While the text area has focus the field's border turns light and
-      // doubles to 2 px (border plus outline), instead of the accent ring.
       className="mt-3 flex items-end gap-2 rounded-xl border border-muted bg-surface py-1.5 pr-1.5 pl-3 has-[textarea:focus-visible]:border-strong has-[textarea:focus-visible]:outline-1 has-[textarea:focus-visible]:outline-strong has-[textarea:focus-visible]:outline-offset-0"
     >
       <label htmlFor={TUTOR_INPUT_ID} className="sr-only">
@@ -50,14 +57,16 @@ export function TutorInput({
       <textarea
         id={TUTOR_INPUT_ID}
         value={text}
-        onChange={(event) => setText(event.currentTarget.value)}
-        onKeyDown={(event) => {
+        onChange={(e) =>
+          setDraft({ text: e.currentTarget.value, suggested: false })
+        }
+        onKeyDown={(e) => {
           if (
-            event.key === "Enter" &&
-            !event.shiftKey &&
-            !event.nativeEvent.isComposing
+            e.key === "Enter" &&
+            !e.shiftKey &&
+            !e.nativeEvent.isComposing
           ) {
-            event.preventDefault();
+            e.preventDefault();
             send();
           }
         }}
@@ -73,7 +82,6 @@ export function TutorInput({
         disabled={waiting || unavailable}
         className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-muted hover:text-strong disabled:opacity-50"
       >
-        {/* A return arrow, as the Enter key that also sends. */}
         <svg aria-hidden="true" viewBox="0 0 16 16" className="size-4">
           <path
             d="M13 3v4.5a2 2 0 0 1-2 2H3.5M6.5 6.5 3.5 9.5l3 3"
