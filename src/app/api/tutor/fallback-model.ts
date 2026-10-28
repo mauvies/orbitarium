@@ -74,6 +74,7 @@ async function firstAttempt(
     }
     const reader = result.stream.getReader();
     const read: StreamPart[] = [];
+    
     for (;;) {
       const next = await Promise.race([reader.read(), silence]);
       if (next === SILENCE) {

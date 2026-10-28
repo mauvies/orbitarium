@@ -1,28 +1,51 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useHydrated } from "@/components/use-hydrated";
 import { es } from "@/content/es";
 import { useLessonControls, useTutorPanel } from "./lesson-provider";
-import { TutorConversation } from "./tutor-conversation";
+import { loadTutorChat } from "./load-tutor-chat";
+import { TutorChatLoading } from "./tutor-chat-loading";
 import { TUTOR_INPUT_ID, TUTOR_PANEL_ID, TUTOR_TITLE_ID } from "./tutor-ids";
-import { useTutorAvailability } from "./use-tutor-availability";
-import { useTutorChat } from "./use-tutor-chat";
 
 const { tutor } = es.gravitation;
 
 const FLOATING_CARD = "(min-width: 80rem)";
 
+// The conversation brings the AI SDK, most of the lesson's JavaScript, so it
+// loads when the panel first opens, not with the page. `React.lazy`, not
+// `next/dynamic`: the latter's fallback cannot take `atCannon`.
+const TutorChat = lazy(async () => ({
+  default: (await loadTutorChat()).TutorChat,
+}));
+
 export function TutorPanel() {
   const { open, setOpen, announcement } = useTutorPanel();
   const controls = useLessonControls();
-  const chat = useTutorChat(controls);
-  const { availability, askOnce, retry } = useTutorAvailability();
+  const [chatStarted, setChatStarted] = useState(false);
+  const [headerActions, setHeaderActions] = useState<HTMLElement | null>(null);
   const [atCannon, setAtCannon] = useState(false);
   const hydrated = useHydrated();
   const dialog = useRef<HTMLDialogElement>(null);
   const close = useRef<HTMLButtonElement>(null);
+  const chatLoaded = useRef(false);
+
+  // The first opening focuses the input once the conversation has loaded.
+  const onChatLoad = useCallback(() => {
+    chatLoaded.current = true;
+    const panel = dialog.current;
+    if (panel?.open && matchMedia(FLOATING_CARD).matches) {
+      inputOf(panel).focus();
+    }
+  }, []);
 
   useEffect(() => {
     const panel = dialog.current;
@@ -33,19 +56,19 @@ export function TutorPanel() {
     if (open && !panel.open) {
       // `show()`, not `showModal()`: the page must stay usable.
       panel.show();
-      askOnce();
+      setChatStarted(true);
       setAtCannon(controls.navigation.current() === "cannon");
       // On a phone the input would raise the keyboard over the page, so the
       // sheet focuses its close button .
-      if (matchMedia(FLOATING_CARD).matches) {
-        inputOf(panel).focus();
-      } else {
+      if (!matchMedia(FLOATING_CARD).matches) {
         close.current?.focus();
+      } else if (chatLoaded.current) {
+        inputOf(panel).focus();
       }
     } else if (!open && panel.open) {
       panel.close();
     }
-  }, [open, controls, askOnce]);
+  }, [open, controls]);
 
   if (!hydrated) {
     return null;
@@ -73,19 +96,8 @@ export function TutorPanel() {
           {tutor.title}
         </h2>
         <div className="flex items-center gap-1">
-          {chat.messages.length > 0 && (
-            <button
-              type="button"
-              onClick={async () => {
-                await chat.stop();
-                chat.setMessages([]);
-                chat.clearError();
-              }}
-              className="min-h-8 rounded-[10px] px-2 text-muted text-small hover:text-strong"
-            >
-              {tutor.newConversation}
-            </button>
-          )}
+          {/* «Nueva conversación» needs the conversation, so it is rendered there. */}
+          <div ref={setHeaderActions} className="contents" />
           <button
             ref={close}
             type="button"
@@ -104,12 +116,15 @@ export function TutorPanel() {
           </button>
         </div>
       </div>
-      <TutorConversation
-        chat={chat}
-        availability={availability}
-        retryAvailability={retry}
-        atCannon={atCannon}
-      />
+      {chatStarted && (
+        <Suspense fallback={<TutorChatLoading atCannon={atCannon} />}>
+          <TutorChat
+            headerActions={headerActions}
+            atCannon={atCannon}
+            onLoad={onChatLoad}
+          />
+        </Suspense>
+      )}
       <output className="sr-only">{announcement}</output>
     </dialog>,
     document.body,

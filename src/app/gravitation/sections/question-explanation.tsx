@@ -1,5 +1,6 @@
 import { es } from "@/content/es";
 import { grade, type Question, questionText } from "@/lib/lesson/questions";
+import { preloadTutorChat } from "../load-tutor-chat";
 
 const ui = es.gravitation.question;
 
@@ -45,6 +46,8 @@ export function QuestionExplanation({ question, optionId, actions }: Props) {
             <button
               type="button"
               onClick={actions.onAskTutor}
+              onPointerEnter={preloadTutorChat}
+              onFocus={preloadTutorChat}
               className={linkClasses}
             >
               {ui.askTutor}

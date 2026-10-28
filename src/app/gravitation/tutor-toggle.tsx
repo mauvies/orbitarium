@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useHydrated } from "@/components/use-hydrated";
 import { es } from "@/content/es";
 import { useTutorPanel } from "./lesson-provider";
+import { preloadTutorChat } from "./load-tutor-chat";
 import { TUTOR_PANEL_ID } from "./tutor-ids";
 
 const { tutor } = es.gravitation;
@@ -33,6 +34,8 @@ export function TutorToggle() {
       aria-controls={TUTOR_PANEL_ID}
       disabled={!hydrated}
       onClick={() => setOpen(!open)}
+      onPointerEnter={preloadTutorChat}
+      onFocus={preloadTutorChat}
       className={`fixed z-40 rounded-full border border-muted bg-accent px-4 py-2 font-semibold text-bg-bottom disabled:opacity-50 ${open ? OPEN : CLOSED}`}
     >
       {tutor.toggle}
