@@ -408,13 +408,13 @@ test.describe("writing", () => {
 
     await page.clock.runFor(SLOW_ANSWER_MS);
 
-    await expect(panel.getByText(tutor.slowAnswer)).toBeVisible();
+    await expect(noticeIn(panel, tutor.slowAnswer)).toBeVisible();
     await expect(panel.getByText(tutor.thinking)).toHaveCount(0);
     await expect(answerAnnouncement).toHaveText(tutor.slowAnswer);
 
     release();
 
-    await expect(panel.getByText(tutor.slowAnswer)).toHaveCount(0);
+    await expect(noticeIn(panel, tutor.slowAnswer)).toHaveCount(0);
   });
 });
 

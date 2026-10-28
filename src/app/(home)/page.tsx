@@ -20,8 +20,7 @@ export default function HomePage() {
     <Container className="pb-16">
       <div className="grid items-center gap-8 lg:grid-cols-2">
         <PageHeader display title={es.home.title} lead={es.home.lead} />
-        {/* The same space above as the title, so the drawing clears the header. */}
-        <div className="pt-10">
+        <div className="hidden pt-10 lg:block">
           <HeroOrbit />
         </div>
       </div>

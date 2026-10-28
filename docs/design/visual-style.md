@@ -37,9 +37,9 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 |---|---|---|
 | `bg-top` | `#190F21` | Top of the vertical page gradient |
 | `bg-bottom` | `#09080C` | Bottom of the gradient; recessed plates behind drawings |
-| `surface` | `#19141F` | Cards and panels |
-| `surface-raised` | `#211A29` | Hovered cards, pressed controls |
-| `line` | `#2A2333` | Hairline borders and dividers |
+| `surface` | `#231C2B` | Cards and panels; light enough to stand out from `bg-top` (1.12:1) |
+| `surface-raised` | `#2C2436` | Hovered cards, pressed controls |
+| `line` | `#3A3145` | Hairline borders and dividers |
 | `accent` | `#FCB810` | Orbit lines, active navigation, primary actions, focus ring |
 | `strong` | `#F5F1F8` | Headings, bodies in the simulation |
 | `body` | `#C8C1D0` | Body text |
@@ -52,14 +52,14 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 
 | Pair | Ratio |
 |---|---|
-| `strong` on `surface` | 16.2:1 |
-| `body` on `surface` | 10.3:1 |
-| `muted` on `surface` | 5.9:1 |
-| `muted` on `surface-raised` | 5.5:1 |
-| `accent` on `surface` | 10.3:1 |
+| `strong` on `surface` | 14.8:1 |
+| `body` on `surface` | 9.4:1 |
+| `muted` on `surface` | 5.4:1 |
+| `muted` on `surface-raised` | 4.8:1 |
+| `accent` on `surface` | 9.4:1 |
 | `bg-bottom` (dark text) on `accent` | 11.4:1 |
 
-A border that is what identifies a control needs 3:1 against its background (WCAG 1.4.11). `line` on `surface` is 1.2:1, so it is only for dividers and card borders, and control borders use `muted` (5.9:1).
+A border that is what identifies a control needs 3:1 against its background (WCAG 1.4.11). `line` on `surface` is 1.3:1, so it is only for dividers and card borders, and control borders use `muted` (5.4:1).
 
 ## Layout and spacing
 
@@ -135,7 +135,7 @@ Three amber orbits crossing at the centre: three identical ellipses, rotated 0°
 
 ## Motion
 
-One orchestrated moment: on the home page, the hero orbit draws itself once on load (about 2.4 s), then its bodies start moving. The lesson's two illustrations, `#falling` and `#mutual`, also move on their own: each loops, with a «Pausar»/«Reanudar» button at a corner of its drawing (WCAG 2.2.2). Everything else moves only in response to the user (the simulation, hover and focus states). With `prefers-reduced-motion: reduce`, the hero shows the finished drawing and the bodies stay still, and the two illustrations show their final frame, with no pause button.
+One orchestrated moment: on the home page from 1,024 px (narrower, the hero is hidden, so the section cards are in the first screen), the hero orbit draws itself once on load (about 2.4 s), then its bodies start moving. The lesson's two illustrations, `#falling` and `#mutual`, also move on their own: each loops, with a «Pausar»/«Reanudar» button at a corner of its drawing (WCAG 2.2.2). Everything else moves only in response to the user (the simulation, hover and focus states). With `prefers-reduced-motion: reduce`, the hero shows the finished drawing and the bodies stay still, and the two illustrations show their final frame, with no pause button.
 
 ## Rules
 
