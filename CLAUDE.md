@@ -42,6 +42,18 @@ Code is reviewed line by line by the hiring team, so optimise for a reader joini
 - Tests read as documentation: the name states the behaviour, one concept per test, named fixtures instead of magic numbers.
 - Code, names, comments, docs and commit messages are in English.
 
+## Code style
+
+Biome formats; these rules cover what it leaves to us.
+
+- Spacing: a blank line before and after every `if`, `try`, `for`, `while` and `switch` block and every statement that spans several lines, unless it is the first or last statement of its block. A blank line before `return`, unless it is alone in its block. Consecutive single-line declarations of the same kind may stay together. A blank line between logical groups; never one at the start or end of a block.
+- Types and interfaces: data properties first, function-typed members last.
+- Components: `interface Props` right above the component, typing its argument (`FooProps` only when exported and used elsewhere). Inside, with a blank line between groups: local state (`useState`, `useReducer`, `useRef`), custom and context hooks, derived values, handlers, effects, early returns, then the JSX. When one value needs another, the data decides the order; no hook after an early return. A new local function inside a component is an arrow function. No nested ternaries in JSX.
+- Structure: guard clauses instead of nesting, and no `else` after a branch that returns. File order: imports, types, constants, then the file's main function or component, then the helpers below it; a helper a constant calls at load stays above it, and a type read off a constant (`typeof`) follows it.
+- Functions keep the form they were written in: never convert between arrow functions and declarations. `describe` and `it` callbacks are arrows. Explicit return types only on exported functions.
+- Names: a number that does not explain itself becomes an `UPPER_SNAKE_CASE` constant at the top of the file; physics symbols (`r`, `v`, `G`, `dt`) stay short. Handlers are `handleX` inside a component and `onX` as props. Booleans start with `is`, `has`, `can` or `should`.
+- Tests: arrange, act and assert separated by blank lines. Consecutive `expect` calls form one block, with no blank line inside it.
+
 ## Checks
 
 - Every step: `pnpm typecheck`, `pnpm lint` and `pnpm test`.
