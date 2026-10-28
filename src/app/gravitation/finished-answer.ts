@@ -11,11 +11,14 @@ export function finishedAnswer(
   messages: readonly TutorMessage[],
 ): { readonly id: string; readonly text: string } | null {
   const last = messages.at(-1);
+
   if (status !== "ready" || last === undefined || last.role !== "assistant") {
     return null;
   }
+
   const text = last.parts
     .flatMap((part) => (part.type === "text" ? [part.text] : []))
     .join("");
+
   return text === "" ? null : { id: last.id, text };
 }

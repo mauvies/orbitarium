@@ -17,11 +17,6 @@ const BOB = "203.0.113.2";
 let time: number;
 let limiter: RateLimiter;
 
-beforeEach(() => {
-  time = 0;
-  limiter = createRateLimiter(() => time);
-});
-
 function request(
   client: string,
   turn: TurnKind = "new-turn",
@@ -49,6 +44,11 @@ function sendSpreadOverTime(count: number, turn: TurnKind = "new-turn"): void {
 }
 
 // Spec 05, Decision 9 and T7.
+beforeEach(() => {
+  time = 0;
+  limiter = createRateLimiter(() => time);
+});
+
 describe("createRateLimiter: one client's minute", () => {
   it("allows a client 8 requests in a minute", () => {
     sendAll(8, ALICE);
@@ -84,9 +84,11 @@ describe("createRateLimiter: one client's minute", () => {
   it("does not count a refused request", () => {
     sendAll(8, ALICE);
     time += 30 * SECOND;
+
     for (let i = 0; i < 20; i++) {
       expect(request(ALICE)).toBe("rate-limited");
     }
+
     time += 30 * SECOND;
 
     expect(request(ALICE)).toBe("allowed");
@@ -112,6 +114,7 @@ describe("createRateLimiter: everyone's minute", () => {
     for (let i = 0; i < 11; i++) {
       request(`client-${i}`);
     }
+
     time += MINUTE;
 
     expect(request("one-more")).toBe("allowed");
@@ -119,6 +122,7 @@ describe("createRateLimiter: everyone's minute", () => {
 
   it("is not escaped by a forged address, which only escapes the client's own limit", () => {
     sendAll(8, ALICE);
+
     expect(request(ALICE)).toBe("rate-limited");
 
     sendAll(3, "forged-1");
@@ -141,6 +145,7 @@ describe("createRateLimiter: the day", () => {
   it("says daily-limit before rate-limited when both apply", () => {
     sendSpreadOverTime(389);
     time += MINUTE;
+
     for (let i = 0; i < 11; i++) {
       expect(request(`burst-${i}`)).toBe("allowed");
     }
@@ -191,6 +196,7 @@ describe("createRateLimiter: a continuation after a tool result", () => {
     sendSpreadOverTime(400);
 
     sendSpreadOverTime(3, "continuation");
+
     expect(request("one-more", "continuation")).toBe("daily-limit");
   });
 });

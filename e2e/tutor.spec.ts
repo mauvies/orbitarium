@@ -37,14 +37,17 @@ async function openTutor(page: Page) {
   await expect(toggle).toBeEnabled();
   await toggle.click();
   await expect(panel).toBeVisible();
+
   return { toggle, panel, close };
 }
 
 async function boxOf(page: Page, selector: Parameters<Page["locator"]>[0]) {
   const box = await page.locator(selector).first().boundingBox();
+
   if (box === null) {
     throw new Error(`${selector} has no box`);
   }
+
   return box;
 }
 
@@ -59,13 +62,16 @@ for (const viewport of [PHONE, WIDE]) {
       const { toggle } = await openTutor(page);
 
       await expect(toggle).toHaveAttribute("aria-expanded", "true");
+
       // Non-modal: the page beside or above the panel still answers.
       const falling = page.locator("#falling fieldset");
+
       await falling
         .getByRole("button", {
           name: questions["two-falls"].options.centre.label,
         })
         .click();
+
       await expect(falling.getByRole("status")).toContainText(
         es.gravitation.question.correct,
       );
@@ -76,6 +82,7 @@ for (const viewport of [PHONE, WIDE]) {
     }) => {
       await page.goto("/gravitation");
       const { toggle, panel } = await openTutor(page);
+
       // Where opening puts focus depends on the width (spec 05, T10).
       await expect(panel.locator(":focus")).toHaveCount(1);
 
@@ -115,17 +122,21 @@ for (const viewport of [PHONE, WIDE]) {
       const { toggle, panel } = await openTutor(page);
 
       await expect(toggle).toBeInViewport();
+
       const toggleBox = await toggle.boundingBox();
       const panelBox = await panel.boundingBox();
+
       if (toggleBox === null || panelBox === null) {
         throw new Error("the toggle and the panel need boxes");
       }
-      const overlaps =
+
+      const isOverlapping =
         toggleBox.x < panelBox.x + panelBox.width &&
         panelBox.x < toggleBox.x + toggleBox.width &&
         toggleBox.y < panelBox.y + panelBox.height &&
         panelBox.y < toggleBox.y + toggleBox.height;
-      expect(overlaps).toBe(false);
+
+      expect(isOverlapping).toBe(false);
     });
 
     test("no axe violations with the panel open", async ({ page }) => {
@@ -151,9 +162,11 @@ for (const viewport of [WIDE, SHORT_LAPTOP]) {
 
     const panelBox = await panel.boundingBox();
     const toggleBox = await toggle.boundingBox();
+
     if (panelBox === null || toggleBox === null) {
       throw new Error("the panel and the toggle need boxes");
     }
+
     expect(panelBox.width).toBe(FLOATING_PANEL_PX);
     expect(panelBox.x + panelBox.width).toBe(viewport.width - EDGE_PX);
     expect(panelBox.y + panelBox.height).toBeLessThanOrEqual(toggleBox.y);
@@ -170,13 +183,16 @@ test("opening and closing the panel does not move the page", async ({
   await page.setViewportSize(WIDE);
   await page.goto("/gravitation#moon");
   const heading = page.locator("#moon h2");
+
   const place = async () => {
     const box = await heading.boundingBox();
+
     return {
       y: box?.y,
       scrollY: await page.evaluate(() => Math.round(scrollY)),
     };
   };
+
   const before = await place();
 
   const { toggle } = await openTutor(page);
@@ -197,10 +213,13 @@ for (const viewport of [PHONE, PORTRAIT_TABLET, TABLET]) {
     const { panel } = await openTutor(page);
 
     const box = await panel.boundingBox();
+
     if (box === null) {
       throw new Error("the panel has no box");
     }
+
     const height = Math.min(viewport.height * SHEET_SHARE, SHEET_MAX_PX);
+
     expect(box.x).toBe(0);
     expect(box.width).toBe(viewport.width);
     expect(box.y + box.height).toBeCloseTo(viewport.height, 0);
@@ -222,13 +241,16 @@ for (const viewport of [PHONE, WIDE]) {
     await page.evaluate(() =>
       scrollTo({ top: document.documentElement.scrollHeight }),
     );
+
     await waitForFrames(page, 2);
 
     const lastQuestion = await boxOf(page, "#law fieldset");
     const covering = await panel.boundingBox();
+
     if (covering === null) {
       throw new Error("the panel has no box");
     }
+
     expect(lastQuestion.y + lastQuestion.height).toBeLessThanOrEqual(
       covering.y,
     );

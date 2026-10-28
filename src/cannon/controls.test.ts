@@ -8,14 +8,17 @@ const CURRENT: CannonSettings = Object.freeze({
   angleDegrees: 45,
   altitudeKm: 10,
 });
+
 const SPEED_STEPS = 1_500; // 0 to 15 km/s by 0.01
 const HEIGHT_STEPS = 199; // 10 to 2,000 km by 10
 
 function applied(request: CannonRequest) {
   const result = resolveRequest(CURRENT, request);
+
   if (result.status !== "applied") {
     throw new Error(`expected the request to apply, got ${result.reason}`);
   }
+
   return result;
 }
 
@@ -93,6 +96,7 @@ describe("resolveRequest: rounding", () => {
     const speeds = Array.from({ length: SPEED_STEPS + 1 }, (_, i) =>
       (i / 100).toFixed(2),
     );
+
     const mismatches = speeds.filter(
       (literal) =>
         applied({ speedKmPerSecond: Number(literal) }).speedKmPerSecond !==
@@ -116,6 +120,7 @@ describe("resolveRequest: rounding", () => {
       { length: HEIGHT_STEPS + 1 },
       (_, i) => 10 + i * 10,
     );
+
     const mismatches = heights.filter(
       (altitudeKm) => applied({ altitudeKm }).altitudeKm !== altitudeKm,
     );

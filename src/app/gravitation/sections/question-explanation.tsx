@@ -2,12 +2,12 @@ import { es } from "@/content/es";
 import { grade, type Question, questionText } from "@/lib/lesson/questions";
 import { preloadTutorChat } from "../load-tutor-chat";
 
-const ui = es.gravitation.question;
-
 type Actions = {
   readonly onShowOptions: () => void;
   readonly onAskTutor: () => void;
 };
+
+const ui = es.gravitation.question;
 
 interface Props {
   question: Question;
@@ -17,10 +17,13 @@ interface Props {
 
 export function QuestionExplanation({ question, optionId, actions }: Props) {
   const text = questionText(question.id);
+
   const correctOption = question.options.find(
     ({ misconception }) => misconception === null,
   );
-  const correct = grade(question.id, optionId).status === "correct";
+
+  const isCorrect = grade(question.id, optionId).status === "correct";
+
   const linkClasses =
     "shrink-0 rounded-lg text-accent text-small underline-offset-4 hover:underline";
 
@@ -28,9 +31,9 @@ export function QuestionExplanation({ question, optionId, actions }: Props) {
     <span className="block px-2 py-1 text-small">
       <span className="block">
         <strong className="font-medium text-strong">
-          {correct ? ui.correct : ui.wrong}
+          {isCorrect ? ui.correct : ui.wrong}
         </strong>
-        {!correct && correctOption !== undefined && (
+        {!isCorrect && correctOption !== undefined && (
           <> {ui.correctAnswer(text.option(correctOption.id).label)}</>
         )}
       </span>

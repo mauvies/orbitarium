@@ -29,6 +29,7 @@ export function OrbitCanvas({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<OrbitAnimation | null>(null);
+
   const controlsRef = useRef<PlayerControls>({
     playing,
     speed,
@@ -46,6 +47,7 @@ export function OrbitCanvas({
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
+
     if (canvas === null) {
       throw new Error("the orbit canvas is not mounted");
     }
@@ -57,6 +59,7 @@ export function OrbitCanvas({
       controlsRef.current,
       onCollision,
     );
+
     animationRef.current = animation;
 
     return () => {

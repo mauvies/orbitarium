@@ -5,17 +5,22 @@ import { messageBlocks } from "./message-blocks";
 
 const { tutor } = es.gravitation;
 
+interface Props {
+  message: TutorMessage;
+}
+
 /**
  * One message of the conversation, as plain text with its line breaks, and
  * the tutor's actions as quieter lines (spec 05, Decisions 8 and 11). Who
  * speaks is said to screen readers and shown by the message's side.
  */
-export function TutorChatMessage({ message }: { message: TutorMessage }) {
-  const fromLearner = message.role === "user";
+export function TutorChatMessage({ message }: Props) {
+  const isFromLearner = message.role === "user";
+
   return (
-    <div className={fromLearner ? LEARNER_BUBBLE : TUTOR_BUBBLE}>
+    <div className={isFromLearner ? LEARNER_BUBBLE : TUTOR_BUBBLE}>
       <span className="sr-only">
-        {fromLearner ? tutor.learner : tutor.tutor}
+        {isFromLearner ? tutor.learner : tutor.tutor}
       </span>
       {messageBlocks(message).map(({ key, kind, text }) => (
         <p

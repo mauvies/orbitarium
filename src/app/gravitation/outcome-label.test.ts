@@ -8,9 +8,11 @@ import { returnsFromBeyondView } from "./outcome-label";
 // session starts on Newton's mountain, 10 km up.
 function launchOf(request: CannonRequest): Launch {
   const launch = launchCannon(initialSession(), request).session.launches[0];
+
   if (launch === undefined) {
     throw new Error("expected a launch");
   }
+
   return launch;
 }
 

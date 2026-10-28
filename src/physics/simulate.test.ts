@@ -22,6 +22,8 @@ const SPLIT_CALLS_TOLERANCE = 1e-14;
 // Spec 01, E12.
 const STRAIGHT_LINE_TOLERANCE = 1e-12;
 
+const integrators: readonly IntegratorName[] = ["verlet", "yoshida4"];
+
 describe("advances by the exact duration", () => {
   const start = { ...circularBinary, time: startTime };
 
@@ -50,6 +52,7 @@ describe("advances by the exact duration", () => {
 
   it("matches three single calls when advancing by 3 · dt at once", () => {
     const once = advance(start, 3 * dt, verlet);
+
     const inThreeCalls = [dt, dt, dt].reduce(
       (state, duration) => advance(state, duration, verlet),
       start,
@@ -67,6 +70,7 @@ describe("advances by the exact duration", () => {
 // Spec 01, E11.
 describe("does not mutate its input and is deterministic", () => {
   const state = deepFreeze(structuredClone(driftingTriple));
+
   const options = deepFreeze<SimulationOptions>({
     dt: 0.01,
     softening: 0.01,
@@ -156,13 +160,12 @@ it("defaults to the yoshida4 integrator", () => {
   );
 });
 
-const integrators: readonly IntegratorName[] = ["verlet", "yoshida4"];
-
 it.each(
   integrators,
 )("moves bodies in straight lines when G = 0 (%s)", (integrator) => {
   const duration = 2;
   const result = advance(circularBinary, duration, { dt, integrator, G: 0 });
+
   const straightLines = circularBinary.bodies.map((body) =>
     add(body.position, scale(body.velocity, duration)),
   );

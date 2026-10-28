@@ -87,6 +87,7 @@ export function createLessonControls(
    */
   function moveTo(section: SectionId): void {
     view.scrollToSection(section);
+
     if (view.isTutorOpen()) {
       view.announceSection(section);
     } else {
@@ -100,20 +101,24 @@ export function createLessonControls(
       set: (request) => {
         const { session, result } = setCannon(store.getSession(), request);
         store.replace(session);
+
         return result;
       },
       launch: (request = {}) => {
         const { session, result } = launchCannon(store.getSession(), request);
         store.replace(session);
+
         // Spec 04, Decision 14: the learner sees what the tutor fired.
         if (result.status === "launched" && !view.isCannonInView()) {
           moveTo("cannon");
         }
+
         return result;
       },
       current: () => {
         const { cannon, launches } = store.getSession();
         const last = launches.at(-1);
+
         return {
           settings: cannon,
           lastLaunch:
@@ -128,6 +133,7 @@ export function createLessonControls(
       current: view.sectionAtTop,
       goToSection: (value) => {
         const section = typeof value === "string" ? parseSection(value) : null;
+
         if (section === null) {
           return {
             status: "rejected",
@@ -135,7 +141,9 @@ export function createLessonControls(
             reason: SECTION_REASON,
           };
         }
+
         moveTo(section);
+
         return { status: "moved", section };
       },
     },

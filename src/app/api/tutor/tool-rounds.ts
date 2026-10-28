@@ -14,6 +14,7 @@ export function toolCallsSinceLearnerMessage(
   const lastLearnerMessage = messages.findLastIndex(
     ({ role }) => role === "user",
   );
+
   return messages
     .slice(lastLearnerMessage + 1)
     .flatMap(({ parts }) => parts)

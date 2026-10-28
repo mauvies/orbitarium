@@ -12,6 +12,7 @@ const TOGGLES = [
 
 const OPTION_CLASSES =
   "relative flex items-center rounded-[10px] border border-line px-3 py-2 text-small hover:text-strong has-checked:border-accent/60 has-checked:bg-surface-raised has-checked:text-strong";
+
 const OPTION_INPUT_CLASSES =
   "absolute inset-0 cursor-pointer appearance-none rounded-[10px]";
 

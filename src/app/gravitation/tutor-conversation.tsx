@@ -22,26 +22,30 @@ const RETRYABLE: readonly NoticeKind[] = [
 interface Props {
   chat: UseChatHelpers<TutorMessage>;
   availability: Availability;
-  retryAvailability: () => void;
   atCannon: boolean;
+  retryAvailability: () => void;
 }
 
 export function TutorConversation({
   chat: { messages, status, error, sendMessage, regenerate },
   availability,
-  retryAvailability,
   atCannon,
+  retryAvailability,
 }: Props) {
   const [announcement, setAnnouncement] = useState("");
   const announced = useRef<string | null>(null);
   const list = useRef<HTMLDivElement>(null);
-  const waiting = status === "submitted" || status === "streaming";
-  const slow = useSlowAnswer(status);
+
+  const isSlow = useSlowAnswer(status);
+
+  const isWaiting = status === "submitted" || status === "streaming";
+
   const kind = noticeKind({
     availability,
     errorMessage: error?.message,
     messageCount: messages.length,
   });
+
   const notice = kind === null ? null : announcedNotice(kind);
 
   // Cleared first, so the same words twice are announced twice.
@@ -50,11 +54,21 @@ export function TutorConversation({
     requestAnimationFrame(() => setAnnouncement(text));
   }, []);
 
+  function retryFor(shown: NoticeKind): (() => void) | undefined {
+    if (!RETRYABLE.includes(shown)) {
+      return undefined;
+    }
+
+    return availability === "failed" ? retryAvailability : () => regenerate();
+  }
+
   useEffect(() => {
     const answer = finishedAnswer(status, messages);
+
     if (answer === null || announced.current === answer.id) {
       return;
     }
+
     announced.current = answer.id;
     announce(answer.text);
   }, [status, messages, announce]);
@@ -66,24 +80,18 @@ export function TutorConversation({
   }, [notice, announce]);
 
   useEffect(() => {
-    if (slow) {
+    if (isSlow) {
       announce(tutor.slowAnswer);
     }
-  }, [slow, announce]);
+  }, [isSlow, announce]);
 
   useEffect(() => {
     const element = list.current;
+
     if (element !== null && messages.length > 0) {
       element.scrollTop = element.scrollHeight;
     }
   }, [messages]);
-
-  function retryFor(shown: NoticeKind): (() => void) | undefined {
-    if (!RETRYABLE.includes(shown)) {
-      return undefined;
-    }
-    return availability === "failed" ? retryAvailability : () => regenerate();
-  }
 
   return (
     <div className="mt-3 flex min-h-0 flex-1 flex-col">
@@ -104,12 +112,12 @@ export function TutorConversation({
       </section>
       {status === "submitted" && (
         <p className="mt-2 text-muted text-small">
-          {slow ? tutor.slowAnswer : tutor.thinking}
+          {isSlow ? tutor.slowAnswer : tutor.thinking}
         </p>
       )}
       {kind !== null && <TutorNotice kind={kind} onRetry={retryFor(kind)} />}
       <TutorInput
-        waiting={waiting || availability === "checking"}
+        waiting={isWaiting || availability === "checking"}
         unavailable={availability !== "available" || kind === "too-long"}
         onSend={(text) => sendMessage({ text })}
       />

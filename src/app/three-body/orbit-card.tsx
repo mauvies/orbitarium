@@ -4,7 +4,11 @@ import { es } from "@/content/es";
 import type { OrbitPreset } from "@/orbits";
 import { StabilityStatus } from "./stability-status";
 
-export function OrbitCard({ orbit }: { orbit: OrbitPreset }) {
+interface Props {
+  orbit: OrbitPreset;
+}
+
+export function OrbitCard({ orbit }: Props) {
   return (
     <Card>
       <OrbitThumbnail orbit={orbit} />

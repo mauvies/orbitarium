@@ -11,11 +11,13 @@ const MAX_ANGLE_DEGREES = 90;
  */
 export function launchState(settings: CannonSettings): LaunchState {
   const { speedKmPerSecond, angleDegrees, altitudeKm } = settings;
+
   if (!(Number.isFinite(speedKmPerSecond) && speedKmPerSecond >= 0)) {
     throw new RangeError(
       `speedKmPerSecond must be a finite number of at least 0, got ${speedKmPerSecond}`,
     );
   }
+
   if (
     !(
       Number.isFinite(angleDegrees) &&
@@ -27,8 +29,10 @@ export function launchState(settings: CannonSettings): LaunchState {
       `angleDegrees must be a finite number from 0 to ${MAX_ANGLE_DEGREES}, got ${angleDegrees}`,
     );
   }
+
   const speed = kmPerSecondToEngine(speedKmPerSecond);
   const angle = (angleDegrees * Math.PI) / 180;
+
   return {
     position: { x: 0, y: launchRadius(altitudeKm) },
     velocity: { x: speed * Math.cos(angle), y: speed * Math.sin(angle) },
@@ -42,5 +46,6 @@ export function circularSpeed(radius: number): number {
       `radius must be a positive finite number, got ${radius}`,
     );
   }
+
   return Math.sqrt(1 / radius);
 }

@@ -5,7 +5,6 @@ describe("environment", () => {
   it("loads the public entry point without DOM globals", async () => {
     expect("window" in globalThis).toBe(false);
     expect("document" in globalThis).toBe(false);
-
     await expect(import("@/cannon")).resolves.toBeDefined();
   });
 });

@@ -27,6 +27,7 @@ export function drawEarth(
 ): void {
   const centre = toCanvas({ x: 0, y: 0 }, transform);
   context.beginPath();
+
   context.arc(
     centre.x,
     centre.y,
@@ -34,6 +35,7 @@ export function drawEarth(
     0,
     2 * Math.PI,
   );
+
   context.closePath();
   context.fillStyle = fill;
   context.fill();
@@ -56,10 +58,12 @@ export function drawMountain(
   color: string,
 ): void {
   const top = toCanvas({ x: 0, y: EARTH_RADIUS }, transform);
+
   const height = Math.max(
     MOUNTAIN_MIN_HEIGHT_PX,
     (launchRadius - EARTH_RADIUS) * transform.scale,
   );
+
   const halfWidth = height * MOUNTAIN_HALF_WIDTH_PER_HEIGHT;
   // The base sinks as far as the Earth curves away under its corners, so a
   // wide mountain still stands on the ground.
@@ -95,10 +99,12 @@ export function drawEarlierPath(
   color: string,
 ): void {
   context.globalAlpha = EARLIER_PATH_ALPHA;
+
   strokePath(context, points, transform, {
     color,
     width: EARLIER_PATH_WIDTH_PX,
   });
+
   context.globalAlpha = 1;
 }
 
@@ -111,10 +117,12 @@ export function drawPredictedPath(
 ): void {
   context.save();
   context.setLineDash(PREDICTED_PATH_DASH_PX);
+
   strokePath(context, points, transform, {
     color,
     width: PREDICTED_PATH_WIDTH_PX,
   });
+
   context.restore();
 }
 
@@ -140,15 +148,19 @@ function strokePath(
   if (points.length < 2) {
     return;
   }
+
   context.beginPath();
+
   for (const [i, point] of points.entries()) {
     const { x, y } = toCanvas(point, transform);
+
     if (i === 0) {
       context.moveTo(x, y);
     } else {
       context.lineTo(x, y);
     }
   }
+
   context.strokeStyle = color;
   context.lineWidth = width;
   context.lineJoin = "round";

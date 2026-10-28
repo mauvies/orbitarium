@@ -6,13 +6,13 @@ import type {
   SetCannonOutput,
 } from "@/lib/tutor/tools";
 
-const { sections, cannon, tutor } = es.gravitation;
-const lines = tutor.toolLines;
-
 export type ToolResult =
   | { readonly tool: "setCannon"; readonly output: SetCannonOutput }
   | { readonly tool: "launchCannon"; readonly output: LaunchCannonOutput }
   | { readonly tool: "goToSection"; readonly output: GoToSectionOutput };
+
+const { sections, cannon, tutor } = es.gravitation;
+const lines = tutor.toolLines;
 
 /**
  * What the tutor did to the page, in one Spanish line built from the tool's
@@ -53,6 +53,7 @@ function clampedText(applied: Applied): string {
     ...applied.clamped.map((field) => {
       const value = applied[field];
       const text = valueText(field, value);
+
       return value >= CANNON_LIMITS[field].max
         ? lines.maximum(text)
         : lines.minimum(text);

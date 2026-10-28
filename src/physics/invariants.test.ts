@@ -44,10 +44,12 @@ function conservationRun(
 ): SystemState[] {
   const states = [driftingTriple];
   let state = driftingTriple;
+
   for (let call = 0; call < Math.round(RUN_DURATION / sampleEvery); call++) {
     state = advance(state, sampleEvery, { dt: RUN_DT, integrator });
     states.push(state);
   }
+
   return states;
 }
 
@@ -162,6 +164,7 @@ describe("conserves linear momentum", () => {
       (sum, body) => sum + body.mass,
       0,
     );
+
     const start = centerOfMass(driftingTriple);
     const velocity = scale(linearMomentum(driftingTriple), 1 / totalMass);
 
@@ -178,6 +181,7 @@ describe("conserves linear momentum", () => {
 // Spec 01, E4.
 it.each(integrators)("conserves angular momentum (%s)", (integrator) => {
   const initial = angularMomentum(driftingTriple);
+
   const tolerance =
     ANGULAR_MOMENTUM_TOLERANCE * angularMomentumScale(driftingTriple);
 
@@ -202,15 +206,20 @@ describe("energy error does not grow", () => {
     const dt = eccentricBinaryPeriod / STEPS_PER_PERIOD;
     const initialEnergy = totalEnergy(eccentricBinary);
     let state = eccentricBinary;
+
     largestErrorPerPeriod = Array.from({ length: PERIODS }, () => {
       let largest = 0;
+
       for (let step = 0; step < STEPS_PER_PERIOD; step++) {
         state = advance(state, dt, { dt });
+
         const relativeError = Math.abs(
           (totalEnergy(state) - initialEnergy) / initialEnergy,
         );
+
         largest = Math.max(largest, relativeError);
       }
+
       return largest;
     });
   });

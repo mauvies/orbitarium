@@ -12,9 +12,6 @@ import {
 import { type Answers, grade, type QuestionId } from "@/lib/lesson/questions";
 import { viewTrace } from "./cannon-view";
 
-// Spec 04, Decision 11: the current path and up to four faint ones.
-export const RECENT_LAUNCHES = 5;
-
 export type Launch = {
   readonly id: number;
   readonly settings: CannonSettings;
@@ -44,6 +41,9 @@ export type LaunchResult =
   | ({ readonly status: "launched"; readonly outcome: CannonOutcome } & Applied)
   | Rejected;
 
+// Spec 04, Decision 11: the current path and up to four faint ones.
+export const RECENT_LAUNCHES = 5;
+
 export function initialSession(): LessonSession {
   return {
     cannon: CANNON_PRESETS.ballistic,
@@ -60,11 +60,14 @@ export function setCannon(
   request: CannonRequest,
 ): { readonly session: LessonSession; readonly result: SetResult } {
   const resolved = resolveRequest(session.cannon, request);
+
   if (resolved.status === "rejected") {
     return { session, result: resolved };
   }
+
   const { speedKmPerSecond, angleDegrees, altitudeKm, clamped } = resolved;
   const settings = { speedKmPerSecond, angleDegrees, altitudeKm };
+
   return {
     session: { ...session, cannon: settings },
     result: { status: "set", ...settings, clamped },
@@ -81,18 +84,22 @@ export function launchCannon(
   request: CannonRequest,
 ): { readonly session: LessonSession; readonly result: LaunchResult } {
   const resolved = resolveRequest(session.cannon, request);
+
   if (resolved.status === "rejected") {
     return { session, result: resolved };
   }
+
   const { speedKmPerSecond, angleDegrees, altitudeKm, clamped } = resolved;
   const settings = { speedKmPerSecond, angleDegrees, altitudeKm };
   const outcome = launchOutcome(settings);
+
   const launch: Launch = {
     id: session.nextLaunchId,
     settings,
     outcome,
     trace: viewTrace(settings),
   };
+
   return {
     session: {
       ...session,
@@ -125,6 +132,7 @@ export function clearEarlierPaths(session: LessonSession): LessonSession {
   if (session.launches.length <= 1) {
     return session;
   }
+
   return { ...session, launches: session.launches.slice(-1) };
 }
 
@@ -138,9 +146,11 @@ export function answerQuestion(
   optionId: string,
 ): LessonSession {
   grade(questionId, optionId);
+
   if (session.answers[questionId] !== undefined) {
     return session;
   }
+
   return {
     ...session,
     answers: { ...session.answers, [questionId]: optionId },

@@ -44,19 +44,24 @@ export async function handleTutorRequest(
   { resolveModel, log, timeoutMs, rateLimiter }: TutorDependencies,
 ): Promise<Response> {
   const tutorRequest = await readTutorRequest(request);
+
   if (tutorRequest.status === "invalid") {
     return new Response(tutorRequest.reason, { status: 400 });
   }
+
   if (tutorRequest.status === "too-long") {
     return new Response("too-long", { status: 400 });
   }
+
   const { messages, context } = tutorRequest;
 
   let model: LanguageModel;
+
   try {
     model = resolveModel();
   } catch (error) {
     log(`tutor: ${describe(error)}`);
+
     return new Response("unavailable", { status: 500 });
   }
 
@@ -65,32 +70,44 @@ export async function handleTutorRequest(
     clientKey(request.headers),
     turnKind(messages),
   );
+
   if (decision !== "allowed") {
     return new Response(decision, { status: 429 });
   }
 
-  const toolsUsedUp = toolCallsSinceLearnerMessage(messages) >= MAX_TOOL_CALLS;
+  const hasUsedUpTools =
+    toolCallsSinceLearnerMessage(messages) >= MAX_TOOL_CALLS;
+
   const result = streamText({
     model,
     instructions: tutorInstructions(context),
     messages: await convertToModelMessages(messages),
     tools: tutorTools,
-    ...(toolsUsedUp ? { activeTools: [] } : {}),
+    ...(hasUsedUpTools ? { activeTools: [] } : {}),
     // A retried 429 spends quota and keeps the learner waiting for the same
     // error (spec 05, Decision 2).
     maxRetries: 0,
     abortSignal: request.signal,
     timeout: timeoutMs,
   });
+
   return createUIMessageStreamResponse({
     stream: toUIMessageStream({
       stream: result.stream,
       onError: (error) => {
         log(`tutor: ${describe(error)}`);
+
         return toErrorCode(error);
       },
     }).pipeThrough(timeoutAsError(log)),
   });
+}
+
+/** Whether the tutor is set up, from the environment alone (spec 05, Decision 12). */
+export function handleAvailabilityRequest(
+  environment: Readonly<Record<string, string | undefined>>,
+): Response {
+  return Response.json({ available: isTutorAvailable(environment) });
 }
 
 /**
@@ -114,29 +131,27 @@ function timeoutAsError(
   });
 }
 
-/** Whether the tutor is set up, from the environment alone (spec 05, Decision 12). */
-export function handleAvailabilityRequest(
-  environment: Readonly<Record<string, string | undefined>>,
-): Response {
-  return Response.json({ available: isTutorAvailable(environment) });
-}
-
 async function readTutorRequest(request: Request): Promise<TutorRequest> {
   const body: unknown = await request.json().catch(() => undefined);
+
   if (typeof body !== "object" || body === null) {
     return invalid("body must be a JSON object with messages and context");
   }
+
   if (!("messages" in body)) {
     return invalid("messages is missing");
   }
+
   if (!("context" in body)) {
     return invalid("context is missing");
   }
 
   const context = parseTutorContext(body.context);
+
   if (context.status === "invalid") {
     const field =
       context.field === "context" ? "context" : `context.${context.field}`;
+
     return invalid(`${field}: ${context.reason}`);
   }
 
@@ -144,17 +159,21 @@ async function readTutorRequest(request: Request): Promise<TutorRequest> {
     messages: body.messages,
     tools: tutorTools,
   });
+
   if (!messages.success) {
     return invalid(`messages: ${messages.error.message}`);
   }
+
   if (isConversationTooLong(messages.data.length)) {
     return { status: "too-long" };
   }
+
   if (messages.data.some(isTooLong)) {
     return invalid(
       `messages: a learner message is over ${MAX_LEARNER_MESSAGE_CHARACTERS} characters`,
     );
   }
+
   return { status: "valid", messages: messages.data, context: context.context };
 }
 

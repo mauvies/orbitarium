@@ -27,13 +27,16 @@ export function advancePlayback(
 ): Playback {
   validateSimulationTime(simulationTime);
   validateMaxSubsteps(maxSubsteps);
+
   const dt = substepOf(playback.orbit);
   const available = playback.carry + simulationTime;
   const due = Math.floor(available / dt + ROUND_OFF_MARGIN);
+
   if (due > maxSubsteps) {
     // A long pause slows the playback down instead of freezing the page.
     return { ...runAcrossPeriods(playback, maxSubsteps, reanchor), carry: 0 };
   }
+
   return {
     ...runAcrossPeriods(playback, due, reanchor),
     carry: Math.max(0, available - due * dt),
@@ -48,21 +51,26 @@ function runAcrossPeriods(
   const { orbit } = playback;
   let current = playback;
   let remaining = substeps;
+
   while (remaining > 0) {
     const chunk = Math.min(
       remaining,
       orbit.stepsPerPeriod - current.substepInPeriod,
     );
+
     current = {
       ...current,
       state: runSubsteps(current.state, chunk, substepOf(orbit)),
       substepInPeriod: current.substepInPeriod + chunk,
     };
+
     if (current.substepInPeriod === orbit.stepsPerPeriod) {
       current = completePeriod(current, reanchor);
     }
+
     remaining -= chunk;
   }
+
   return current;
 }
 
@@ -70,12 +78,14 @@ function runAcrossPeriods(
 function completePeriod(playback: Playback, reanchor: boolean): Playback {
   const { initialState, period } = playback.orbit;
   const periodsCompleted = playback.periodsCompleted + 1;
+
   const state = reanchor
     ? {
         bodies: initialState.bodies,
         time: initialState.time + periodsCompleted * period,
       }
     : playback.state;
+
   return { ...playback, state, substepInPeriod: 0, periodsCompleted };
 }
 

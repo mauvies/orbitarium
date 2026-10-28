@@ -20,9 +20,11 @@ const uncorrected: FrameControls = { speed: 1, correction: false };
 /** Milliseconds of screen time for `periods` of the orbit at 1×. */
 const msFor = (periods: number, period = lagrange.period) =>
   periods * period * 1_000;
+
 const substepsRun = (playback: Playback) =>
   playback.periodsCompleted * playback.orbit.stepsPerPeriod +
   playback.substepInPeriod;
+
 const timesOf = (state: ReturnType<typeof startAnimation>) =>
   state.trail.map(({ time }) => time);
 
@@ -41,10 +43,12 @@ describe("advanceAnimation", () => {
 
   it("gives exactly the bodies of one playback call: slicing changes nothing", () => {
     const simulationTime = 0.6;
+
     const state = advanceAnimation(startAnimation(lagrange), 300, {
       ...corrected,
       speed: 2,
     });
+
     const oneCall = advancePlayback(startPlayback(lagrange), simulationTime, {
       reanchor: true,
       maxSubsteps: lagrange.stepsPerPeriod,
@@ -59,12 +63,14 @@ describe("advanceAnimation", () => {
     const sampleTime =
       (mothI.stepsPerPeriod / TRAIL_SAMPLES_PER_PERIOD) *
       (mothI.period / mothI.stepsPerPeriod);
+
     const state = advanceAnimation(startAnimation(mothI), 100, corrected);
     const times = timesOf(state);
     // The last sample ends the frame, after whatever is left of a slice.
     const gaps = times.slice(1, -1).map((time, i) => time - (times[i] ?? 0));
 
     expect(gaps.length).toBeGreaterThan(30);
+
     for (const gap of gaps) {
       expect(gap).toBeCloseTo(sampleTime, 12);
     }
@@ -86,6 +92,7 @@ describe("advanceAnimation", () => {
       msFor(0.5),
       corrected,
     );
+
     const times = timesOf(state);
     const newest = times.at(-1) ?? Number.NaN;
 
@@ -97,11 +104,14 @@ describe("advanceAnimation", () => {
 
   it("keeps the trail through a period boundary with correction on", () => {
     let state = startAnimation(lagrange);
+
     for (let frame = 0; frame < 3; frame++) {
       state = advanceAnimation(state, msFor(0.3), corrected);
     }
+
     // Just past the boundary, so the trail must reach back across it.
     state = advanceAnimation(state, msFor(0.12), corrected);
+
     const times = timesOf(state);
     const span = (times.at(-1) ?? 0) - (times[0] ?? 0);
 
@@ -114,6 +124,7 @@ describe("advanceAnimation", () => {
     let state = startAnimation(lagrange);
     state = advanceAnimation(state, msFor(0.6), uncorrected);
     state = advanceAnimation(state, msFor(0.6), uncorrected);
+
     expect(state.drifting).toBe(true);
 
     state = advanceAnimation(state, msFor(0.6), corrected);

@@ -18,55 +18,70 @@ export function totalEnergy(
   options?: ForceOptions,
 ): number {
   validateState(state);
+
   const { G, softening } = resolveForceOptions(options);
+
   const energy =
     kineticEnergy(state.bodies) +
     potentialEnergy(state.bodies, G, softening * softening);
+
   if (!Number.isFinite(energy)) {
     throw overflowError("total energy", state.bodies);
   }
+
   return energy;
 }
 
 export function linearMomentum(state: SystemState): Vec2 {
   validateState(state);
+
   const momentum = state.bodies.reduce(
     (sum, body) => add(sum, scale(body.velocity, body.mass)),
     ZERO,
   );
+
   if (!isFiniteVec(momentum)) {
     throw overflowError("linear momentum", state.bodies);
   }
+
   return momentum;
 }
 
 /** About the origin. */
 export function angularMomentum(state: SystemState): number {
   validateState(state);
+
   const momentum = state.bodies.reduce(
     (sum, body) => sum + body.mass * cross(body.position, body.velocity),
     0,
   );
+
   if (!Number.isFinite(momentum)) {
     throw overflowError("angular momentum", state.bodies);
   }
+
   return momentum;
 }
 
 export function centerOfMass(state: SystemState): Vec2 {
   validateState(state);
+
   const totalMass = state.bodies.reduce((sum, body) => sum + body.mass, 0);
+
   const weightedPosition = state.bodies.reduce(
     (sum, body) => add(sum, scale(body.position, body.mass)),
     ZERO,
   );
+
   const center = {
     x: weightedPosition.x / totalMass,
     y: weightedPosition.y / totalMass,
   };
+
   if (!isFiniteVec(center)) {
     throw overflowError("centre of mass", state.bodies);
   }
+
   return center;
 }
 
@@ -83,6 +98,7 @@ function potentialEnergy(
   softeningSquared: number,
 ): number {
   let energy = 0;
+
   for (const [index, body] of bodies.entries()) {
     for (const [otherIndex, other] of bodies.entries()) {
       if (otherIndex > index) {
@@ -92,10 +108,12 @@ function potentialEnergy(
           index,
           otherIndex,
         );
+
         energy -= (G * body.mass * other.mass) / Math.sqrt(distanceSquared);
       }
     }
   }
+
   return energy;
 }
 

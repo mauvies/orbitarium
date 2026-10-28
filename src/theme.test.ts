@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 // literal, in a class (`bg-[#383838]`), a style or an SVG attribute.
 const THEME_FILE = join("app", "globals.css");
 const STYLED_SOURCE = /\.(?:css|ts|tsx)$/;
+
 const COLOUR_LITERAL =
   /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(/i;
 

@@ -8,6 +8,7 @@ const LINK = {
 
 function targetWith(share?: ShareTarget["share"]) {
   const writeText = vi.fn(async (_text: string) => {});
+
   return { target: { share, clipboard: { writeText } }, writeText };
 }
 

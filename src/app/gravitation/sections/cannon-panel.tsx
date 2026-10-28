@@ -22,7 +22,7 @@ const PRESET_BUTTON =
   "rounded-[10px] border border-muted bg-surface px-3 py-2 text-small text-strong last:col-span-2 hover:bg-surface-raised";
 
 export function CannonPanel() {
-  const hydrated = useHydrated();
+  const isHydrated = useHydrated();
   const launch = useLaunchCannon();
   const session = useLessonSession();
   const clearEarlierPaths = useClearEarlierPaths();
@@ -31,7 +31,7 @@ export function CannonPanel() {
   const { speedKmPerSecond, angleDegrees, altitudeKm } = session.cannon;
 
   return (
-    <fieldset disabled={!hydrated} className="grid gap-3 sm:gap-5">
+    <fieldset disabled={!isHydrated} className="grid gap-3 sm:gap-5">
       <legend className="sr-only">{cannon.controlsLabel}</legend>
       <div className="grid gap-2">
         <button

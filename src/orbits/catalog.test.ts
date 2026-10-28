@@ -23,6 +23,7 @@ const BRIEF_ORDER = [
   "moth-i",
   "yin-yang-i",
 ];
+
 const KEBAB_CASE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 // Spec 02, O2.
@@ -55,9 +56,11 @@ function collinearConvention({ x: p1, y: p2 }: Vec2): SystemState {
 
 function firstVelocity(state: SystemState): Vec2 {
   const first = state.bodies[0];
+
   if (first === undefined) {
     throw new RangeError("state.bodies is empty");
   }
+
   return first.velocity;
 }
 

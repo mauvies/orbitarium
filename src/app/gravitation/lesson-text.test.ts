@@ -11,12 +11,15 @@ function lessonTexts(value: unknown): string[] {
   if (typeof value === "string") {
     return [value];
   }
+
   if (typeof value === "function") {
     return SAMPLE_ARGUMENTS.map((sample) => String(value(sample)));
   }
+
   if (typeof value === "object" && value !== null) {
     return Object.values(value).flatMap(lessonTexts);
   }
+
   return [];
 }
 

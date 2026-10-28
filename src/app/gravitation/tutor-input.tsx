@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useState } from "react";
 import { es } from "@/content/es";
 import { MAX_LEARNER_MESSAGE_CHARACTERS } from "@/lib/tutor/limits";
 import { useTutorPanel } from "./lesson-provider";
@@ -14,19 +14,10 @@ interface Props {
 
 export function TutorInput({ waiting, unavailable, onSend }: Props) {
   const [draft, setDraft] = useState({ text: "", suggested: false });
-  const { text } = draft;
+
   const { suggestion } = useTutorPanel();
 
-  // A suggested question is written, never sent.
-  useEffect(() => {
-    if (suggestion !== null) {
-      setDraft((current) =>
-        current.suggested || current.text.trim() === ""
-          ? { text: suggestion.text, suggested: true }
-          : current,
-      );
-    }
-  }, [suggestion]);
+  const { text } = draft;
 
   function send(): void {
     const message = text.trim();
@@ -39,12 +30,36 @@ export function TutorInput({ waiting, unavailable, onSend }: Props) {
     setDraft({ text: "", suggested: false });
   }
 
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    send();
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+      send();
+    }
+  };
+
+  // A suggested question is written, never sent.
+  useEffect(() => {
+    if (suggestion !== null) {
+      setDraft((current) =>
+        current.suggested || current.text.trim() === ""
+          ? { text: suggestion.text, suggested: true }
+          : current,
+      );
+    }
+  }, [suggestion]);
+
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        send();
-      }}
+      onSubmit={handleSubmit}
       className="mt-3 flex items-end gap-2 rounded-xl border border-muted bg-surface py-1.5 pr-1.5 pl-3 has-[textarea:focus-visible]:border-strong has-[textarea:focus-visible]:outline-1 has-[textarea:focus-visible]:outline-strong has-[textarea:focus-visible]:outline-offset-0"
     >
       <label htmlFor={TUTOR_INPUT_ID} className="sr-only">
@@ -56,12 +71,7 @@ export function TutorInput({ waiting, unavailable, onSend }: Props) {
         onChange={(e) =>
           setDraft({ text: e.currentTarget.value, suggested: false })
         }
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-            e.preventDefault();
-            send();
-          }
-        }}
+        onKeyDown={handleKeyDown}
         maxLength={MAX_LEARNER_MESSAGE_CHARACTERS}
         readOnly={unavailable}
         rows={1}

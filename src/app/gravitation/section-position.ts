@@ -1,5 +1,11 @@
 import type { SectionId } from "@/lib/lesson/section-ids";
 
+export type SectionTop = {
+  readonly section: SectionId;
+  /** In viewport pixels: negative once the part has scrolled past the top. */
+  readonly top: number;
+};
+
 /** How far below the viewport's top a part stops when scrolled to. */
 export const SECTION_SCROLL_MARGIN_PX = 32;
 
@@ -10,11 +16,9 @@ export const SECTION_SCROLL_MARGIN_PX = 32;
  */
 export const TOP_LINE_PX = SECTION_SCROLL_MARGIN_PX + 8;
 
-export type SectionTop = {
-  readonly section: SectionId;
-  /** In viewport pixels: negative once the part has scrolled past the top. */
-  readonly top: number;
-};
+// Spec 04, Decision 14: not half, which let the tutor's sheet hide where the
+// shot lands; not all, which a phone's canvas misses by a pixel.
+const IN_VIEW_SHARE = 0.9;
 
 /**
  * The part at the top of the viewport: the last one whose top is at or above
@@ -24,22 +28,21 @@ export type SectionTop = {
 export function sectionAt(
   tops: readonly SectionTop[],
   line: number,
-  atBottom: boolean,
+  isAtBottom: boolean,
 ): SectionId {
   const first = tops[0];
   const last = tops.at(-1);
+
   if (first === undefined || last === undefined) {
     throw new RangeError("tops must hold at least one part");
   }
-  if (atBottom) {
+
+  if (isAtBottom) {
     return last.section;
   }
+
   return tops.findLast(({ top }) => top <= line)?.section ?? first.section;
 }
-
-// Spec 04, Decision 14: not half, which let the tutor's sheet hide where the
-// shot lands; not all, which a phone's canvas misses by a pixel.
-const IN_VIEW_SHARE = 0.9;
 
 /**
  * Whether at least 90 % of a rect is in the viewport: of its height, or of
@@ -50,5 +53,6 @@ export function isMostlyVisible(
   viewportHeight: number,
 ): boolean {
   const visible = Math.min(top + height, viewportHeight) - Math.max(top, 0);
+
   return visible >= Math.min(height, viewportHeight) * IN_VIEW_SHARE;
 }

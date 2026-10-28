@@ -19,29 +19,41 @@ const { cannon } = es.gravitation;
  * Decision 11).
  */
 export function CannonCanvas() {
-  const { launches, cannon: settings, showPredictedPath } = useLessonSession();
-  const lastLaunch = launches.at(-1);
-  const earlierPaths = useMemo(
-    () => launches.slice(0, -1).map(({ trace }) => trace),
-    [launches],
-  );
-  const reducedMotion = usePrefersReducedMotion();
   const [shownLaunchId, setShownLaunchId] = useState<number | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<CannonAnimation | null>(null);
   const playingLaunchId = useRef<number | null>(null);
 
+  const { launches, cannon: settings, showPredictedPath } = useLessonSession();
+  const shouldReduceMotion = usePrefersReducedMotion();
+
+  const lastLaunch = launches.at(-1);
+
+  const earlierPaths = useMemo(
+    () => launches.slice(0, -1).map(({ trace }) => trace),
+    [launches],
+  );
+
+  const shownLaunch =
+    lastLaunch !== undefined && lastLaunch.id === shownLaunchId
+      ? lastLaunch
+      : null;
+
   // Layout effects, so the canvas is drawn before the first paint. This one
   // comes first, so the effects below find the animation running.
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
+
     if (canvas === null) {
       throw new Error("the cannon canvas is not mounted");
     }
+
     const animation = startCannonAnimation(canvas, () =>
       setShownLaunchId(playingLaunchId.current),
     );
+
     animationRef.current = animation;
+
     return () => {
       animation.stop();
       animationRef.current = null;
@@ -62,13 +74,8 @@ export function CannonCanvas() {
 
   useLayoutEffect(() => {
     playingLaunchId.current = lastLaunch?.id ?? null;
-    animationRef.current?.show(lastLaunch?.trace ?? null, !reducedMotion);
-  }, [lastLaunch, reducedMotion]);
-
-  const shownLaunch =
-    lastLaunch !== undefined && lastLaunch.id === shownLaunchId
-      ? lastLaunch
-      : null;
+    animationRef.current?.show(lastLaunch?.trace ?? null, !shouldReduceMotion);
+  }, [lastLaunch, shouldReduceMotion]);
 
   return (
     <div className="relative mx-auto w-full max-w-160">

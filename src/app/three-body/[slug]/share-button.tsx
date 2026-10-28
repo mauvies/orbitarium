@@ -5,15 +5,30 @@ import { useHydrated } from "@/components/use-hydrated";
 import { es } from "@/content/es";
 import { shareLink } from "./share-link";
 
+type Notice = "none" | "copied" | "failed";
+
 const { share } = es.detail;
 
 const NOTICE_MS = 2_000;
 
-type Notice = "none" | "copied" | "failed";
-
 export function ShareButton() {
   const [notice, setNotice] = useState<Notice>("none");
-  const hydrated = useHydrated();
+  const isHydrated = useHydrated();
+
+  const message = notice === "none" ? "" : share[notice];
+
+  async function handleClick(): Promise<void> {
+    try {
+      const outcome = await shareLink(navigator, {
+        title: document.title,
+        url: window.location.href,
+      });
+
+      setNotice(outcome === "copied" ? "copied" : "none");
+    } catch {
+      setNotice("failed");
+    }
+  }
 
   useEffect(() => {
     if (notice === "none") {
@@ -25,26 +40,12 @@ export function ShareButton() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  async function handleClick(): Promise<void> {
-    try {
-      const outcome = await shareLink(navigator, {
-        title: document.title,
-        url: window.location.href,
-      });
-      setNotice(outcome === "copied" ? "copied" : "none");
-    } catch {
-      setNotice("failed");
-    }
-  }
-
-  const message = notice === "none" ? "" : share[notice];
-
   return (
     <>
       <button
         type="button"
         onClick={handleClick}
-        disabled={!hydrated}
+        disabled={!isHydrated}
         className="inline-flex shrink-0 items-center gap-2 rounded-[10px] border border-line bg-surface px-3 py-2 text-small text-strong hover:bg-surface-raised"
       >
         <svg aria-hidden="true" viewBox="0 0 20 20" className="size-5">

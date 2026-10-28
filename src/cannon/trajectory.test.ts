@@ -9,6 +9,7 @@ import { EARTH_RADIUS, launchRadius, MOUNTAIN_ALTITUDE_KM } from "./units";
 // Spec 04, L8. The grid of the criterion: 0 to 15 km/s by 0.5, at four angles.
 const GRID_SPEEDS_KM_PER_SECOND = Array.from({ length: 31 }, (_, i) => i / 2);
 const GRID_ANGLES_DEGREES = [0, 30, 60, 90];
+
 // The grid has no circular launch: the window is 7.9036 to 7.9430 km/s, at 0°.
 // Nor any launch within 1 % of the escape speed, which the criterion leaves
 // out because a period there needs millions of steps: the nearest are 11.0
@@ -59,9 +60,11 @@ function trace(shot: MountainShot, stopRadius: number): Trace {
 
 function lastPoint(points: readonly Vec2[]): Vec2 {
   const point = points.at(-1);
+
   if (point === undefined) {
     throw new RangeError("the trace has no points");
   }
+
   return point;
 }
 
@@ -69,6 +72,7 @@ function lastPoint(points: readonly Vec2[]): Vec2 {
 function sweptAngle(points: readonly Vec2[]): number {
   return points.slice(1).reduce((total, point, i) => {
     const previous = points[i] ?? point;
+
     return (
       total +
       Math.abs(
@@ -87,6 +91,7 @@ function agreesWithOutcome(
   { points, end }: Trace,
 ): boolean {
   const radii = points.map(radius);
+
   switch (outcome) {
     case "ballistic":
       return (
@@ -96,6 +101,7 @@ function agreesWithOutcome(
       );
     case "circular-orbit": {
       const meanRadius = (Math.min(...radii) + Math.max(...radii)) / 2;
+
       return (
         end === "period" &&
         radii.every(
@@ -106,6 +112,7 @@ function agreesWithOutcome(
     case "elliptical-orbit": {
       const launchPoint = points[0];
       const returned = lastPoint(points);
+
       return (
         end === "period" &&
         launchPoint !== undefined &&
@@ -148,11 +155,13 @@ describe("traceLaunch", () => {
       position: { x: 0, y: THUMBNAIL_LAUNCH_RADIUS },
       velocity: { x: circularSpeed(THUMBNAIL_LAUNCH_RADIUS), y: 0 },
     };
+
     const { points, end } = traceLaunch(launch, {
       stopRadius: 2 * THUMBNAIL_LAUNCH_RADIUS,
     });
 
     expect(end).toBe("period");
+
     for (const point of points) {
       expect(Math.abs(radius(point) - THUMBNAIL_LAUNCH_RADIUS)).toBeLessThan(
         CIRCLE_TOLERANCE,
@@ -190,9 +199,12 @@ describe("traceLaunch", () => {
     () => {
       const disagreements = gridLaunches.flatMap((settings) => {
         const outcome = launchOutcome(onMountain(settings));
+
         const stopRadius =
           outcome === "escape" ? ESCAPE_STOP_RADIUS : BOUND_STOP_RADIUS;
+
         const simulated = trace(settings, stopRadius);
+
         return agreesWithOutcome(outcome, simulated)
           ? []
           : [{ ...settings, outcome, end: simulated.end }];
@@ -253,10 +265,12 @@ describe("traceFrame", () => {
     { speedKmPerSecond: 7, angleDegrees: 45 },
     VIEW_STOP_RADIUS,
   );
+
   const ring = trace(
     { speedKmPerSecond: 7.91, angleDegrees: 0 },
     VIEW_STOP_RADIUS,
   );
+
   const lastIndex = (shot: Trace) => shot.points.length - 1;
 
   it("shows only the launch point at the start", () => {

@@ -8,6 +8,17 @@ const DECIMALS: Readonly<Record<CannonField, number>> = {
   altitudeKm: 0,
 };
 
+interface Props {
+  field: CannonField;
+  label: string;
+  fieldLabel: string;
+  unit: string;
+  limits: FieldLimits;
+  value: number;
+  valueText: string;
+  onChange: (value: number) => void;
+}
+
 /**
  * One setting in one row: a slider for coarse changes, then a number field
  * for typing or fine steps, and its unit (spec 04, Decision 8). Native
@@ -22,17 +33,9 @@ export function SettingRow({
   value,
   valueText,
   onChange,
-}: {
-  field: CannonField;
-  label: string;
-  fieldLabel: string;
-  unit: string;
-  limits: FieldLimits;
-  value: number;
-  valueText: string;
-  onChange: (value: number) => void;
-}) {
+}: Props) {
   const sliderId = `cannon-${field}`;
+
   return (
     <div className="grid gap-1">
       <label htmlFor={sliderId} className="text-muted text-small">

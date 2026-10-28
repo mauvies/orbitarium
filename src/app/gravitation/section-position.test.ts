@@ -11,9 +11,11 @@ const JUST_SCROLLED_TO_PX = 32.6;
 function tops(...values: readonly number[]) {
   return values.map((top, i) => {
     const section: SectionId | undefined = SECTION_IDS[i];
+
     if (section === undefined) {
       throw new RangeError(`no part at index ${i}`);
     }
+
     return { section, top };
   });
 }

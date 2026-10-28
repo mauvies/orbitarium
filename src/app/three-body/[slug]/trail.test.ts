@@ -5,6 +5,7 @@ const sampleAt = (time: number): TrailSample => ({
   time,
   positions: [{ x: time, y: 0 }],
 });
+
 const SPAN = 1;
 
 describe("extendTrail", () => {

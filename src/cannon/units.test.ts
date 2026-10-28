@@ -10,6 +10,7 @@ import {
 
 // Spec 04, L5.
 const ROUND_TRIP_TOLERANCE = 1e-12;
+
 const SPEEDS_KM_PER_SECOND = {
   "the finest step": 0.01,
   "a circular orbit": 7.91,

@@ -14,14 +14,17 @@ export function tracePeriod(
   points: number,
 ): readonly (readonly Vec2[])[] {
   validatePoints(points, orbit.stepsPerPeriod);
+
   const substepsPerSample = orbit.stepsPerPeriod / points;
   const dt = orbit.period / orbit.stepsPerPeriod;
   let state = orbit.initialState;
   const samples = [state];
+
   while (samples.length < points) {
     state = runSubsteps(state, substepsPerSample, dt);
     samples.push(state);
   }
+
   return orbit.initialState.bodies.map((_, body) =>
     samples.map((sample) => positionOf(sample, body)),
   );
@@ -29,8 +32,10 @@ export function tracePeriod(
 
 function positionOf(state: SystemState, body: number): Vec2 {
   const position = state.bodies[body]?.position;
+
   if (position === undefined) {
     throw new RangeError(`state.bodies[${body}] is missing`);
   }
+
   return position;
 }

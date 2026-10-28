@@ -18,8 +18,10 @@ type Part = TutorMessage["parts"][number];
 export function messageBlocks(message: TutorMessage): MessageBlock[] {
   const blocks: MessageBlock[] = [];
   let after = "start";
+
   for (const part of message.parts) {
     const last = blocks.at(-1);
+
     if (part.type === "text") {
       if (last?.kind === "text") {
         blocks[blocks.length - 1] = { ...last, text: last.text + part.text };
@@ -30,18 +32,23 @@ export function messageBlocks(message: TutorMessage): MessageBlock[] {
           text: part.text,
         });
       }
+
       continue;
     }
+
     const result = finishedToolResult(part);
+
     if (result !== null && "toolCallId" in part) {
       blocks.push({
         key: part.toolCallId,
         kind: "action",
         text: toolLine(result),
       });
+
       after = part.toolCallId;
     }
   }
+
   return blocks;
 }
 
@@ -49,6 +56,7 @@ function finishedToolResult(part: Part): ToolResult | null {
   if (!("state" in part) || part.state !== "output-available") {
     return null;
   }
+
   switch (part.type) {
     case "tool-setCannon":
       return { tool: "setCannon", output: part.output };

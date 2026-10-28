@@ -1,6 +1,6 @@
 export type ShareTarget = {
-  readonly share?: (data: ShareData) => Promise<void>;
   readonly clipboard: Pick<Clipboard, "writeText">;
+  readonly share?: (data: ShareData) => Promise<void>;
 };
 
 export type ShareOutcome = "shared" | "copied" | "dismissed";
@@ -12,6 +12,7 @@ export async function shareLink(
   if (target.share !== undefined) {
     try {
       await target.share(link);
+
       return "shared";
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -19,6 +20,7 @@ export async function shareLink(
       }
     }
   }
+
   await target.clipboard.writeText(link.url);
 
   return "copied";

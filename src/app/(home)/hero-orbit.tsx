@@ -19,21 +19,27 @@ const BODY_DOT_RADIUS_PX = 4;
  */
 export function HeroOrbit() {
   const orbit = getOrbit("figure-eight");
+
   if (orbit === undefined) {
     throw new RangeError('no orbit with slug "figure-eight"');
   }
+
   const path = orbitPath(orbit, HERO_WIDTH_PX);
   // The three bodies share one curve, so one body's path draws all of it.
   const curve = path.bodies[0];
+
   if (curve === undefined) {
     throw new RangeError("the figure-eight has no bodies");
   }
+
   const frame = svgFrame(path.bounds);
+
   const unitsPerPixel = svgUnitsPerPixel(
     frame,
     HERO_WIDTH_PX,
     (HERO_WIDTH_PX * frame.height) / frame.width,
   );
+
   return (
     <svg
       viewBox={`${frame.x} ${frame.y} ${frame.width} ${frame.height}`}

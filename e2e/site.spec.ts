@@ -22,11 +22,13 @@ test("the skip link moves keyboard focus past the header", async ({ page }) => {
 
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: es.site.skipToContent });
+
   await expect(skipLink).toBeFocused();
   await expect(skipLink).toBeInViewport();
 
   await page.keyboard.press("Enter");
   await page.keyboard.press("Tab");
+
   await expect(
     page
       .getByRole("main")
@@ -45,6 +47,7 @@ for (const { path, current } of [
     page,
   }) => {
     await page.goto(path);
+
     const marked = page
       .getByRole("navigation", { name: es.site.navigation.label })
       .locator('[aria-current="page"]');
@@ -60,6 +63,7 @@ for (const { path, current } of [
 
 test("the header links to every section", async ({ page }) => {
   await page.goto("/gravitation");
+
   const navigation = page.getByRole("navigation", {
     name: es.site.navigation.label,
   });
@@ -82,15 +86,19 @@ test("on a phone the header shows only the logo, with the name for screen reader
 }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/gravitation");
+
   const home = page.getByRole("banner").getByRole("link", {
     name: es.site.name,
   });
 
   const name = await home.getByText(es.site.name).boundingBox();
+
   expect(name?.width).toBeLessThanOrEqual(1);
+
   const links = page
     .getByRole("navigation", { name: es.site.navigation.label })
     .getByRole("link");
+
   for (const link of await links.all()) {
     const box = await link.boundingBox();
     expect(box?.height).toBeLessThan(50);
@@ -111,10 +119,12 @@ test("the tab icon is only the orbits and adapts to light and dark", async ({
   request,
 }) => {
   await page.goto("/");
+
   const href = await page
     .locator("link[rel=icon]")
     .first()
     .getAttribute("href");
+
   const icon = await (await request.get(href ?? "")).text();
 
   expect(icon).not.toContain("<rect");

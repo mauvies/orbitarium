@@ -19,16 +19,6 @@ import {
   drawShotPath,
 } from "./cannon-draw";
 
-const MS_PER_SECOND = 1_000;
-
-// Fixed and centred on the Earth (spec 04, Decision 10).
-const VIEW_BOUNDS = {
-  minX: -CANNON_VIEW_RADIUS,
-  maxX: CANNON_VIEW_RADIUS,
-  minY: -CANNON_VIEW_RADIUS,
-  maxY: CANNON_VIEW_RADIUS,
-};
-
 export type CannonAnimation = {
   /** Plays `trace` from its start, or shows it whole when `animate` is false. */
   readonly show: (trace: Trace | null, animate: boolean) => void;
@@ -50,6 +40,16 @@ type View = {
   readonly transform: CanvasTransform;
 };
 
+const MS_PER_SECOND = 1_000;
+
+// Fixed and centred on the Earth (spec 04, Decision 10).
+const VIEW_BOUNDS = {
+  minX: -CANNON_VIEW_RADIUS,
+  maxX: CANNON_VIEW_RADIUS,
+  minY: -CANNON_VIEW_RADIUS,
+  maxY: CANNON_VIEW_RADIUS,
+};
+
 /**
  * Draws the Earth, the cannon and the shots on `canvas`, outside React, as
  * the gallery does (spec 03, Decision 5). The current shot is revealed at one
@@ -62,9 +62,11 @@ export function startCannonAnimation(
   onOutcomeShown: () => void,
 ): CannonAnimation {
   const context = canvas.getContext("2d");
+
   if (context === null) {
     throw new Error("the canvas has no 2D context");
   }
+
   const colors = readThemeColors(canvas);
   let view: View | null = null;
   let trace: Trace | null = null;
@@ -78,35 +80,44 @@ export function startCannonAnimation(
     if (predictionSettings === predictedFor) {
       return;
     }
+
     predictedFor = predictionSettings;
+
     predictedPath =
       predictionSettings === null ? null : viewTrace(predictionSettings);
   };
-  let animate = false;
+
+  let shouldAnimate = false;
   let elapsedTime = 0;
-  let outcomeReported = false;
+  let hasReportedOutcome = false;
 
   const currentFrame = (): TraceFrame | null => {
     if (trace === null) {
       return null;
     }
-    return animate ? traceFrame(trace, elapsedTime) : finalFrame(trace);
+
+    return shouldAnimate ? traceFrame(trace, elapsedTime) : finalFrame(trace);
   };
 
   const draw = (frame: TraceFrame | null) => {
     if (view === null) {
       return;
     }
+
     const { size, transform } = view;
+
     context.setTransform(size.pixelRatio, 0, 0, size.pixelRatio, 0, 0);
     context.clearRect(0, 0, size.width, size.height);
+
     drawEarth(context, transform, {
       fill: colors.line,
       edge: colors.muted,
     });
+
     if (mountainRadius !== null) {
       drawMountain(context, transform, mountainRadius, colors.muted);
     }
+
     if (predictedPath !== null) {
       drawPredictedPath(
         context,
@@ -115,9 +126,11 @@ export function startCannonAnimation(
         colors.accent,
       );
     }
+
     for (const earlier of earlierPaths) {
       drawEarlierPath(context, earlier.points, transform, colors.accent);
     }
+
     if (trace !== null && frame !== null) {
       drawShotPath(
         context,
@@ -126,6 +139,7 @@ export function startCannonAnimation(
         transform,
         colors.accent,
       );
+
       drawShot(context, frame.shot, transform, colors.strong);
     }
   };
@@ -134,24 +148,28 @@ export function startCannonAnimation(
     view = viewFor(size);
     draw(currentFrame());
   });
+
   const loop = startAnimationLoop((elapsedMs) => {
     elapsedTime += elapsedMs / MS_PER_SECOND;
     refreshPrediction();
+
     const frame = currentFrame();
     draw(frame);
-    if (frame?.outcomeShown && !outcomeReported) {
-      outcomeReported = true;
+
+    if (frame?.outcomeShown && !hasReportedOutcome) {
+      hasReportedOutcome = true;
       onOutcomeShown();
     }
+
     return frame !== null && !frame.finished;
   });
 
   return {
     show: (nextTrace, nextAnimate) => {
       trace = nextTrace;
-      animate = nextAnimate;
+      shouldAnimate = nextAnimate;
       elapsedTime = 0;
-      outcomeReported = false;
+      hasReportedOutcome = false;
       loop.requestFrame();
     },
     setEarlierPaths: (traces) => {
@@ -178,6 +196,7 @@ function viewFor(size: CanvasSize): View | null {
   if (size.width === 0 || size.height === 0) {
     return null;
   }
+
   return {
     size,
     // No margin: paths reach the canvas's edge and are cut there.

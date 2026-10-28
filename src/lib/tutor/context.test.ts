@@ -33,6 +33,7 @@ function withProfileEntry(index: number, changes: Record<string, unknown>) {
 
 function withSettings(changes: Record<string, unknown>) {
   const { cannon } = AT_THE_CANNON_AFTER_A_LAUNCH;
+
   return {
     ...AT_THE_CANNON_AFTER_A_LAUNCH,
     cannon: { ...cannon, settings: { ...cannon.settings, ...changes } },
@@ -41,6 +42,7 @@ function withSettings(changes: Record<string, unknown>) {
 
 function invalidField(value: unknown): string | null {
   const result = parseTutorContext(value);
+
   return result.status === "invalid" ? result.field : null;
 }
 
@@ -103,6 +105,7 @@ describe("parseTutorContext", () => {
 
   it("refuses an unknown outcome", () => {
     const { cannon } = AT_THE_CANNON_AFTER_A_LAUNCH;
+
     const context = {
       ...AT_THE_CANNON_AFTER_A_LAUNCH,
       cannon: {

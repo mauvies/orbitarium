@@ -1,9 +1,15 @@
+/** The tutor's model in the AI SDK registry's syntax, `provider:model`. */
+export type TutorModelId = `google:${string}`;
+
+type Environment = Readonly<Record<string, string | undefined>>;
+
+type TutorSetup =
+  | { readonly status: "ready"; readonly model: TutorModelId }
+  | { readonly status: "misconfigured"; readonly reason: string };
+
 const KEY_VARIABLE = "GOOGLE_GENERATIVE_AI_API_KEY";
 const MODEL_VARIABLE = "TUTOR_MODEL";
 const PROVIDER_PREFIX = "google:";
-
-/** The tutor's model in the AI SDK registry's syntax, `provider:model`. */
-export type TutorModelId = `google:${string}`;
 
 // `.env.example` repeats it (spec 05, Decision 1).
 export const DEFAULT_TUTOR_MODEL: TutorModelId = "google:gemini-3.5-flash-lite";
@@ -12,12 +18,6 @@ export const DEFAULT_TUTOR_MODEL: TutorModelId = "google:gemini-3.5-flash-lite";
 export const FALLBACK_TUTOR_MODEL: TutorModelId =
   "google:gemini-3.1-flash-lite";
 
-type Environment = Readonly<Record<string, string | undefined>>;
-
-type TutorSetup =
-  | { readonly status: "ready"; readonly model: TutorModelId }
-  | { readonly status: "misconfigured"; readonly reason: string };
-
 /**
  * The model the environment names, checked before any request reaches it
  * (spec 05, Decision 1). Throws naming the variable that is missing or
@@ -25,9 +25,11 @@ type TutorSetup =
  */
 export function tutorModelId(environment: Environment): TutorModelId {
   const setup = tutorSetup(environment);
+
   if (setup.status === "misconfigured") {
     throw new Error(setup.reason);
   }
+
   return setup.model;
 }
 
@@ -42,15 +44,19 @@ function tutorSetup(environment: Environment): TutorSetup {
       `${KEY_VARIABLE} is not set: the tutor needs a Google AI Studio key`,
     );
   }
+
   const modelId = environment[MODEL_VARIABLE];
+
   if (modelId === undefined || isUnset(modelId)) {
     return { status: "ready", model: DEFAULT_TUTOR_MODEL };
   }
+
   if (!isGoogleModel(modelId)) {
     return misconfigured(
       `${MODEL_VARIABLE} must name a model as ${PROVIDER_PREFIX}<model>, got "${modelId}"`,
     );
   }
+
   return { status: "ready", model: modelId };
 }
 

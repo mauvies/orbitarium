@@ -7,15 +7,6 @@ import type {
   Rejected,
 } from "./types";
 
-// Spec 04, Decision 8: 0.01 km/s is the finest step that separates a crash
-// from a circular orbit at 10 km; the height goes from Newton's mountain to
-// the top of low orbit.
-export const CANNON_LIMITS: Readonly<Record<CannonField, FieldLimits>> = {
-  speedKmPerSecond: { min: 0, max: 15, resolution: 0.01 },
-  angleDegrees: { min: 0, max: 90, resolution: 1 },
-  altitudeKm: { min: 10, max: 2_000, resolution: 10 },
-};
-
 export type ResolvedRequest =
   | ({ readonly status: "applied" } & Applied)
   | Rejected;
@@ -28,6 +19,15 @@ type ResolvedField =
     }
   | Rejected;
 
+// Spec 04, Decision 8: 0.01 km/s is the finest step that separates a crash
+// from a circular orbit at 10 km; the height goes from Newton's mountain to
+// the top of low orbit.
+export const CANNON_LIMITS: Readonly<Record<CannonField, FieldLimits>> = {
+  speedKmPerSecond: { min: 0, max: 15, resolution: 0.01 },
+  angleDegrees: { min: 0, max: 90, resolution: 1 },
+  altitudeKm: { min: 10, max: 2_000, resolution: 10 },
+};
+
 /**
  * Applies `request` to the `current` settings (spec 04, Decision 13). Each
  * field present is checked, rounded to its resolution and clamped to its
@@ -39,27 +39,37 @@ export function resolveRequest(
   request: CannonRequest,
 ): ResolvedRequest {
   const speed = resolveField("speedKmPerSecond", current, request);
+
   if (speed.status === "rejected") {
     return speed;
   }
+
   const angle = resolveField("angleDegrees", current, request);
+
   if (angle.status === "rejected") {
     return angle;
   }
+
   const altitude = resolveField("altitudeKm", current, request);
+
   if (altitude.status === "rejected") {
     return altitude;
   }
+
   const clamped: CannonField[] = [];
+
   if (speed.clamped) {
     clamped.push("speedKmPerSecond");
   }
+
   if (angle.clamped) {
     clamped.push("angleDegrees");
   }
+
   if (altitude.clamped) {
     clamped.push("altitudeKm");
   }
+
   return {
     status: "applied",
     speedKmPerSecond: speed.value,
@@ -79,12 +89,16 @@ function resolveField(
   if (!Object.hasOwn(request, field)) {
     return { status: "applied", value: current[field], clamped: false };
   }
+
   const value = request[field];
+
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return { status: "rejected", field, reason: "must be a finite number" };
   }
+
   const { min, max, resolution } = CANNON_LIMITS[field];
   const rounded = roundToResolution(value, resolution);
+
   return {
     status: "applied",
     value: Math.min(Math.max(rounded, min), max),
@@ -104,6 +118,7 @@ function roundToResolution(value: number, resolution: number): number {
       ? Math.round(value / resolution) * resolution
       : Math.round(value * Math.round(1 / resolution)) /
         Math.round(1 / resolution);
+
   // Spanish formatting shows -0 as "-0,00".
   return rounded === 0 ? 0 : rounded;
 }

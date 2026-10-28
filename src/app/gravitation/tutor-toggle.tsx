@@ -13,9 +13,11 @@ const CLOSED = "bottom-4 right-4";
 const OPEN = "bottom-[calc(min(40svh,24rem)+1rem)] right-4 xl:bottom-4";
 
 export function TutorToggle() {
-  const { open, setOpen } = useTutorPanel();
-  const hydrated = useHydrated();
   const button = useRef<HTMLButtonElement>(null);
+
+  const { open, setOpen } = useTutorPanel();
+  const isHydrated = useHydrated();
+
   const wasOpen = useRef(open);
 
   // Closing returns focus here, however the panel was closed.
@@ -23,6 +25,7 @@ export function TutorToggle() {
     if (wasOpen.current && !open) {
       button.current?.focus();
     }
+
     wasOpen.current = open;
   }, [open]);
 
@@ -32,7 +35,7 @@ export function TutorToggle() {
       type="button"
       aria-expanded={open}
       aria-controls={TUTOR_PANEL_ID}
-      disabled={!hydrated}
+      disabled={!isHydrated}
       onClick={() => setOpen(!open)}
       onPointerEnter={preloadTutorChat}
       onFocus={preloadTutorChat}

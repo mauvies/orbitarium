@@ -8,11 +8,17 @@ import { useTutorPanel } from "./lesson-provider";
 // scrolls above them: the sheet below 1,280 px, the floating card from
 // there. Only the page's end grows; nothing above the reader moves.
 const CLOSED = "pb-20";
+
 const OPEN =
   "pb-[calc(min(40svh,24rem)_+_5rem)] xl:pb-[calc(min(28rem,calc(100svh_-_14rem))_+_5.5rem)]";
 
+interface Props {
+  children: ReactNode;
+}
+
 /** The page, with room for the tutor's toggle and, when open, its panel. */
-export function TutorSpace({ children }: { children: ReactNode }) {
+export function TutorSpace({ children }: Props) {
   const { open } = useTutorPanel();
+
   return <div className={open ? OPEN : CLOSED}>{children}</div>;
 }

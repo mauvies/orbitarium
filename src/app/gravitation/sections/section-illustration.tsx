@@ -1,5 +1,13 @@
 import type { ReactNode } from "react";
 
+interface Props {
+  label: string;
+  viewBox: string;
+  wide?: boolean;
+  caption?: string;
+  children: ReactNode;
+}
+
 /**
  * An SVG illustration with its text alternative and an optional caption.
  * `wide` is for a drawing wider than tall.
@@ -10,13 +18,7 @@ export function SectionIllustration({
   wide = false,
   caption,
   children,
-}: {
-  label: string;
-  viewBox: string;
-  wide?: boolean;
-  caption?: string;
-  children: ReactNode;
-}) {
+}: Props) {
   return (
     <figure className={`mx-auto ${wide ? "max-w-xl" : "max-w-sm"}`}>
       <svg role="img" aria-label={label} viewBox={viewBox} className="w-full">

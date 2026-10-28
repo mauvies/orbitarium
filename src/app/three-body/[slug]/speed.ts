@@ -23,5 +23,6 @@ export function simulationTimeFor(
       `elapsedMs must be a finite number greater than or equal to 0, got ${elapsedMs}`,
     );
   }
+
   return (elapsedMs / 1_000) * speed;
 }

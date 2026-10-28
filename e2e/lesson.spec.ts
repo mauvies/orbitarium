@@ -53,17 +53,22 @@ function questionOf(page: Page, section: AnswerableSection) {
   const { id } = FIRST_QUESTION[section];
   const text = questions[id];
   const box = page.locator(`#${section} fieldset`);
+
   return {
     box,
     explanation: box.getByRole("status"),
     option: (index: 0 | 1) => {
       const optionId = FIRST_QUESTION[section].options[index];
+
       const options: Record<string, { label: string; feedback: string }> =
         text.options;
+
       const option = options[optionId];
+
       if (option === undefined) {
         throw new RangeError(`no option ${optionId} in ${id}`);
       }
+
       return {
         ...option,
         button: box.getByRole("button", { name: option.label }),
@@ -76,6 +81,7 @@ function questionOf(page: Page, section: AnswerableSection) {
 function place(locator: Locator) {
   return locator.evaluate((element) => {
     const { x, y, width, height } = element.getBoundingClientRect();
+
     return { x: x + scrollX, y: y + scrollY, width, height };
   });
 }
@@ -90,7 +96,9 @@ test("the lesson is one page with its sections in order", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: title }),
   ).toBeVisible();
+
   const headings = await page.locator("main h2, main h3").allInnerTexts();
+
   expect(headings).toEqual(SECTIONS.map((section) => sections[section].title));
 });
 
@@ -138,10 +146,12 @@ test("questions can be answered in any order", async ({ page }) => {
   const falling = questionOf(page, "falling");
 
   await law.option(0).button.click();
+
   await expect(law.explanation).toContainText(ui.correct);
   await expect(falling.explanation).toHaveText("");
 
   await falling.option(0).button.click();
+
   await expect(falling.explanation).toContainText(ui.correct);
 });
 
@@ -149,6 +159,7 @@ test("the lesson's state resets on reload", async ({ page }) => {
   await page.goto("/gravitation");
   const { explanation, option } = questionOf(page, "mutual");
   await option(0).button.click();
+
   await expect(explanation).toContainText(ui.correct);
 
   await page.reload();
@@ -181,10 +192,14 @@ test("Ver opciones shows the options and keeps the first answer", async ({
   await expect(
     box.getByRole("button", { name: `${first.label} (${ui.yourAnswer})` }),
   ).toBeFocused();
+
   const other = option(0);
   await other.button.click();
+
   await expect(explanation).toContainText(other.feedback);
+
   await box.getByRole("button", { name: ui.showOptions }).click();
+
   await expect(
     box.getByRole("button", { name: `${first.label} (${ui.yourAnswer})` }),
   ).toBeVisible();
@@ -198,15 +213,18 @@ for (const [width, height] of [
   test(`answering moves nothing at ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.goto("/gravitation");
+
     for (const section of ANSWERABLE) {
       const { box, option } = questionOf(page, section);
       const picture = page.locator(`#${section} figure`).first();
       const next = page.locator("#law");
+
       const measure = async () => [
         await place(box),
         await place(picture),
         await place(next),
       ];
+
       const before = await measure();
 
       await option(1).button.click();
@@ -255,6 +273,7 @@ test("pausing stops only its own animation", async ({ page }) => {
 
   const mutual = await animationsIn(page, "mutual");
   const falling = await animationsIn(page, "falling");
+
   expect(mutual.every(({ playState }) => playState === "paused")).toBe(true);
   expect(falling.every(({ playState }) => playState === "running")).toBe(true);
   await expect(
@@ -299,6 +318,7 @@ test("the cannon band spans the container at 1280 px", async ({ page }) => {
   const band = await place(page.locator("#cannon"));
   const section = await place(page.locator("#falling"));
   const canvas = await place(page.getByTestId("cannon-canvas"));
+
   const controls = await place(
     page.getByRole("group", { name: cannon.controlsLabel }),
   );
@@ -314,6 +334,7 @@ test("the cannon band stacks at 360 px", async ({ page }) => {
   const band = await place(page.locator("#cannon"));
   const section = await place(page.locator("#falling"));
   const canvas = await place(page.getByTestId("cannon-canvas"));
+
   const controls = await place(
     page.getByRole("group", { name: cannon.controlsLabel }),
   );
@@ -326,6 +347,7 @@ test("the cannon band stacks at 360 px", async ({ page }) => {
 // Spec 04, L12 and L13: the cannon, driven through its controls.
 function cannonOf(page: Page) {
   const band = page.locator("#cannon");
+
   return {
     canvas: band.locator("canvas"),
     speedSlider: band.getByRole("slider", { name: cannon.speed }),
@@ -351,16 +373,19 @@ async function readyCannon(page: Page) {
   const controls = cannonOf(page);
   await expect(controls.launchButton).toBeEnabled();
   await expect.poll(() => hasDrawing(controls.canvas)).toBe(true);
+
   return controls;
 }
 
 const SPEED_STEP_KM_PER_SECOND = 0.01;
+
 // The ballistic preset, the session's first settings (spec 04, Decision 11).
 const FIRST_SETTINGS = {
   speedKmPerSecond: 7,
   angleDegrees: 45,
   altitudeKm: 10,
 };
+
 const HIGHEST_KM = 2_000;
 
 function speedText(speedKmPerSecond: number): string {
@@ -384,6 +409,7 @@ test("launching from the controls draws the shot's path", async ({ page }) => {
 test("the canvas describes the last launch", async ({ page }) => {
   await page.goto("/gravitation");
   const { canvas, launchButton } = await readyCannon(page);
+
   await expect(canvas).toHaveAccessibleName(cannon.canvasLabel.idle);
 
   await launchButton.click();
@@ -406,11 +432,14 @@ test("the cannon works with the keyboard", async ({ page }) => {
   await page.keyboard.press("ArrowRight");
   // The launch button comes first, just before the speed (spec 04, Decision 8).
   await page.keyboard.press("Shift+Tab");
+
   await expect(launchButton).toBeFocused();
+
   await page.keyboard.press("Enter");
 
   const raisedSpeed =
     FIRST_SETTINGS.speedKmPerSecond + SPEED_STEP_KM_PER_SECOND;
+
   await expect(canvas).toHaveAccessibleName(
     cannon.canvasLabel.launched(
       raisedSpeed,
@@ -437,10 +466,12 @@ test("a typed speed is applied, and clamped to the range", async ({ page }) => {
   const { speedField, speedSlider } = await readyCannon(page);
 
   await speedField.fill("7.91");
+
   await expect(speedSlider).toHaveAttribute("aria-valuetext", speedText(7.91));
 
   await speedField.fill("50");
   await speedField.blur();
+
   await expect(speedField).toHaveValue("15.00");
   await expect(speedSlider).toHaveAttribute("aria-valuetext", speedText(15));
 });
@@ -512,6 +543,7 @@ test("the outcome is announced", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/gravitation");
   const { launchButton, status } = await readyCannon(page);
+
   await expect(status).toHaveText("");
 
   await launchButton.click();
@@ -524,6 +556,7 @@ test("a shot that comes back from beyond the view says so", async ({
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/gravitation");
+
   const { speedField, angleSlider, launchButton, status, label } =
     await readyCannon(page);
 
@@ -541,10 +574,14 @@ test("earlier paths stay faint until cleared", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/gravitation");
   const first = await readyCannon(page);
+
   await expect(first.clearButton).toBeDisabled();
+
   await first.preset("ballistic").click();
   await first.preset("elliptical-orbit").click();
+
   await expect(first.status).toHaveText(announcement("elliptical-orbit"));
+
   await waitForFrames(page, 2);
   const twoPaths = await canvasSnapshot(first.canvas);
 
@@ -555,7 +592,9 @@ test("earlier paths stay faint until cleared", async ({ page }) => {
   await page.reload();
   const alone = await readyCannon(page);
   await alone.preset("elliptical-orbit").click();
+
   await expect(alone.status).toHaveText(announcement("elliptical-orbit"));
+
   await waitForFrames(page, 2);
   const onePath = await canvasSnapshot(alone.canvas);
 
@@ -567,6 +606,7 @@ test("earlier paths stay faint until cleared", async ({ page }) => {
 function referenceTexts(altitudeKm: number) {
   const { circularKmPerSecond, escapeKmPerSecond } =
     referenceSpeeds(altitudeKm);
+
   return [
     cannon.circularReference(circularKmPerSecond),
     cannon.escapeReference(escapeKmPerSecond),
@@ -618,11 +658,14 @@ test("the launch and clear buttons come first and each setting is one row", asyn
   const controls = await readyCannon(page);
   const launch = await place(controls.launchButton);
   const clear = await place(controls.clearButton);
+
   expect(clear.y).toBeGreaterThan(launch.y);
   expect(clear.width).toBe(launch.width);
+
   const units = page
     .getByRole("group", { name: cannon.controlsLabel })
     .locator("[data-unit]");
+
   const rows = [
     [controls.speedSlider, controls.speedField, units.nth(0)],
     [controls.angleSlider, controls.angleField, units.nth(1)],
@@ -633,6 +676,7 @@ test("the launch and clear buttons come first and each setting is one row", asyn
     const sliderBox = await place(slider);
     const fieldBox = await place(field);
     const unitBox = await place(unit);
+
     const middle = (box: { y: number; height: number }) =>
       box.y + box.height / 2;
 
@@ -640,6 +684,7 @@ test("the launch and clear buttons come first and each setting is one row", asyn
     expect(sliderBox.width).toBeGreaterThan(fieldBox.width);
     expect(fieldBox.x).toBeGreaterThanOrEqual(sliderBox.x + sliderBox.width);
     expect(unitBox.x).toBeGreaterThanOrEqual(fieldBox.x + fieldBox.width);
+
     for (const box of [fieldBox, unitBox]) {
       expect(Math.abs(middle(box) - middle(sliderBox))).toBeLessThan(
         fieldBox.height / 2,
@@ -658,6 +703,7 @@ test("the cannon's number fields have borders of at least 3:1", async ({
 }) => {
   await page.goto("/gravitation");
   const { speedField, angleField, altitudeField } = await readyCannon(page);
+
   const background = await page
     .locator("#cannon")
     .evaluate((band) => getComputedStyle(band).backgroundColor);
@@ -666,6 +712,7 @@ test("the cannon's number fields have borders of at least 3:1", async ({
     const border = await field.evaluate(
       (element) => getComputedStyle(element).borderTopColor,
     );
+
     expect(contrastRatio(border, background)).toBeGreaterThanOrEqual(
       MIN_BOUNDARY_CONTRAST,
     );
@@ -695,28 +742,37 @@ const PHONE_BADGE_MAX_FONT_SIZE_PX = 12;
 test("on a phone the reference badges are short", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/gravitation");
+
   const { circularKmPerSecond, escapeKmPerSecond } = referenceSpeeds(
     FIRST_SETTINGS.altitudeKm,
   );
+
   const canvas = page.getByTestId("cannon-canvas");
 
   const orbit = canvas.getByText(
     cannon.circularReferenceShort(circularKmPerSecond),
   );
+
   const escapeBadge = canvas.getByText(
     cannon.escapeReferenceShort(escapeKmPerSecond),
   );
+
   await expect(orbit).toBeVisible();
   await expect(escapeBadge).toBeVisible();
+
   // The full text is still there for screen readers, but 1 px wide.
   const full = await place(
     canvas.getByText(cannon.circularReference(circularKmPerSecond)),
   );
+
   expect(full.width).toBeLessThanOrEqual(1);
+
   const badge = canvas.getByRole("listitem").first();
+
   const fontSize = await badge.evaluate((element) =>
     Number.parseFloat(getComputedStyle(element).fontSize),
   );
+
   expect(fontSize).toBeLessThanOrEqual(PHONE_BADGE_MAX_FONT_SIZE_PX);
   expect((await place(badge)).height).toBeLessThanOrEqual(24);
 });
@@ -733,6 +789,7 @@ for (const [name, text] of [
 
     // Still in the page for screen readers, but 1 px wide.
     const element = page.getByText(text);
+
     expect((await place(element)).width).toBeLessThanOrEqual(1);
     await expect(element).toHaveCount(1);
   });
@@ -778,6 +835,7 @@ for (const section of ANSWERABLE) {
     const heading = await place(part.getByRole("heading", { level: 2 }));
     const question = await place(part.locator("fieldset"));
     const picture = await place(part.locator("figure").first());
+
     const [left, right] = TEXT_FIRST_SECTIONS.some((id) => id === section)
       ? [heading, picture]
       : [picture, heading];
@@ -792,7 +850,9 @@ for (const section of ANSWERABLE) {
 test("the predicted path is on by default", async ({ page }) => {
   await page.goto("/gravitation");
   const { canvas, predictedPath } = await readyCannon(page);
+
   await expect(predictedPath).toBeChecked();
+
   const withPath = await canvasSnapshot(canvas);
 
   await predictedPath.uncheck();
@@ -826,9 +886,11 @@ test("with the toggle off, moving a control draws no path", async ({
   const before = await canvasSnapshot(canvas);
 
   await speedSlider.focus();
+
   for (let step = 0; step < 20; step++) {
     await page.keyboard.press("ArrowRight");
   }
+
   await waitForFrames(page, 5);
 
   expect(await canvasSnapshot(canvas)).toBe(before);
@@ -838,18 +900,22 @@ test("the predicted path follows the speed control and never fires", async ({
   page,
 }) => {
   await page.goto("/gravitation");
+
   const { canvas, speedSlider, label, clearButton, preset } =
     await readyCannon(page);
+
   const withPath = await canvasSnapshot(canvas);
 
   await speedSlider.focus();
+
   for (let step = 0; step < 20; step++) {
     await page.keyboard.press("ArrowRight");
   }
+
   await waitForFrames(page, 5);
   const faster = await canvasSnapshot(canvas);
-  expect(faster).not.toBe(withPath);
 
+  expect(faster).not.toBe(withPath);
   // A prediction, not a launch.
   await expect(label).toHaveText("");
   await expect(clearButton).toBeDisabled();
@@ -857,6 +923,7 @@ test("the predicted path follows the speed control and never fires", async ({
 
   await preset("elliptical-orbit").click();
   await waitForFrames(page, 5);
+
   expect(await canvasSnapshot(canvas)).not.toBe(faster);
 });
 
@@ -883,16 +950,20 @@ test("launching from the band neither scrolls the page nor adds a history entry"
   // Precondition: the learner sees the cannon and the button.
   const viewportHeight = 740;
   const canvasBox = await canvas.boundingBox();
+
   if (canvasBox === null) {
     throw new Error("the canvas has no box");
   }
+
   const visible =
     Math.min(canvasBox.y + canvasBox.height, viewportHeight) -
     Math.max(canvasBox.y, 0);
+
   expect(visible).toBeGreaterThanOrEqual(
     Math.min(canvasBox.height, viewportHeight) / 2,
   );
   await expect(launchButton).toBeInViewport();
+
   const before = await page.evaluate(() => ({
     scrollY: Math.round(scrollY),
     history: history.length,

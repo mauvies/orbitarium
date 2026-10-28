@@ -8,10 +8,6 @@ import type { DetailPreferences } from "./detail-preferences";
 import { drawBodies, drawPath, drawTrail, pathShape } from "./draw";
 import { advanceAnimation, startAnimation } from "./orbit-frame";
 
-export const CANVAS_MAX_WIDTH_PX = 720;
-
-const PADDING_PX = 16;
-
 export type PlayerControls = DetailPreferences & { readonly playing: boolean };
 
 export type OrbitAnimation = {
@@ -25,6 +21,10 @@ type View = {
   readonly transform: CanvasTransform;
   readonly path: Path2D;
 };
+
+export const CANVAS_MAX_WIDTH_PX = 720;
+
+const PADDING_PX = 16;
 
 /**
  * Animates `orbit` on `canvas`: the simulation lives here, outside React,
@@ -40,6 +40,7 @@ export function startOrbitAnimation(
   onCollision: () => void,
 ): OrbitAnimation {
   const context = canvas.getContext("2d");
+
   if (context === null) {
     throw new Error("the canvas has no 2D context");
   }
@@ -53,7 +54,9 @@ export function startOrbitAnimation(
     if (view === null) {
       return;
     }
+
     const { size, transform } = view;
+
     context.setTransform(size.pixelRatio, 0, 0, size.pixelRatio, 0, 0);
     context.clearRect(0, 0, size.width, size.height);
 
@@ -81,11 +84,14 @@ export function startOrbitAnimation(
   const loop = startAnimationLoop((elapsedMs) => {
     if (controls.playing && !state.collided) {
       state = advanceAnimation(state, elapsedMs, controls);
+
       if (state.collided) {
         onCollision();
       }
     }
+
     draw();
+
     return controls.playing && !state.collided;
   });
 
@@ -106,11 +112,13 @@ function viewFor(size: CanvasSize, path: OrbitPath): View | null {
   if (size.width === 0 || size.height === 0) {
     return null;
   }
+
   const transform = fitTransform(
     path.bounds,
     size.width,
     size.height,
     PADDING_PX,
   );
+
   return { size, transform, path: pathShape(path.bodies, transform) };
 }

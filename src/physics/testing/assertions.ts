@@ -6,8 +6,10 @@ export function deepFreeze<T>(value: T): T {
     for (const nested of Object.values(value)) {
       deepFreeze(nested);
     }
+
     Object.freeze(value);
   }
+
   return value;
 }
 
@@ -43,6 +45,7 @@ export function systemSize(state: SystemState): number {
 /** The smallest distance between any two bodies. */
 export function closestApproach(state: SystemState): number {
   let closest = Number.POSITIVE_INFINITY;
+
   for (const [index, body] of state.bodies.entries()) {
     for (const [otherIndex, other] of state.bodies.entries()) {
       if (otherIndex > index) {
@@ -50,10 +53,12 @@ export function closestApproach(state: SystemState): number {
           x: other.position.x - body.position.x,
           y: other.position.y - body.position.y,
         };
+
         closest = Math.min(closest, magnitude(offset));
       }
     }
   }
+
   return closest;
 }
 
@@ -64,9 +69,11 @@ export function forces(
 ): Vec2[] {
   return state.bodies.map((body, i) => {
     const acceleration = accelerations[i];
+
     if (acceleration === undefined) {
       throw new RangeError(`accelerations[${i}] is missing`);
     }
+
     return { x: body.mass * acceleration.x, y: body.mass * acceleration.y };
   });
 }
@@ -80,6 +87,7 @@ export function netForceMagnitude(
     (sum, force) => ({ x: sum.x + force.x, y: sum.y + force.y }),
     { x: 0, y: 0 },
   );
+
   return magnitude(net);
 }
 
@@ -93,12 +101,16 @@ export function maxDistance(
       `cannot compare ${first.length} vectors with ${second.length}`,
     );
   }
+
   return first.reduce((largest, vector, i) => {
     const other = second[i];
+
     if (other === undefined) {
       throw new RangeError(`second[${i}] is missing`);
     }
+
     const difference = { x: vector.x - other.x, y: vector.y - other.y };
+
     return Math.max(largest, magnitude(difference));
   }, 0);
 }

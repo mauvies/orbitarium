@@ -130,11 +130,13 @@ export function grade(questionId: QuestionId, optionId: string): Grade {
   const option = questionFor(questionId).options.find(
     ({ id }) => id === optionId,
   );
+
   if (option === undefined) {
     throw new RangeError(
       `option must be one of ${questionId}'s options, got "${optionId}"`,
     );
   }
+
   return option.misconception === null
     ? { status: "correct" }
     : { status: "misconception", misconception: option.misconception };
@@ -146,15 +148,18 @@ export function questionText(questionId: QuestionId): {
   readonly option: (optionId: string) => OptionText;
 } {
   const { prompt, options } = QUESTION_TEXT[questionId];
+
   return {
     prompt,
     option: (optionId) => {
       const text = options[optionId];
+
       if (text === undefined) {
         throw new RangeError(
           `no text for ${questionId}'s option "${optionId}"`,
         );
       }
+
       return text;
     },
   };
@@ -162,8 +167,10 @@ export function questionText(questionId: QuestionId): {
 
 function questionFor(questionId: QuestionId): Question {
   const question = QUESTIONS.find(({ id }) => id === questionId);
+
   if (question === undefined) {
     throw new RangeError(`no question with id "${questionId}"`);
   }
+
   return question;
 }

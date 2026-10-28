@@ -9,17 +9,18 @@ import { createLessonStore } from "./lesson-store";
 // view stands in for the page: scrolling makes the part the one at the top.
 function controlsWith({
   atTop = "falling",
-  cannonInView = false,
-  tutorOpen = false,
+  isCannonInView = false,
+  isTutorOpen = false,
 }: {
   atTop?: SectionId;
-  cannonInView?: boolean;
-  tutorOpen?: boolean;
+  isCannonInView?: boolean;
+  isTutorOpen?: boolean;
 } = {}) {
   const scrolledTo: SectionId[] = [];
   const focused: SectionId[] = [];
   const announced: SectionId[] = [];
   let top = atTop;
+
   const view: LessonView = {
     scrollToSection: (section) => {
       scrolledTo.push(section);
@@ -27,11 +28,13 @@ function controlsWith({
     },
     focusHeading: (section) => focused.push(section),
     announceSection: (section) => announced.push(section),
-    isTutorOpen: () => tutorOpen,
+    isTutorOpen: () => isTutorOpen,
     sectionAtTop: () => top,
-    isCannonInView: () => cannonInView,
+    isCannonInView: () => isCannonInView,
   };
+
   const store = createLessonStore(initialSession());
+
   return {
     controls: createLessonControls(store, view),
     scrolledTo,
@@ -52,7 +55,7 @@ const STILL_VIEW: LessonView = {
 
 describe("createLessonControls", () => {
   it("reads a launch's result at once, as the tutor needs", () => {
-    const { controls } = controlsWith({ cannonInView: true });
+    const { controls } = controlsWith({ isCannonInView: true });
     const escapePreset = CANNON_PRESETS.escape;
 
     controls.cannon.launch(escapePreset);
@@ -79,7 +82,7 @@ describe("createLessonControls", () => {
   it("a launch with the cannon in view does not scroll", () => {
     const { controls, scrolledTo } = controlsWith({
       atTop: "orbit",
-      cannonInView: true,
+      isCannonInView: true,
     });
 
     controls.cannon.launch({ speedKmPerSecond: 8 });
@@ -125,6 +128,7 @@ describe("createLessonControls", () => {
       status: "moved",
       section: "law",
     });
+
     controls.navigation.goToSection("nowhere");
 
     expect(scrolledTo).toEqual(["law"]);
@@ -141,7 +145,7 @@ describe("createLessonControls", () => {
 
   it("with the tutor open, goToSection keeps focus in the panel and announces the part", () => {
     const { controls, scrolledTo, focused, announced } = controlsWith({
-      tutorOpen: true,
+      isTutorOpen: true,
     });
 
     controls.navigation.goToSection("moon");
@@ -155,7 +159,7 @@ describe("createLessonControls", () => {
 
   it("a tutor's launch out of view moves to the cannon by the same rule", () => {
     const closed = controlsWith({ atTop: "moon" });
-    const open = controlsWith({ atTop: "moon", tutorOpen: true });
+    const open = controlsWith({ atTop: "moon", isTutorOpen: true });
 
     closed.controls.cannon.launch({ speedKmPerSecond: 8 });
     open.controls.cannon.launch({ speedKmPerSecond: 8 });
@@ -175,6 +179,7 @@ describe("createLessonControls", () => {
     const store = createLessonStore(
       answerQuestion(initialSession(), "twice-as-far", "quarter"),
     );
+
     const controls = createLessonControls(store, STILL_VIEW);
 
     expect(

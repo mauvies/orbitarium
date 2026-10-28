@@ -38,6 +38,7 @@ function perigeeAltitudeKm(speedKmPerSecond: number): number {
     angleDegrees: HORIZONTAL,
     altitudeKm: MOUNTAIN_KM,
   });
+
   return (periapsisRadius - 1) * EARTH_RADIUS_KM;
 }
 
@@ -108,6 +109,7 @@ describe("launchOutcome: no sideways speed (h = 0)", () => {
 describe("launchOutcome: angled shots", () => {
   it("from 3° up, no speed below escape gives an orbit", () => {
     const angles = Array.from({ length: 88 }, (_, i) => i + 3);
+
     const outcomes = new Set(
       angles.flatMap((angle) =>
         SPEEDS_BELOW_ESCAPE.map((speed) => outcome(speed, angle)),
@@ -148,16 +150,19 @@ describe("launchOutcome: other heights", () => {
       const circular = engineToKmPerSecond(
         circularSpeed(launchRadius(altitudeKm)),
       );
+
       const atCircular = launchOutcome({
         speedKmPerSecond: roundedUp(circular),
         angleDegrees: HORIZONTAL,
         altitudeKm,
       });
+
       const atEscape = launchOutcome({
         speedKmPerSecond: roundedUp(Math.SQRT2 * circular),
         angleDegrees: HORIZONTAL,
         altitudeKm,
       });
+
       return atCircular === "circular-orbit" && atEscape === "escape"
         ? []
         : [{ altitudeKm, atCircular, atEscape }];
@@ -176,6 +181,7 @@ describe("CANNON_OUTCOMES", () => {
       "elliptical-orbit",
       "escape",
     ]);
+
     for (const settings of Object.values(CANNON_PRESETS)) {
       expect(CANNON_OUTCOMES).toContain(launchOutcome(settings));
     }

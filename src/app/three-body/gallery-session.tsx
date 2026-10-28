@@ -18,10 +18,15 @@ type GallerySession = {
 
 const GallerySessionContext = createContext<GallerySession | null>(null);
 
-export function GallerySessionProvider({ children }: { children: ReactNode }) {
+interface Props {
+  children: ReactNode;
+}
+
+export function GallerySessionProvider({ children }: Props) {
   const [detailPreferences, changeDetailPreferences] = useState(
     DEFAULT_DETAIL_PREFERENCES,
   );
+
   return (
     <GallerySessionContext
       value={{ detailPreferences, changeDetailPreferences }}
@@ -33,10 +38,12 @@ export function GallerySessionProvider({ children }: { children: ReactNode }) {
 
 export function useGallerySession(): GallerySession {
   const session = useContext(GallerySessionContext);
+
   if (session === null) {
     throw new Error(
       "useGallerySession must be used inside GallerySessionProvider",
     );
   }
+
   return session;
 }

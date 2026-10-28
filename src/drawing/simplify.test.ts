@@ -10,6 +10,7 @@ const unitCircle: readonly Vec2[] = Array.from(
   { length: UNIT_CIRCLE_SAMPLES },
   (_, i) => {
     const angle = (2 * Math.PI * i) / UNIT_CIRCLE_SAMPLES;
+
     return { x: Math.cos(angle), y: Math.sin(angle) };
   },
 );
@@ -43,6 +44,7 @@ describe("simplifyClosedPath", () => {
     const fewestChords = Math.ceil(
       (2 * Math.PI) / (2 * Math.acos(1 - TOLERANCE)),
     );
+
     const simplified = simplifyClosedPath(unitCircle, TOLERANCE);
 
     expect(simplified.length).toBeGreaterThanOrEqual(fewestChords);

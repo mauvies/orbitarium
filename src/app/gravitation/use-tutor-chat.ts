@@ -33,6 +33,7 @@ export function useTutorChat(
         }),
       }),
   );
+
   const chat = useChat<TutorMessage>({
     transport,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
@@ -43,7 +44,9 @@ export function useTutorChat(
           `the tutor called an unknown tool, ${toolCall.toolName}`,
         );
       }
+
       const { toolCallId } = toolCall;
+
       switch (toolCall.toolName) {
         case "setCannon":
           chat.addToolOutput({
@@ -51,6 +54,7 @@ export function useTutorChat(
             toolCallId,
             output: runSetCannon(controls, toolCall.input),
           });
+
           break;
         case "launchCannon":
           chat.addToolOutput({
@@ -58,6 +62,7 @@ export function useTutorChat(
             toolCallId,
             output: runLaunchCannon(controls, toolCall.input),
           });
+
           break;
         case "goToSection":
           chat.addToolOutput({
@@ -65,9 +70,11 @@ export function useTutorChat(
             toolCallId,
             output: runGoToSection(controls, toolCall.input),
           });
+
           break;
       }
     },
   });
+
   return chat;
 }

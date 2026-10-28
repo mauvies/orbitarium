@@ -20,14 +20,14 @@ import {
 } from "./validate";
 import { isFiniteVec } from "./vec2";
 
-// Spec 01, Decision 2.
-const MAX_SUBSTEPS = 1_000_000;
-const ROUND_OFF_MARGIN = 1e-9;
-
 export type SubstepPlan = {
   readonly count: number;
   readonly size: number;
 };
+
+// Spec 01, Decision 2.
+const MAX_SUBSTEPS = 1_000_000;
+const ROUND_OFF_MARGIN = 1e-9;
 
 /** Advances the system by exactly `duration`, in equal substeps of at most `dt`. */
 export function advance(
@@ -37,17 +37,22 @@ export function advance(
 ): SystemState {
   validateState(state);
   validateDuration(duration);
+
   const resolved = resolveSimulationOptions(options);
   const { count, size } = planSubsteps(duration, resolved.dt);
+
   if (count === 0) {
     return { bodies: state.bodies, time: state.time };
   }
+
   const parameters = forceParameters(resolved);
   const step = stepFor(resolved.integrator);
   let particles = withAccelerations(state.bodies, parameters);
+
   for (let substep = 0; substep < count; substep++) {
     particles = step(particles, size, parameters);
   }
+
   return { bodies: toFiniteBodies(particles), time: state.time + duration };
 }
 
@@ -59,12 +64,15 @@ export function planSubsteps(duration: number, dt: number): SubstepPlan {
   if (duration === 0) {
     return { count: 0, size: 0 };
   }
+
   const count = Math.max(1, Math.ceil(duration / dt - ROUND_OFF_MARGIN));
+
   if (count > MAX_SUBSTEPS) {
     throw new RangeError(
       `duration / options.dt needs ${count} substeps; at most ${MAX_SUBSTEPS} substeps are allowed in one call`,
     );
   }
+
   return { count, size: duration / count };
 }
 
@@ -86,6 +94,7 @@ function toFiniteBodies(particles: readonly Particle[]): readonly Body[] {
         `the state of body ${index} overflows during the step`,
       );
     }
+
     return { mass, position, velocity };
   });
 }

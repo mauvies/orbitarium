@@ -32,8 +32,10 @@ export function noticeKind({
     case "available":
       break;
   }
+
   if (errorMessage !== undefined) {
     return parseErrorCode(errorMessage);
   }
+
   return isConversationTooLong(messageCount + 1) ? "too-long" : null;
 }

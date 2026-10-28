@@ -21,22 +21,27 @@ export function startAnimationLoop(
     pending = null;
     const keepGoing = onFrame(lastTime === null ? 0 : time - lastTime);
     lastTime = keepGoing ? time : null;
+
     if (keepGoing) {
       requestFrame();
     }
   };
+
   const requestFrame = () => {
     if (pending === null && !document.hidden) {
       pending = requestAnimationFrame(runFrame);
     }
   };
+
   const cancel = () => {
     if (pending !== null) {
       cancelAnimationFrame(pending);
     }
+
     pending = null;
     lastTime = null;
   };
+
   const onVisibilityChange = () => {
     if (document.hidden) {
       cancel();
@@ -47,6 +52,7 @@ export function startAnimationLoop(
 
   document.addEventListener("visibilitychange", onVisibilityChange);
   requestFrame();
+
   return {
     requestFrame,
     stop: () => {

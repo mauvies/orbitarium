@@ -12,6 +12,7 @@ const PLATE_CLASSES = "sm:w-56 sm:shrink-0";
 
 export default function HomePage() {
   const galleryOrbit = getOrbit("moth-i");
+
   if (galleryOrbit === undefined) {
     throw new RangeError('no orbit with slug "moth-i"');
   }

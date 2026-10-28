@@ -32,8 +32,6 @@ type Lesson = {
   readonly setPredictedPathShown: (shown: boolean) => void;
 };
 
-const LessonContext = createContext<Lesson | null>(null);
-
 type TutorPanelState = {
   readonly open: boolean;
   readonly announcement: string;
@@ -42,12 +40,19 @@ type TutorPanelState = {
   readonly setOpen: (open: boolean) => void;
 };
 
+const LessonContext = createContext<Lesson | null>(null);
+
 const TutorPanelContext = createContext<TutorPanelState | null>(null);
 
-export function LessonProvider({ children }: { children: ReactNode }) {
+interface Props {
+  children: ReactNode;
+}
+
+export function LessonProvider({ children }: Props) {
   const [store] = useState(() => createLessonStore(initialSession()));
-  const [tutorOpen, setTutorOpen] = useState(false);
+  const [isTutorOpen, setIsTutorOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+
   const [suggestion, setSuggestion] =
     useState<TutorPanelState["suggestion"]>(null);
 
@@ -66,17 +71,18 @@ export function LessonProvider({ children }: { children: ReactNode }) {
 
   const tutorPanel = useMemo(
     () => ({
-      open: tutorOpen,
-      setOpen: setTutorOpen,
+      open: isTutorOpen,
+      setOpen: setIsTutorOpen,
       announcement,
       suggestion,
       suggest: (text: string) => {
         setSuggestion({ text });
-        setTutorOpen(true);
+        setIsTutorOpen(true);
       },
     }),
-    [tutorOpen, announcement, suggestion],
+    [isTutorOpen, announcement, suggestion],
   );
+
   const lesson = useMemo(
     () => ({
       store,
@@ -84,6 +90,7 @@ export function LessonProvider({ children }: { children: ReactNode }) {
       launch: (request: CannonRequest) => {
         const { session, result } = launchCannon(store.getSession(), request);
         store.replace(session);
+
         return result;
       },
       answer: (questionId: QuestionId, optionId: string) =>
@@ -95,6 +102,7 @@ export function LessonProvider({ children }: { children: ReactNode }) {
     }),
     [store, controls],
   );
+
   return (
     <LessonContext value={lesson}>
       <TutorPanelContext value={tutorPanel}>{children}</TutorPanelContext>
@@ -128,6 +136,7 @@ export function useSetPredictedPathShown(): Lesson["setPredictedPathShown"] {
 
 export function useLessonSession(): LessonSession {
   const { store } = useLesson();
+
   return useSyncExternalStore(
     store.subscribe,
     store.getSession,
@@ -137,9 +146,11 @@ export function useLessonSession(): LessonSession {
 
 export function useTutorPanel(): TutorPanelState {
   const tutorPanel = useContext(TutorPanelContext);
+
   if (tutorPanel === null) {
     throw new Error("useTutorPanel must be used inside LessonProvider");
   }
+
   return tutorPanel;
 }
 

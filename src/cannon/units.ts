@@ -13,16 +13,6 @@ export const EARTH_RADIUS = 1;
  */
 export const MOUNTAIN_ALTITUDE_KM = 10;
 
-/** The distance from the Earth's centre of a launch point `altitudeKm` high, in engine units. */
-export function launchRadius(altitudeKm: number): number {
-  if (!(Number.isFinite(altitudeKm) && altitudeKm > 0)) {
-    throw new RangeError(
-      `altitudeKm must be a positive finite number, got ${altitudeKm}`,
-    );
-  }
-  return EARTH_RADIUS + altitudeKm / EARTH_RADIUS_KM;
-}
-
 /** One engine speed unit: the circular speed at the surface, √(GM/R). */
 export const SPEED_UNIT_KM_PER_SECOND = Math.sqrt(
   EARTH_GM_KM3_PER_SECOND2 / EARTH_RADIUS_KM,
@@ -30,6 +20,17 @@ export const SPEED_UNIT_KM_PER_SECOND = Math.sqrt(
 
 /** One engine time unit: the Earth's radius at one speed unit. */
 export const TIME_UNIT_SECONDS = EARTH_RADIUS_KM / SPEED_UNIT_KM_PER_SECOND;
+
+/** The distance from the Earth's centre of a launch point `altitudeKm` high, in engine units. */
+export function launchRadius(altitudeKm: number): number {
+  if (!(Number.isFinite(altitudeKm) && altitudeKm > 0)) {
+    throw new RangeError(
+      `altitudeKm must be a positive finite number, got ${altitudeKm}`,
+    );
+  }
+
+  return EARTH_RADIUS + altitudeKm / EARTH_RADIUS_KM;
+}
 
 export function kmPerSecondToEngine(speedKmPerSecond: number): number {
   return speedKmPerSecond / SPEED_UNIT_KM_PER_SECOND;

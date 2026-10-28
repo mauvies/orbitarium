@@ -2,6 +2,15 @@ import type { ReactNode } from "react";
 import type { SectionId } from "@/lib/lesson/section-ids";
 import { SECTION_SCROLL_MARGIN_PX } from "../section-position";
 
+interface Props {
+  id: SectionId;
+  title: string;
+  intro: ReactNode;
+  picture: ReactNode;
+  questions: ReactNode;
+  textFirst?: boolean;
+}
+
 /**
  * One part of the lesson. Narrow screens read its title, its description, its
  * picture and its question, in that order, which is also the tab order. From
@@ -16,16 +25,10 @@ export function LessonSection({
   picture,
   questions,
   textFirst = false,
-}: {
-  id: SectionId;
-  title: string;
-  intro: ReactNode;
-  picture: ReactNode;
-  questions: ReactNode;
-  textFirst?: boolean;
-}) {
+}: Props) {
   const text = textFirst ? "lg:col-start-1" : "lg:col-start-2";
   const side = textFirst ? "lg:col-start-2" : "lg:col-start-1";
+
   return (
     <section
       id={id}

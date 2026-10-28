@@ -11,9 +11,9 @@ import {
 } from "../lesson-provider";
 import { QuestionExplanation } from "./question-explanation";
 
-const ui = es.gravitation.question;
-
 type FocusTarget = "explanation" | "options" | null;
+
+const ui = es.gravitation.question;
 
 interface Props {
   question: Question;
@@ -21,7 +21,7 @@ interface Props {
 
 export function CheckQuestion({ question }: Props) {
   const [shownOption, setShownOption] = useState<string | null>(null);
-  const [browsing, setBrowsing] = useState(false);
+  const [isBrowsing, setIsBrowsing] = useState(false);
   const [focusTarget, setFocusTarget] = useState<FocusTarget>(null);
   const explanation = useRef<HTMLOutputElement>(null);
   const options = useRef<HTMLDivElement>(null);
@@ -29,11 +29,36 @@ export function CheckQuestion({ question }: Props) {
   const answered = useLessonSession().answers[question.id];
   const answer = useAnswerQuestion();
   const suggestToTutor = useAskTutor();
-  const hydrated = useHydrated();
+  const isHydrated = useHydrated();
 
   const text = questionText(question.id);
-  const locked = answered !== undefined;
-  const explained = locked && !browsing ? (shownOption ?? answered) : null;
+  const isLocked = answered !== undefined;
+  const explained = isLocked && !isBrowsing ? (shownOption ?? answered) : null;
+
+  const handleChoose = (optionId: string) => {
+    if (!isLocked) {
+      answer(question.id, optionId);
+    }
+
+    setShownOption(optionId);
+    setIsBrowsing(false);
+    setFocusTarget("explanation");
+  };
+
+  const handleShowOptions = () => {
+    setIsBrowsing(true);
+    setFocusTarget("options");
+  };
+
+  const handleAskTutor = (optionId: string) => {
+    const sectionTitle = es.gravitation.sections[question.section].title;
+
+    suggestToTutor(
+      grade(question.id, optionId).status === "correct"
+        ? ui.askAboutCorrectAnswer(sectionTitle)
+        : ui.askAboutWrongAnswer(sectionTitle),
+    );
+  };
 
   useEffect(() => {
     if (focusTarget === "explanation") {
@@ -42,31 +67,6 @@ export function CheckQuestion({ question }: Props) {
       options.current?.querySelector("button")?.focus();
     }
   }, [focusTarget]);
-
-  function choose(optionId: string): void {
-    if (!locked) {
-      answer(question.id, optionId);
-    }
-
-    setShownOption(optionId);
-    setBrowsing(false);
-    setFocusTarget("explanation");
-  }
-
-  function showOptions(): void {
-    setBrowsing(true);
-    setFocusTarget("options");
-  }
-
-  function askTutor(optionId: string): void {
-    const sectionTitle = es.gravitation.sections[question.section].title;
-
-    suggestToTutor(
-      grade(question.id, optionId).status === "correct"
-        ? ui.askAboutCorrectAnswer(sectionTitle)
-        : ui.askAboutWrongAnswer(sectionTitle),
-    );
-  }
 
   return (
     <fieldset className="mt-6 max-w-xl rounded-xl border border-line bg-surface px-4 py-3">
@@ -94,8 +94,8 @@ export function CheckQuestion({ question }: Props) {
               <button
                 key={option.id}
                 type="button"
-                disabled={!hydrated || explained !== null}
-                onClick={() => choose(option.id)}
+                disabled={!isHydrated || explained !== null}
+                onClick={() => handleChoose(option.id)}
                 className="flex items-start gap-2.5 rounded-lg px-2 py-1 text-left text-small enabled:cursor-pointer enabled:hover:bg-surface-raised enabled:hover:text-strong"
               >
                 <span
@@ -126,8 +126,8 @@ export function CheckQuestion({ question }: Props) {
               question={question}
               optionId={explained}
               actions={{
-                onShowOptions: showOptions,
-                onAskTutor: () => askTutor(explained),
+                onShowOptions: handleShowOptions,
+                onAskTutor: () => handleAskTutor(explained),
               }}
             />
           )}

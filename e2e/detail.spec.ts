@@ -54,9 +54,13 @@ for (const orbit of orbits) {
   test(`the bodies move: ${orbit.slug}`, async ({ page }) => {
     await page.goto(`/three-body/${orbit.slug}`);
     const canvas = orbitCanvas(page, orbit);
+
     await expect(canvas).toBeVisible();
+
     await waitForFrames(page, FRAMES_TO_DRAW);
+
     expect(await hasDrawing(canvas)).toBe(true);
+
     const before = await canvasSnapshot(canvas);
 
     await expect.poll(() => canvasSnapshot(canvas)).not.toBe(before);
@@ -65,6 +69,7 @@ for (const orbit of orbits) {
 
 // Spec 03, Decision 11 and G8.
 const [lagrange] = orbits;
+
 if (lagrange === undefined) {
   throw new Error("the catalog is empty");
 }
@@ -79,11 +84,15 @@ test("reduced motion starts paused", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(`/three-body/${lagrange.slug}`);
   const canvas = orbitCanvas(page, lagrange);
+
   await expect(
     page.getByRole("button", { name: es.detail.player.play }),
   ).toBeVisible();
+
   await waitForFrames(page, FRAMES_TO_DRAW);
+
   expect(await hasDrawing(canvas)).toBe(true);
+
   const before = await canvasSnapshot(canvas);
 
   await waitForFrames(page, FRAMES_WATCHED);
@@ -104,17 +113,22 @@ test("controls work with the keyboard", async ({ page }) => {
 
   await page.getByRole("button", { name: player.play }).focus();
   await page.keyboard.press("Space");
+
   await expect(page.getByRole("button", { name: player.pause })).toBeFocused();
   await expect.poll(() => canvasSnapshot(canvas)).not.toBe(atStart);
+
   await page.keyboard.press("Space");
+
   await expect(page.getByRole("button", { name: player.play })).toBeFocused();
 
   await page.getByRole("button", { name: player.restart }).focus();
   await page.keyboard.press("Enter");
+
   await expect.poll(() => canvasSnapshot(canvas)).toBe(atStart);
 
   await page.getByRole("radio", { name: player.speedOption(1) }).focus();
   await page.keyboard.press("ArrowRight");
+
   await expect(
     page.getByRole("radio", { name: player.speedOption(2) }),
   ).toBeChecked();
@@ -125,6 +139,7 @@ test("controls work with the keyboard", async ({ page }) => {
     await page.keyboard.press("Space");
     await expect(checkbox).not.toBeChecked();
   }
+
   await expect.poll(() => canvasSnapshot(canvas)).not.toBe(atStart);
 });
 
@@ -133,9 +148,11 @@ test("detail preferences persist across orbits and reset on reload", async ({
   page,
 }) => {
   const otherOrbit = orbits.at(-1);
+
   if (otherOrbit === undefined || otherOrbit === lagrange) {
     throw new Error("the catalog needs a second orbit");
   }
+
   const speedTwo = page.getByRole("radio", { name: player.speedOption(2) });
   const trail = page.getByRole("checkbox", { name: player.showTrail });
   const correction = page.getByRole("checkbox", { name: player.correction });
@@ -145,17 +162,18 @@ test("detail preferences persist across orbits and reset on reload", async ({
   await correction.uncheck();
 
   await page.getByRole("link", { name: es.detail.backLink }).click();
+
   await page
     .getByRole("main")
     .getByRole("link", { name: es.orbits[otherOrbit.slug].name })
     .click();
+
   await expect(
     page.getByRole("heading", {
       level: 1,
       name: es.orbits[otherOrbit.slug].name,
     }),
   ).toBeVisible();
-
   await expect(speedTwo).toBeChecked();
   await expect(trail).not.toBeChecked();
   await expect(correction).not.toBeChecked();
@@ -182,9 +200,11 @@ test.describe("the share button", () => {
   test("the share button sits below the facts", async ({ page }) => {
     await page.goto("/three-body/moth-i");
     const facts = await page.getByRole("main").locator("dl").boundingBox();
+
     const button = await page
       .getByRole("button", { name: es.detail.share.label })
       .boundingBox();
+
     if (facts === null || button === null) {
       throw new Error("the facts or the button are not laid out");
     }
@@ -199,6 +219,7 @@ test.describe("the share button", () => {
     await page.addInitScript(() => {
       Object.defineProperty(Navigator.prototype, "share", { value: undefined });
     });
+
     await page.goto("/three-body/moth-i");
 
     await page.getByRole("button", { name: es.detail.share.label }).click();

@@ -5,6 +5,7 @@ import { withFallback } from "./fallback-model";
 
 type CallOptions = Parameters<MockLanguageModelV4["doStream"]>[0];
 type StreamResult = Awaited<ReturnType<MockLanguageModelV4["doStream"]>>;
+
 type StreamPart =
   StreamResult["stream"] extends ReadableStream<infer Part> ? Part : never;
 
@@ -30,13 +31,16 @@ function textParts(text: string): StreamPart[] {
 /** A model that answers `text`, counting its calls. */
 function answering(modelId: string, text: string) {
   let calls = 0;
+
   const model = new MockLanguageModelV4({
     modelId,
     doStream: async () => {
       calls++;
+
       return { stream: simulateReadableStream({ chunks: textParts(text) }) };
     },
   });
+
   return { model, calls: () => calls };
 }
 
@@ -62,6 +66,7 @@ function failing(statusCode: number) {
 /** A model that never answers, and fails when its request is aborted, as `fetch` does. */
 function silent() {
   const aborted: boolean[] = [];
+
   const model = new MockLanguageModelV4({
     doStream: ({ abortSignal }) =>
       new Promise((_, reject) => {
@@ -71,6 +76,7 @@ function silent() {
         });
       }),
   });
+
   return { model, aborted };
 }
 
@@ -92,21 +98,25 @@ function stalling(parts: readonly StreamPart[]) {
 async function textOf({ stream }: StreamResult): Promise<string> {
   const reader = stream.getReader();
   let text = "";
+
   for (let next = await reader.read(); !next.done; next = await reader.read()) {
     if (next.value.type === "text-delta") {
       text += next.value.delta;
     }
   }
+
   return text;
 }
 
 function setUp(primary: MockLanguageModelV4) {
   const fallback = answering("fallback-model", FALLBACK_ANSWER);
   const logged: string[] = [];
+
   const model = withFallback(primary, fallback.model, {
     silenceMs: SILENCE_MS,
     log: (message) => logged.push(message),
   });
+
   return { model, fallbackCalls: fallback.calls, logged };
 }
 

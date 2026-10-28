@@ -21,12 +21,15 @@ function firstPeriodOffPath(orbit: OrbitPreset): number | undefined {
   const options = { reanchor: false, maxSubsteps: substepsPerSample };
   const firstPeriod = [positions(orbit.initialState)];
   let playback = startPlayback(orbit);
+
   for (let sample = 1; sample <= PERIODS * SAMPLES_PER_PERIOD; sample++) {
     playback = advancePlayback(playback, sampleTime, options);
     const phase = sample % SAMPLES_PER_PERIOD;
+
     if (playback.substepInPeriod !== phase * substepsPerSample) {
       throw new Error(`sample ${sample} is out of phase`);
     }
+
     if (sample < SAMPLES_PER_PERIOD) {
       firstPeriod.push(positions(playback.state));
     } else if (
@@ -36,6 +39,7 @@ function firstPeriodOffPath(orbit: OrbitPreset): number | undefined {
       return Math.ceil(sample / SAMPLES_PER_PERIOD);
     }
   }
+
   return undefined;
 }
 
@@ -44,9 +48,11 @@ function samePhase(
   phase: number,
 ): readonly Vec2[] {
   const reference = firstPeriod[phase];
+
   if (reference === undefined) {
     throw new RangeError(`no sample at phase ${phase}`);
   }
+
   return reference;
 }
 
@@ -61,9 +67,9 @@ describe.each([
   it(
     "matches the simulation",
     () => {
-      const holds = firstPeriodOffPath(orbit) === undefined;
+      const isNeverOffPath = firstPeriodOffPath(orbit) === undefined;
 
-      expect(orbit.holdsWithoutCorrection).toBe(holds);
+      expect(orbit.holdsWithoutCorrection).toBe(isNeverOffPath);
     },
     HEAVY_TEST_TIMEOUT_MS,
   );

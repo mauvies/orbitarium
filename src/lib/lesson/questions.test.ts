@@ -41,6 +41,7 @@ describe("questions", () => {
     // Three in each of the four-option questions (falling, mutual, moon and
     // orbit), two in the law's.
     expect(wrong).toHaveLength(14);
+
     for (const { option } of wrong) {
       expect(option.misconception).toMatch(/^[a-z]+(-[a-z]+)*$/);
     }

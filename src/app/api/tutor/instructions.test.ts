@@ -49,12 +49,15 @@ describe("tutorInstructions: the lesson", () => {
   it("names every question with its correct option", () => {
     for (const question of QUESTIONS) {
       const text = questionText(question.id);
+
       const correct = question.options.find(
         ({ misconception }) => misconception === null,
       );
+
       if (correct === undefined) {
         throw new Error(`${question.id} has no correct option`);
       }
+
       expect(instructions).toContain(text.prompt);
       expect(instructions).toContain(
         `«${text.option(correct.id).label}» (correct)`,
@@ -72,6 +75,7 @@ describe("tutorInstructions: the lesson", () => {
     for (const preset of CANNON_PRESET_IDS) {
       expect(instructions).toContain(`«${cannon.presetLabels[preset]}»`);
     }
+
     expect(instructions).toContain(
       "«Elipse muy alargada»: 9.6 km/s, 0°, 10 km",
     );

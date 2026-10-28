@@ -21,6 +21,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/three-body/[slug]">): Promise<Metadata> {
   const { name, description } = es.orbits[orbitFor((await params).slug).slug];
+
   return { title: name, description };
 }
 

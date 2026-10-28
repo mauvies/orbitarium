@@ -37,6 +37,7 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
           body: await page.screenshot({ fullPage: true }),
           contentType: "image/png",
         });
+
         expect(overflow).toBe(0);
       });
     }
@@ -44,6 +45,7 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
     test(`the gallery grid has ${galleryColumns} columns`, async ({ page }) => {
       await page.goto("/three-body");
       const cards = page.getByRole("main").getByRole("listitem");
+
       await expect(cards).not.toHaveCount(0);
 
       const lefts = await cards.evaluateAll((items) =>
@@ -58,6 +60,7 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
       page,
     }) => {
       await page.goto("/gravitation");
+
       await expect(
         page.getByRole("button", { name: es.gravitation.tutor.toggle }),
       ).toBeEnabled();
@@ -73,10 +76,13 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
       page,
     }) => {
       await page.goto("/gravitation");
+
       const toggle = page.getByRole("button", {
         name: es.gravitation.tutor.toggle,
       });
+
       await expect(toggle).toBeEnabled();
+
       await toggle.click();
 
       const targets = await targetsIn(
@@ -91,9 +97,11 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
       page,
     }) => {
       await page.goto("/three-body/butterfly-i");
+
       const controls = page.getByRole("group", {
         name: es.detail.player.controls,
       });
+
       // A button's target is itself; a radio's or a checkbox's is its label,
       // which takes the clicks too.
       const targets = await controls
@@ -101,6 +109,7 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
         .evaluateAll((elements) =>
           elements.map((element) => {
             const box = element.getBoundingClientRect();
+
             return {
               text: element.textContent?.trim() ?? "",
               left: box.left,
@@ -110,6 +119,7 @@ for (const { width, height, galleryColumns } of VIEWPORTS) {
             };
           }),
         );
+
       expect(targets).not.toHaveLength(0);
 
       for (const target of targets) {
@@ -147,7 +157,9 @@ function targetsIn(container: Locator): Promise<Target[]> {
           element instanceof HTMLInputElement && element.type === "checkbox"
             ? (element.labels?.[0] ?? element)
             : element;
+
         const box = clickable.getBoundingClientRect();
+
         return {
           name:
             element.getAttribute("aria-label") ??
@@ -179,6 +191,7 @@ function targetProblems(
         ]
       : []),
   ]);
+
   for (const [i, first] of targets.entries()) {
     for (const second of targets.slice(i + 1)) {
       if (
@@ -191,5 +204,6 @@ function targetProblems(
       }
     }
   }
+
   return problems;
 }

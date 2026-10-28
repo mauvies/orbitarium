@@ -5,10 +5,6 @@ import { TutorNotice } from "./tutor-notice";
 
 const { tutor } = es.gravitation;
 
-interface Props {
-  atCannon: boolean;
-}
-
 export function TutorChatLoading({ atCannon }: Props) {
   return (
     <div className="mt-3 flex min-h-0 flex-1 flex-col">
@@ -24,6 +20,10 @@ export function TutorChatLoading({ atCannon }: Props) {
       <TutorInput waiting unavailable onSend={rejectWhileLoading} />
     </div>
   );
+}
+
+interface Props {
+  atCannon: boolean;
 }
 
 function rejectWhileLoading(): never {

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type KeyboardEvent,
   lazy,
   Suspense,
   useCallback,
@@ -28,27 +29,39 @@ const TutorChat = lazy(async () => ({
 }));
 
 export function TutorPanel() {
-  const { open, setOpen, announcement } = useTutorPanel();
-  const controls = useLessonControls();
-  const [chatStarted, setChatStarted] = useState(false);
+  const [hasChatStarted, setHasChatStarted] = useState(false);
   const [headerActions, setHeaderActions] = useState<HTMLElement | null>(null);
-  const [atCannon, setAtCannon] = useState(false);
-  const hydrated = useHydrated();
+  const [isAtCannon, setIsAtCannon] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const close = useRef<HTMLButtonElement>(null);
   const chatLoaded = useRef(false);
 
+  const { open, setOpen, announcement } = useTutorPanel();
+  const controls = useLessonControls();
+  const isHydrated = useHydrated();
+
   // The first opening focuses the input once the conversation has loaded.
-  const onChatLoad = useCallback(() => {
+  const handleChatLoad = useCallback(() => {
     chatLoaded.current = true;
+
     const panel = dialog.current;
+
     if (panel?.open && matchMedia(FLOATING_CARD).matches) {
       inputOf(panel).focus();
     }
   }, []);
 
+  // A non-modal dialog does not close on Escape by itself.
+  const handleKeyDown = (event: KeyboardEvent<HTMLDialogElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+    }
+  };
+
   useEffect(() => {
     const panel = dialog.current;
+
     if (panel === null) {
       return;
     }
@@ -56,10 +69,11 @@ export function TutorPanel() {
     if (open && !panel.open) {
       // `show()`, not `showModal()`: the page must stay usable.
       panel.show();
-      setChatStarted(true);
-      setAtCannon(controls.navigation.current() === "cannon");
+      setHasChatStarted(true);
+      setIsAtCannon(controls.navigation.current() === "cannon");
+
       // On a phone the input would raise the keyboard over the page, so the
-      // sheet focuses its close button .
+      // sheet focuses its close button.
       if (!matchMedia(FLOATING_CARD).matches) {
         close.current?.focus();
       } else if (chatLoaded.current) {
@@ -70,7 +84,7 @@ export function TutorPanel() {
     }
   }, [open, controls]);
 
-  if (!hydrated) {
+  if (!isHydrated) {
     return null;
   }
 
@@ -79,13 +93,7 @@ export function TutorPanel() {
       ref={dialog}
       id={TUTOR_PANEL_ID}
       aria-labelledby={TUTOR_TITLE_ID}
-      // A non-modal dialog does not close on Escape by itself.
-      onKeyDown={(event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          setOpen(false);
-        }
-      }}
+      onKeyDown={handleKeyDown}
       className="fixed inset-x-0 top-auto bottom-0 z-30 m-0 flex-col overflow-hidden overscroll-contain open:flex h-[min(40svh,24rem)] max-h-none w-full max-w-none border-0 border-muted border-t bg-surface p-4 text-body xl:right-4 xl:bottom-18 xl:left-auto xl:h-[min(28rem,calc(100svh-14rem))] xl:w-96 xl:rounded-xl xl:border xl:border-strong xl:bg-surface-raised"
     >
       <div className="flex items-center justify-between gap-2">
@@ -116,12 +124,12 @@ export function TutorPanel() {
           </button>
         </div>
       </div>
-      {chatStarted && (
-        <Suspense fallback={<TutorChatLoading atCannon={atCannon} />}>
+      {hasChatStarted && (
+        <Suspense fallback={<TutorChatLoading atCannon={isAtCannon} />}>
           <TutorChat
             headerActions={headerActions}
-            atCannon={atCannon}
-            onLoad={onChatLoad}
+            atCannon={isAtCannon}
+            onLoad={handleChatLoad}
           />
         </Suspense>
       )}
@@ -133,8 +141,10 @@ export function TutorPanel() {
 
 function inputOf(panel: HTMLDialogElement): HTMLElement {
   const input = panel.querySelector<HTMLElement>(`#${TUTOR_INPUT_ID}`);
+
   if (input === null) {
     throw new Error("the tutor's panel has no input");
   }
+
   return input;
 }

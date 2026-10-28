@@ -12,6 +12,7 @@ const { cannon } = es.gravitation;
 export function PredictedPathToggle() {
   const { showPredictedPath } = useLessonSession();
   const setPredictedPathShown = useSetPredictedPathShown();
+
   return (
     <label className="flex min-h-6 items-center gap-2 text-small">
       <input

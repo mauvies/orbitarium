@@ -14,10 +14,12 @@ export type LessonStore = {
 export function createLessonStore(initial: LessonSession): LessonStore {
   let session = initial;
   const listeners = new Set<() => void>();
+
   return {
     getSession: () => session,
     subscribe: (listener) => {
       listeners.add(listener);
+
       return () => {
         listeners.delete(listener);
       };
@@ -26,7 +28,9 @@ export function createLessonStore(initial: LessonSession): LessonStore {
       if (next === session) {
         return;
       }
+
       session = next;
+
       for (const listener of listeners) {
         listener();
       }

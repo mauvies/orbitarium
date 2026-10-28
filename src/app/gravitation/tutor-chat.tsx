@@ -19,6 +19,12 @@ export function TutorChat({ headerActions, atCannon, onLoad }: Props) {
   const chat = useTutorChat(controls);
   const { availability, askOnce, retry } = useTutorAvailability();
 
+  const handleNewConversation = async () => {
+    await chat.stop();
+    chat.setMessages([]);
+    chat.clearError();
+  };
+
   useEffect(() => {
     askOnce();
     onLoad();
@@ -31,11 +37,7 @@ export function TutorChat({ headerActions, atCannon, onLoad }: Props) {
         createPortal(
           <button
             type="button"
-            onClick={async () => {
-              await chat.stop();
-              chat.setMessages([]);
-              chat.clearError();
-            }}
+            onClick={handleNewConversation}
             className="min-h-8 rounded-[10px] px-2 text-muted text-small hover:text-strong"
           >
             {tutor.newConversation}

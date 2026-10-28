@@ -12,12 +12,6 @@ import {
 } from "./speed";
 import { extendTrail, type Trail, type TrailSample } from "./trail";
 
-// Spec 03, Decision 6: the trail is sampled from positions the simulation
-// passes through, every T/5,000, so it stays within 0.9 px of the path at the
-// close encounters; one sample per frame would cut their corners.
-export const TRAIL_SAMPLES_PER_PERIOD = 5_000;
-export const TRAIL_SPAN_PERIODS = 0.1;
-
 export type AnimationState = {
   readonly playback: Playback;
   readonly trail: Trail;
@@ -32,8 +26,15 @@ export type FrameControls = {
   readonly correction: boolean;
 };
 
+// Spec 03, Decision 6: the trail is sampled from positions the simulation
+// passes through, every T/5,000, so it stays within 0.9 px of the path at the
+// close encounters; one sample per frame would cut their corners.
+export const TRAIL_SAMPLES_PER_PERIOD = 5_000;
+export const TRAIL_SPAN_PERIODS = 0.1;
+
 export function startAnimation(orbit: OrbitPreset): AnimationState {
   const playback = startPlayback(orbit);
+
   return {
     playback,
     trail: [sampleOf(playback)],
@@ -56,17 +57,22 @@ export function advanceAnimation(
   if (state.collided) {
     return state;
   }
+
   const { orbit } = state.playback;
+
   const sliceTime =
     substepsPerSample(orbit) * (orbit.period / orbit.stepsPerPeriod);
+
   const span = TRAIL_SPAN_PERIODS * orbit.period;
   let { playback, trail, drifting } = state;
   let samples: TrailSample[] = [];
   let remaining = simulationTimeFor(elapsedMs, speed);
   let budget = MAX_SUBSTEPS_PER_FRAME;
+
   while (remaining > 0 && budget > 0) {
     const time = Math.min(remaining, sliceTime);
     let next: Playback;
+
     try {
       next = advancePlayback(playback, time, {
         reanchor: correction,
@@ -76,6 +82,7 @@ export function advanceAnimation(
       if (!(error instanceof PhysicsError)) {
         throw error;
       }
+
       return {
         playback,
         trail: extendTrail(trail, samples, span),
@@ -83,6 +90,7 @@ export function advanceAnimation(
         collided: true,
       };
     }
+
     if (next.periodsCompleted > playback.periodsCompleted) {
       if (!correction) {
         drifting = true;
@@ -94,14 +102,18 @@ export function advanceAnimation(
         drifting = false;
       }
     }
+
     const ran = substepsRun(next) - substepsRun(playback);
+
     if (ran > 0) {
       samples.push(sampleOf(next));
     }
+
     budget -= ran;
     remaining -= time;
     playback = next;
   }
+
   return {
     playback,
     trail: extendTrail(trail, samples, span),

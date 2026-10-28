@@ -22,12 +22,16 @@ export function useTutorAvailability(): {
 
   const ask = useCallback(async () => {
     setAvailability("checking");
+
     try {
       const response = await fetch(TUTOR_ROUTE);
+
       if (!response.ok) {
         throw new Error(`GET ${TUTOR_ROUTE} answered ${response.status}`);
       }
+
       const { available } = availabilityAnswer.parse(await response.json());
+
       setAvailability(available ? "available" : "not-set");
     } catch (error) {
       console.error(error);

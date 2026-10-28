@@ -6,6 +6,11 @@ import {
   MOUNTAIN_ALTITUDE_KM,
 } from "./units";
 
+export type ReferenceSpeeds = {
+  readonly circularKmPerSecond: number;
+  readonly escapeKmPerSecond: number;
+};
+
 /** The presets, in the order the panel shows them. */
 export const CANNON_PRESET_IDS = [
   "ballistic",
@@ -32,10 +37,12 @@ export const CANNON_PRESETS: Readonly<Record<CannonPresetId, CannonSettings>> =
     escape: fromMountain(12, 0),
   };
 
-export type ReferenceSpeeds = {
-  readonly circularKmPerSecond: number;
-  readonly escapeKmPerSecond: number;
-};
+function fromMountain(
+  speedKmPerSecond: number,
+  angleDegrees: number,
+): CannonSettings {
+  return { speedKmPerSecond, angleDegrees, altitudeKm: MOUNTAIN_ALTITUDE_KM };
+}
 
 /**
  * The two speeds shown next to the speed control, computed from the model at
@@ -47,15 +54,9 @@ export function referenceSpeeds(altitudeKm: number): ReferenceSpeeds {
   const circularKmPerSecond = engineToKmPerSecond(
     circularSpeed(launchRadius(altitudeKm)),
   );
+
   return {
     circularKmPerSecond,
     escapeKmPerSecond: Math.SQRT2 * circularKmPerSecond,
   };
-}
-
-function fromMountain(
-  speedKmPerSecond: number,
-  angleDegrees: number,
-): CannonSettings {
-  return { speedKmPerSecond, angleDegrees, altitudeKm: MOUNTAIN_ALTITUDE_KM };
 }

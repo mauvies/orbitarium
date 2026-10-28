@@ -18,5 +18,6 @@ export function usePrefersReducedMotion(): boolean {
 function subscribe(onChange: () => void): () => void {
   const query = matchMedia(REDUCED_MOTION);
   query.addEventListener("change", onChange);
+
   return () => query.removeEventListener("change", onChange);
 }

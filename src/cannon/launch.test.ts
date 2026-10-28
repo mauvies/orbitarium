@@ -40,11 +40,13 @@ describe("launchState", () => {
 
   it("fires along the ground at 0° and straight up at 90°", () => {
     const speed = kmPerSecondToEngine(ANY_SPEED_KM_PER_SECOND);
+
     const horizontal = launchState({
       speedKmPerSecond: ANY_SPEED_KM_PER_SECOND,
       angleDegrees: 0,
       altitudeKm: MOUNTAIN_KM,
     });
+
     const straightUp = launchState({
       speedKmPerSecond: ANY_SPEED_KM_PER_SECOND,
       angleDegrees: 90,

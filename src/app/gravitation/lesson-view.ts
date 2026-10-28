@@ -27,14 +27,17 @@ export function createLessonView(
   return {
     scrollToSection: (section) => {
       const part = partOf(section);
-      const smooth = !matchMedia(REDUCED_MOTION).matches;
-      target = smooth ? section : null;
+      const isSmooth = !matchMedia(REDUCED_MOTION).matches;
+      target = isSmooth ? section : null;
+
       part.scrollIntoView({
-        behavior: smooth ? "smooth" : "auto",
+        behavior: isSmooth ? "smooth" : "auto",
         block: "start",
       });
+
       history.replaceState(null, "", `#${section}`);
-      if (smooth) {
+
+      if (isSmooth) {
         whenScrollEnds(() => {
           target = null;
         });
@@ -52,21 +55,27 @@ export function createLessonView(
       if (target !== null) {
         return target;
       }
+
       const tops = SECTION_IDS.map((section) => ({
         section,
         top: partOf(section).getBoundingClientRect().top,
       }));
-      const atBottom =
+
+      const isAtBottom =
         Math.ceil(scrollY + innerHeight) >=
         document.documentElement.scrollHeight;
-      return sectionAt(tops, TOP_LINE_PX, atBottom);
+
+      return sectionAt(tops, TOP_LINE_PX, isAtBottom);
     },
     isCannonInView: () => {
       const canvas = partOf("cannon").querySelector("canvas");
+
       if (canvas === null) {
         throw new Error("the cannon band has no canvas");
       }
+
       const { top, height } = canvas.getBoundingClientRect();
+
       return isMostlyVisible({ top, height }, visiblePageBottom());
     },
   };
@@ -74,6 +83,7 @@ export function createLessonView(
 
 function tutorPanel(): HTMLDialogElement | null {
   const panel = document.getElementById(TUTOR_PANEL_ID);
+
   return panel instanceof HTMLDialogElement ? panel : null;
 }
 
@@ -84,28 +94,35 @@ function tutorPanel(): HTMLDialogElement | null {
  */
 function visiblePageBottom(): number {
   const panel = tutorPanel();
+
   if (panel?.open) {
     const { left, top } = panel.getBoundingClientRect();
+
     if (left <= 0) {
       return top;
     }
   }
+
   return innerHeight;
 }
 
 function partOf(section: SectionId): HTMLElement {
   const part = document.getElementById(section);
+
   if (part === null) {
     throw new Error(`the lesson has no part #${section}`);
   }
+
   return part;
 }
 
 function headingOf(part: HTMLElement): HTMLElement {
   const heading = part.querySelector("h2");
+
   if (heading === null) {
     throw new Error(`the part #${part.id} has no heading`);
   }
+
   return heading;
 }
 

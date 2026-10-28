@@ -1,8 +1,6 @@
 // Every user-facing string of the app, in Spanish (spec 03, Decision 2).
 import type { OrbitSlug } from "@/orbits";
 
-const APP_NAME = "Orbitarium";
-
 type OrbitContent = {
   readonly name: string;
   readonly description: string;
@@ -10,13 +8,18 @@ type OrbitContent = {
   readonly source: string;
 };
 
+const APP_NAME = "Orbitarium";
+
 // Šuvakov and Dmitrašinović named their orbits after the curve each one draws
 // on the shape sphere, not after the paths of the bodies.
 const shapeSphereName = (meaning: string) =>
   `Su nombre, ${meaning}, describe la curva que la órbita traza en la «esfera de formas», que representa la forma del triángulo que forman los tres cuerpos, no las trayectorias que ves aquí.`;
+
 const SUVAKOV_SEARCH =
   "Pertenece a las 13 familias de órbitas periódicas que una búsqueda numérica descubrió en 2013.";
+
 const SUVAKOV_DISCOVERY = "Milovan Šuvakov y Veljko Dmitrašinović, 2013";
+
 const SUVAKOV_SOURCE =
   "Šuvakov y Dmitrašinović, Physical Review Letters 110, 114301 (2013); valores iniciales refinados en este proyecto.";
 
@@ -68,8 +71,10 @@ const twoDecimals = new Intl.NumberFormat("es", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+
 // "0,5×", "1×".
 const speedFormat = new Intl.NumberFormat("es", { maximumFractionDigits: 1 });
+
 // "7,9", "11,0": the reference speeds keep their decimal at every height.
 const oneDecimal = new Intl.NumberFormat("es", {
   minimumFractionDigits: 1,
@@ -80,6 +85,7 @@ const oneDecimal = new Intl.NumberFormat("es", {
 // in the correct option's feedback.
 const MOON_TEST =
   "El doble de lejos, 2 × 2 = 4 veces más débil. La Luna, 60 veces más lejos, recibe 3600 veces menos: en un segundo se desvía hacia la Tierra 1,4 mm, frente a los 4,9 m que cae la manzana.";
+
 // "3600", "28.000": Spanish groups thousands only from five digits.
 const wholeNumber = new Intl.NumberFormat("es");
 // Keeps "≈ 7,9 km/s" on one line.

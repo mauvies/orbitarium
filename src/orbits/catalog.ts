@@ -6,6 +6,7 @@ import type { OrbitPreset } from "./types";
 // measured by `pnpm measure:stability` and recorded in spec 03's results.
 
 const REFINED = "refined in docs/research/orbits.md";
+
 const SUVAKOV_TABLE =
   "Šuvakov and Dmitrašinović, Phys. Rev. Lett. 110, 114301 (2013), Table I";
 

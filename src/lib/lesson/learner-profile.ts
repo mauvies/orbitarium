@@ -22,6 +22,7 @@ export type LearnerProfile = readonly ProfileEntry[];
 export function learnerProfile(answers: Answers): LearnerProfile {
   return QUESTIONS.map(({ id, concept }) => {
     const answer = answers[id];
+
     return {
       question: id,
       concept,

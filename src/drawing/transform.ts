@@ -21,15 +21,18 @@ export function fitTransform(
   requirePositive(width, "width");
   requirePositive(height, "height");
   const { boundsWidth, boundsHeight } = sizeOf(bounds);
+
   if (!(padding >= 0 && 2 * padding < Math.min(width, height))) {
     throw new RangeError(
       `padding must be at least 0 and leave room to draw, got ${padding}`,
     );
   }
+
   const scale = Math.min(
     (width - 2 * padding) / boundsWidth,
     (height - 2 * padding) / boundsHeight,
   );
+
   return {
     scale,
     offsetX: width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale,
@@ -50,11 +53,13 @@ function sizeOf(bounds: Bounds): {
 } {
   const boundsWidth = bounds.maxX - bounds.minX;
   const boundsHeight = bounds.maxY - bounds.minY;
+
   if (!(boundsWidth > 0 && boundsHeight > 0)) {
     throw new RangeError(
       `bounds must have a positive width and height, got ${boundsWidth} × ${boundsHeight}`,
     );
   }
+
   return { boundsWidth, boundsHeight };
 }
 

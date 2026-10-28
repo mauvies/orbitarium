@@ -18,7 +18,9 @@ export function accelerations(
   options?: ForceOptions,
 ): readonly Vec2[] {
   validateState(state);
+
   const parameters = forceParameters(resolveForceOptions(options));
+
   return state.bodies.map((body, index) =>
     accelerationOf(index, body, state.bodies, parameters),
   );
@@ -39,6 +41,7 @@ export function accelerationOf(
   parameters: ForceParameters,
 ): Vec2 {
   let total = ZERO;
+
   for (const [sourceIndex, source] of bodies.entries()) {
     if (sourceIndex !== index) {
       total = add(
@@ -47,6 +50,7 @@ export function accelerationOf(
       );
     }
   }
+
   if (!isFiniteVec(total)) {
     throw new PhysicsError(
       "non-finite",
@@ -54,25 +58,8 @@ export function accelerationOf(
       `the acceleration of body ${index} overflows; masses or G are too large`,
     );
   }
-  return total;
-}
 
-function pullFrom(
-  source: Body,
-  sourceIndex: number,
-  target: Body,
-  targetIndex: number,
-  { G, softeningSquared }: ForceParameters,
-): Vec2 {
-  const offset = sub(source.position, target.position);
-  const distanceSquared = softenedDistanceSquared(
-    offset,
-    softeningSquared,
-    targetIndex,
-    sourceIndex,
-  );
-  const distance = Math.sqrt(distanceSquared);
-  return scale(offset, (G * source.mass) / (distanceSquared * distance));
+  return total;
 }
 
 /** r² + ε² for the offset between two bodies, shared by forces and energy. */
@@ -86,6 +73,7 @@ export function softenedDistanceSquared(
   // softening, and also for distinct bodies closer than ~1e-154, where r²
   // underflows.
   const distanceSquared = lengthSquared(offset) + softeningSquared;
+
   if (distanceSquared === 0) {
     throw new PhysicsError(
       "coincident-bodies",
@@ -93,5 +81,27 @@ export function softenedDistanceSquared(
       `bodies ${firstIndex} and ${secondIndex} are at the same position; gravity between them is undefined without softening`,
     );
   }
+
   return distanceSquared;
+}
+
+function pullFrom(
+  source: Body,
+  sourceIndex: number,
+  target: Body,
+  targetIndex: number,
+  { G, softeningSquared }: ForceParameters,
+): Vec2 {
+  const offset = sub(source.position, target.position);
+
+  const distanceSquared = softenedDistanceSquared(
+    offset,
+    softeningSquared,
+    targetIndex,
+    sourceIndex,
+  );
+
+  const distance = Math.sqrt(distanceSquared);
+
+  return scale(offset, (G * source.mass) / (distanceSquared * distance));
 }

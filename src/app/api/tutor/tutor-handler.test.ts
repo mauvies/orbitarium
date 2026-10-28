@@ -41,9 +41,11 @@ const QUESTION: UIMessage = {
 /** A model that answers `ANSWER` and remembers what it was asked. */
 function answeringModel() {
   const calls: CallOptions[] = [];
+
   const model = new MockLanguageModelV4({
     doStream: async (options) => {
       calls.push(options);
+
       return {
         stream: simulateReadableStream({
           chunks: [
@@ -68,15 +70,18 @@ function answeringModel() {
       };
     },
   });
+
   return { model, calls };
 }
 
 /** A model whose provider fails as Google does when it is overloaded. */
 function overloadedModel() {
   let attempts = 0;
+
   const model = new MockLanguageModelV4({
     doStream: async () => {
       attempts++;
+
       throw new APICallError({
         message: "The model is overloaded",
         url: "https://generativelanguage.googleapis.com",
@@ -86,6 +91,7 @@ function overloadedModel() {
       });
     },
   });
+
   return { model, attempts: () => attempts };
 }
 
@@ -141,12 +147,15 @@ function post(body: unknown, headers: Record<string, string> = {}): Request {
 /** A limiter that answers `decision` and remembers who asked, and for what. */
 function limiterSaying(decision: RateLimitDecision) {
   const checks: { clientKey: string; turn: TurnKind }[] = [];
+
   const rateLimiter: RateLimiter = {
     check: (clientKey, turn) => {
       checks.push({ clientKey, turn });
+
       return decision;
     },
   };
+
   return { rateLimiter, checks };
 }
 
@@ -157,12 +166,14 @@ async function handle(
   headers: Record<string, string> = {},
 ) {
   const logged: string[] = [];
+
   const response = await handleTutorRequest(post(body, headers), {
     resolveModel: () => model,
     log: (message) => logged.push(message),
     timeoutMs: TIMEOUT_MS,
     rateLimiter,
   });
+
   return { response, text: await response.text(), logged };
 }
 
@@ -201,6 +212,7 @@ describe("handleTutorRequest: a valid request", () => {
     await handle({ messages: [QUESTION], context: AT_THE_CANNON }, model);
 
     const system = calls[0]?.prompt[0];
+
     expect(system?.role).toBe("system");
     expect(JSON.stringify(system?.content)).toContain(
       "Part at the top of the learner's screen: cannon",
@@ -269,6 +281,7 @@ describe("handleTutorRequest: an invalid request", () => {
         { type: "text", text: "a".repeat(MAX_LEARNER_MESSAGE_CHARACTERS + 1) },
       ],
     };
+
     const { response, text } = await handle({
       messages: [tooLong],
       context: AT_THE_CANNON,
@@ -286,6 +299,7 @@ describe("handleTutorRequest: an invalid request", () => {
         { type: "text", text: "a".repeat(MAX_LEARNER_MESSAGE_CHARACTERS) },
       ],
     };
+
     const { response } = await handle({
       messages: [atTheLimit],
       context: AT_THE_CANNON,
@@ -300,6 +314,7 @@ describe("handleTutorRequest: the model", () => {
   it("a model that cannot be set up is unavailable, and the reason is logged", async () => {
     const logged: string[] = [];
     const counted = limiterSaying("allowed");
+
     const response = await handleTutorRequest(
       post({ messages: [QUESTION], context: AT_THE_CANNON }),
       {
@@ -320,6 +335,7 @@ describe("handleTutorRequest: the model", () => {
 
   it("a failing model call is not retried", async () => {
     const { model, attempts } = overloadedModel();
+
     const { text, logged } = await handle(
       { messages: [QUESTION], context: AT_THE_CANNON },
       model,
@@ -362,6 +378,7 @@ describe("handleTutorRequest: a conversation that is too long", () => {
 
   it("refuses 31 messages as too-long, without calling the model", async () => {
     const { model, calls } = answeringModel();
+
     const { response, text } = await handle(
       {
         messages: conversationOf(MAX_CONVERSATION_MESSAGES).concat(QUESTION),
@@ -401,6 +418,7 @@ describe("handleTutorRequest: a failing model", () => {
 describe("handleTutorRequest: a model that does not answer", () => {
   it("is busy once the timeout passes", async () => {
     const logged: string[] = [];
+
     const response = await handleTutorRequest(
       post({ messages: [QUESTION], context: AT_THE_CANNON }),
       {
@@ -458,6 +476,7 @@ describe("handleTutorRequest: the rate limit", () => {
 
   it("a refused request never calls the model", async () => {
     const { model, calls } = answeringModel();
+
     const { response } = await handle(
       BODY,
       model,
@@ -490,6 +509,7 @@ describe("handleTutorRequest: the rate limit", () => {
 
   it("asks the limiter about the first address of x-forwarded-for", async () => {
     const limiter = limiterSaying("allowed");
+
     await handle(BODY, answeringModel().model, limiter, {
       "x-forwarded-for": "203.0.113.7, 70.41.3.18",
     });
@@ -506,11 +526,13 @@ describe("handleTutorRequest: the rate limit", () => {
 
   it("a fallback counts as one request", async () => {
     const limiter = limiterSaying("allowed");
+
     const model = withFallback(
       overloadedModel().model,
       answeringModel().model,
       { silenceMs: TIMEOUT_MS, log: () => {} },
     );
+
     const { text } = await handle(BODY, model, limiter);
 
     expect(text).toContain(ANSWER);
@@ -519,6 +541,7 @@ describe("handleTutorRequest: the rate limit", () => {
 
   it("a request after a tool result is checked as a continuation", async () => {
     const limiter = limiterSaying("allowed");
+
     await handle(
       { messages: afterLaunches(1), context: AT_THE_CANNON },
       answeringModel().model,
@@ -537,6 +560,7 @@ describe("handleTutorRequest: the rate limit", () => {
 
   it("a conversation that is too long is not counted", async () => {
     const limiter = limiterSaying("allowed");
+
     await handle(
       {
         messages: conversationOf(MAX_CONVERSATION_MESSAGES).concat(QUESTION),

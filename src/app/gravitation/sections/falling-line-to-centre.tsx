@@ -1,6 +1,10 @@
 import { APPLE_RADIUS, CENTRE_X, CENTRE_Y, RADIUS } from "./falling-geometry";
 
-export function FallingLineToCentre({ angle }: { angle: number }) {
+interface Props {
+  angle: number;
+}
+
+export function FallingLineToCentre({ angle }: Props) {
   return (
     <line
       x1={CENTRE_X}

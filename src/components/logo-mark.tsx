@@ -2,7 +2,11 @@
 // "Logo"); src/app/icon.svg draws the same for the browser's tab.
 const ROTATIONS = [0, 60, 120] as const;
 
-export function LogoMark({ className }: { className?: string }) {
+interface Props {
+  className?: string;
+}
+
+export function LogoMark({ className }: Props) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
       <g className="fill-none stroke-accent" strokeWidth={2}>

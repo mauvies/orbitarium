@@ -73,18 +73,23 @@ type SentRequest = z.infer<typeof sentRequest>;
 /** The recording that answers a request, chosen by its last message. */
 function recordingFor({ messages }: SentRequest): Recording {
   const last = messages.at(-1);
+
   if (last?.role === "assistant") {
     return last.parts.some(({ type }) => type === "tool-launchCannon")
       ? "launch-continuation"
       : "move-continuation";
   }
+
   const text = last?.parts.map((part) => part.text ?? "").join("") ?? "";
+
   if (text === LAUNCH) {
     return "launch-call";
   }
+
   if (text === MOVE) {
     return "move-call";
   }
+
   return "answer";
 }
 
@@ -95,24 +100,30 @@ function recordingFor({ messages }: SentRequest): Recording {
 async function serveTutor(page: Page, { held = false } = {}) {
   const requests: SentRequest[] = [];
   let release = () => {};
+
   const released = new Promise<void>((resolveRelease) => {
     release = resolveRelease;
   });
+
   await page.route("**/api/tutor", async (route: Route) => {
     if (route.request().method() === "GET") {
       return route.fallback();
     }
+
     const request = sentRequest.parse(route.request().postDataJSON());
     requests.push(request);
+
     if (held) {
       await released;
     }
+
     await route.fulfill({
       status: 200,
       headers: STREAM_HEADERS,
       body: recording(recordingFor(request)),
     });
   });
+
   return { requests, release };
 }
 
@@ -131,36 +142,46 @@ async function serveAvailability(
   ...answers: readonly ({ available: boolean } | "fails")[]
 ) {
   let checks = 0;
+
   await page.route("**/api/tutor", async (route: Route) => {
     if (route.request().method() !== "GET") {
       return route.fallback();
     }
+
     const answer = answers[Math.min(checks++, answers.length - 1)];
+
     if (answer === "fails") {
       return route.fulfill({ status: 500, body: "boom" });
     }
+
     return route.fulfill({ json: answer });
   });
+
   return { checks: () => checks };
 }
 
 /** Fails the next request as the route does: a stream that ends in an error chunk. */
 async function failTutor(page: Page, code: string, failures = 1) {
   let calls = 0;
+
   await page.route("**/api/tutor", async (route: Route) => {
     if (route.request().method() === "GET") {
       return route.fallback();
     }
+
     calls++;
+
     if (calls > failures) {
       return route.fallback();
     }
+
     return route.fulfill({
       status: 200,
       headers: STREAM_HEADERS,
       body: `data: {"type":"start"}\n\ndata: {"type":"error","errorText":"${code}"}\n\ndata: [DONE]\n\n`,
     });
   });
+
   return { calls: () => calls };
 }
 
@@ -177,6 +198,7 @@ function tutorOf(page: Page) {
   const panel = page.getByRole("dialog", { name: tutor.title });
   // The panel's two hidden regions, in order: finished answers, then moves.
   const regions = panel.locator("output");
+
   return {
     toggle: page.getByRole("button", { name: tutor.toggle }),
     panel,
@@ -195,6 +217,7 @@ async function openTutor(page: Page) {
   await expect(tutorPanel.toggle).toBeEnabled();
   await tutorPanel.toggle.click();
   await expect(tutorPanel.panel).toBeVisible();
+
   return tutorPanel;
 }
 
@@ -245,11 +268,12 @@ test.describe("opening", () => {
     await serveTutor(page);
     await page.goto("/gravitation");
     const { restart, conversation } = await openTutor(page);
+
     await expect(restart).toHaveCount(0);
 
     await ask(page, QUESTION);
-    await expect(conversation).toContainText(recordedText("answer"));
 
+    await expect(conversation).toContainText(recordedText("answer"));
     await expect(restart).toBeVisible();
   });
 
@@ -275,6 +299,7 @@ for (const viewport of [PHONE, WIDE]) {
       const { panel, conversation } = await openTutor(page);
       await page.evaluate(() => window.scrollTo(0, 600));
       const scrolled = await page.evaluate(() => window.scrollY);
+
       expect(scrolled).toBeGreaterThan(0);
 
       for (const area of [panel.getByRole("heading"), conversation]) {
@@ -291,10 +316,12 @@ for (const viewport of [PHONE, WIDE]) {
       await serveTutor(page);
       await page.goto("/gravitation");
       const { conversation } = await openTutor(page);
+
       for (let turn = 0; turn < 4; turn++) {
         await ask(page, QUESTION);
         await expect(conversation).toContainText(recordedText("answer"));
       }
+
       await page.evaluate(() => window.scrollTo(0, 600));
       const scrolled = await page.evaluate(() => window.scrollY);
 
@@ -318,6 +345,7 @@ test.describe("writing", () => {
     await input.fill("Una línea");
     await input.press("Shift+Enter");
     await input.pressSequentially("y otra");
+
     await expect(input).toHaveValue("Una línea\ny otra");
 
     await input.press("Enter");
@@ -334,12 +362,15 @@ test.describe("writing", () => {
     await page.goto("/gravitation");
     const { panel, input } = await openTutor(page);
     const field = panel.locator("form");
+
     const outline = () =>
       field.evaluate((element) => {
         const { borderTopColor, outlineColor, outlineStyle } =
           getComputedStyle(element);
+
         return { borderTopColor, outlineColor, outlineStyle };
       });
+
     await panel.getByRole("button", { name: tutor.close }).focus();
     const blurred = await outline();
 
@@ -404,6 +435,7 @@ test.describe("writing", () => {
     await page.goto("/gravitation");
     const { panel, answerAnnouncement } = await openTutor(page);
     await ask(page, QUESTION);
+
     await expect(panel.getByText(tutor.thinking)).toBeVisible();
 
     await page.clock.runFor(SLOW_ANSWER_MS);
@@ -435,6 +467,7 @@ test.describe("answers", () => {
     await page.goto("/gravitation");
     const { close, toggle, conversation } = await openTutor(page);
     await ask(page, QUESTION);
+
     await expect(conversation).toContainText(recordedText("answer"));
 
     await close.click();
@@ -448,6 +481,7 @@ test.describe("answers", () => {
     await page.goto("/gravitation");
     const { restart, conversation, panel } = await openTutor(page);
     await ask(page, QUESTION);
+
     await expect(conversation).toContainText(recordedText("answer"));
 
     await restart.click();
@@ -461,6 +495,7 @@ test.describe("answers", () => {
     await page.goto("/gravitation");
     await openTutor(page);
     await ask(page, QUESTION);
+
     await expect(tutorOf(page).conversation).toContainText(QUESTION);
 
     await page.reload();
@@ -498,10 +533,10 @@ test.describe("the tutor's actions", () => {
     const { conversation } = await openTutor(page);
 
     await ask(page, LAUNCH);
+
     await expect(conversation).toContainText(
       recordedText("launch-continuation"),
     );
-
     expect(requests[0]?.context.cannon.lastLaunch).toBeNull();
     expect(requests[1]?.context.cannon.lastLaunch?.speedKmPerSecond).toBe(8);
   });
@@ -515,13 +550,14 @@ test.describe("the tutor's actions", () => {
     await page.goto("/gravitation#cannon");
     const { conversation } = await openTutor(page);
     await ask(page, LAUNCH);
+
     await expect(conversation).toContainText(
       recordedText("launch-continuation"),
     );
 
     await ask(page, QUESTION);
-    await expect(conversation).toContainText(recordedText("answer"));
 
+    await expect(conversation).toContainText(recordedText("answer"));
     expect(requests.map(({ messages }) => messages.length)).toEqual([1, 2, 3]);
     expect(requests[2]?.messages.map(({ role }) => role)).toEqual([
       "user",
@@ -538,10 +574,10 @@ test.describe("the tutor's actions", () => {
     const { conversation } = await openTutor(page);
 
     await ask(page, LAUNCH);
+
     await expect(conversation).toContainText(
       recordedText("launch-continuation"),
     );
-
     await expect(page.locator("#cannon canvas")).toBeInViewport({
       ratio: 0.5,
     });
@@ -555,8 +591,8 @@ test.describe("the tutor's actions", () => {
     const { panel, conversation } = await openTutor(page);
 
     await ask(page, MOVE);
-    await expect(conversation).toContainText(`Voy a “${sections.moon.title}”.`);
 
+    await expect(conversation).toContainText(`Voy a “${sections.moon.title}”.`);
     await expect(page).toHaveURL(/#moon$/);
     await expect(panel.locator(":focus")).toHaveCount(1);
   });
@@ -593,6 +629,7 @@ test.describe("errors", () => {
     }) => {
       await failTutor(page, code);
       await page.goto("/gravitation");
+
       const { panel, conversation, input, send, answerAnnouncement } =
         await openTutor(page);
 
@@ -617,6 +654,7 @@ test.describe("errors", () => {
         ? route.fallback()
         : route.fulfill({ status: 400, body: "context.section: not a part" }),
     );
+
     await page.goto("/gravitation");
     const { panel } = await openTutor(page);
 
@@ -631,6 +669,7 @@ test.describe("errors", () => {
         ? route.fallback()
         : route.fulfill({ status: 400, body: "too-long" }),
     );
+
     await page.goto("/gravitation");
     const { panel } = await openTutor(page);
 
@@ -651,6 +690,7 @@ test.describe("errors", () => {
         ? route.fallback()
         : route.fulfill({ status: 429, body: "daily-limit" }),
     );
+
     await page.goto("/gravitation");
     const { panel, conversation } = await openTutor(page);
 
@@ -669,6 +709,7 @@ test.describe("errors", () => {
     await page.goto("/gravitation");
     const { panel, conversation } = await openTutor(page);
     await ask(page, QUESTION);
+
     await expect(noticeIn(panel, tutor.errors["rate-limited"])).toBeVisible();
 
     await panel.getByRole("button", { name: tutor.retry }).click();
@@ -686,6 +727,7 @@ test.describe("errors", () => {
     await page.goto("/gravitation");
     const { panel, restart } = await openTutor(page);
     await ask(page, QUESTION);
+
     await expect(noticeIn(panel, tutor.errors.unavailable)).toBeVisible();
 
     await restart.click();
@@ -698,11 +740,14 @@ test.describe("errors", () => {
     await page.goto("/gravitation");
     const { panel, conversation, input, send } = await openTutor(page);
     const exchanges = MAX_CONVERSATION_MESSAGES / 2;
+
     for (let turn = 1; turn <= exchanges; turn++) {
       await ask(page, QUESTION);
+
       await expect(
         conversation.getByText(tutor.tutor, { exact: true }),
       ).toHaveCount(turn);
+
       // The last answer fills the conversation, so nothing more is accepted.
       if (turn < exchanges) {
         await expect(send).toBeEnabled();
@@ -739,6 +784,7 @@ test.describe("without a key", () => {
     const { checks } = await serveAvailability(page, { available: true });
     await page.goto("/gravitation");
     const { close, toggle, input } = await openTutor(page);
+
     await expect(input).not.toHaveAttribute("readonly", "");
 
     await close.click();
@@ -752,8 +798,8 @@ test.describe("without a key", () => {
   test("it does not ask before the panel opens", async ({ page }) => {
     const { checks } = await serveAvailability(page, { available: true });
     await page.goto("/gravitation");
-    await expect(tutorOf(page).toggle).toBeEnabled();
 
+    await expect(tutorOf(page).toggle).toBeEnabled();
     expect(checks()).toBe(0);
   });
 
@@ -761,6 +807,7 @@ test.describe("without a key", () => {
     await serveAvailability(page, "fails", { available: true });
     await page.goto("/gravitation");
     const { panel, input } = await openTutor(page);
+
     await expect(noticeIn(panel, tutor.errors.unavailable)).toBeVisible();
 
     await panel.getByRole("button", { name: tutor.retry }).click();
@@ -772,9 +819,11 @@ test.describe("without a key", () => {
 
 async function answerMoonQuestionWrongly(page: Page) {
   const box = page.locator("#moon fieldset");
+
   await box
     .getByRole("button", { name: questions["twice-as-far"].options.half.label })
     .click();
+
   return {
     box,
     ask: box.getByRole("button", { name: question.askTutor }),
@@ -796,6 +845,7 @@ for (const viewport of [PHONE, WIDE]) {
       await ask.click();
 
       const { panel, input } = tutorOf(page);
+
       await expect(panel).toBeVisible();
       await expect(input).toHaveValue(
         question.askAboutWrongAnswer(sections.moon.title),
@@ -808,6 +858,7 @@ for (const viewport of [PHONE, WIDE]) {
     }) => {
       await page.goto("/gravitation");
       const { ask, showOptions } = await answerMoonQuestionWrongly(page);
+
       await expect(ask).toBeVisible();
       await expect(showOptions).toBeVisible();
 
@@ -829,16 +880,19 @@ test.describe("asking again from a question", () => {
     const { box, ask, showOptions } = await answerMoonQuestionWrongly(page);
     await ask.click();
     const { input } = tutorOf(page);
+
     await expect(input).toHaveValue(
       question.askAboutWrongAnswer(sections.moon.title),
     );
 
     await showOptions.click();
+
     await box
       .getByRole("button", {
         name: questions["twice-as-far"].options.quarter.label,
       })
       .click();
+
     await ask.click();
 
     await expect(input).toHaveValue(
@@ -870,6 +924,7 @@ for (const viewport of [PHONE, WIDE]) {
       await page.goto("/gravitation#cannon");
       const { conversation } = await openTutor(page);
       await ask(page, LAUNCH);
+
       await expect(conversation).toContainText(
         recordedText("launch-continuation"),
       );
@@ -886,6 +941,7 @@ for (const viewport of [PHONE, WIDE]) {
       await page.goto("/gravitation");
       const { panel } = await openTutor(page);
       await ask(page, QUESTION);
+
       await expect(noticeIn(panel, tutor.errors["rate-limited"])).toBeVisible();
 
       const results = await new AxeBuilder({ page })

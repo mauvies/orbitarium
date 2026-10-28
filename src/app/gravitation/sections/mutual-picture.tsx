@@ -12,6 +12,7 @@ const APPLE_Y = 70;
 const APPLE_RADIUS = 7;
 const ARROW_LENGTH = 30;
 const CENTRE_X = 120;
+const EARTH_RADIUS = 160;
 
 /**
  * Equal force arrows on the apple and the Earth, and only the apple moves
@@ -41,8 +42,8 @@ export function MutualPicture() {
         </defs>
         <circle
           cx={CENTRE_X}
-          cy={SURFACE_Y + 160}
-          r={160}
+          cy={SURFACE_Y + EARTH_RADIUS}
+          r={EARTH_RADIUS}
           className="fill-surface-raised stroke-line"
         />
         <MutualArrow

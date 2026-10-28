@@ -7,6 +7,7 @@ test("home links to the gallery and the lesson", async ({ page }) => {
   const main = page.getByRole("main");
 
   await main.getByRole("link", { name: es.home.gravitation.link }).click();
+
   await expect(page).toHaveURL("/gravitation");
   await expect(
     page.getByRole("heading", { level: 1, name: es.gravitation.title }),
@@ -14,5 +15,6 @@ test("home links to the gallery and the lesson", async ({ page }) => {
 
   await page.goBack();
   await main.getByRole("link", { name: es.home.threeBody.link }).click();
+
   await expect(page).toHaveURL("/three-body");
 });

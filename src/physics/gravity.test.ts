@@ -46,12 +46,15 @@ function energyGradient(
   const slopeAlong = (direction: Vec2) => {
     const step = scale(direction, GRADIENT_STEP);
     const ahead = totalEnergy(moveBody(state, index, step), options);
+
     const behind = totalEnergy(
       moveBody(state, index, scale(step, -1)),
       options,
     );
+
     return (ahead - behind) / (2 * GRADIENT_STEP);
   };
+
   return { x: slopeAlong({ x: 1, y: 0 }), y: slopeAlong({ x: 0, y: 1 }) };
 }
 
@@ -82,6 +85,7 @@ it.each([
   { softening: 0.05 },
 ])("forces are the negative gradient of the potential (softening = $softening)", (options) => {
   const result = accelerations(scatteredFour, options);
+
   const forcesFromEnergy = scatteredFour.bodies.map((_, index) =>
     scale(energyGradient(scatteredFour, index, options), -1),
   );
@@ -103,6 +107,7 @@ describe("handles coincident bodies", () => {
 
   it("exerts no force between coincident bodies with softening", () => {
     const [withPartner] = accelerations(coincidentTriple, softened);
+
     const [withoutPartner] = accelerations(
       { ...coincidentTriple, bodies: coincidentTriple.bodies.toSpliced(1, 1) },
       softened,

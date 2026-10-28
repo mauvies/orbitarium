@@ -15,6 +15,7 @@ const START = CANNON_PRESETS.ballistic;
 /** The lesson's controls on a page with the cannon in view. */
 function lessonControls() {
   let top: SectionId = "cannon";
+
   const view: LessonView = {
     scrollToSection: (section) => {
       top = section;
@@ -25,6 +26,7 @@ function lessonControls() {
     sectionAtTop: () => top,
     isCannonInView: () => true,
   };
+
   return createLessonControls(createLessonStore(initialSession()), view);
 }
 

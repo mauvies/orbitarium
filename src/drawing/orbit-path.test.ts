@@ -29,6 +29,7 @@ describe.each([
   it("starts every body at its initial position", () => {
     path.bodies.forEach((body, i) => {
       const start = orbit.initialState.bodies[i]?.position;
+
       expect(body[0]?.x).toBeCloseTo(
         start?.x ?? Number.NaN,
         COORDINATE_DECIMALS,
@@ -117,6 +118,7 @@ describe("SVG output", () => {
 
   it("frames the bounds with a margin, in the flipped coordinates", () => {
     const frame = svgFrame({ minX: -1, minY: -2, maxX: 1, maxY: 2 });
+
     // The margin is 5 % of the larger side, 4: 0.2 on every side.
     expect(frame.x).toBeCloseTo(-1.2);
     expect(frame.y).toBeCloseTo(-2.2);

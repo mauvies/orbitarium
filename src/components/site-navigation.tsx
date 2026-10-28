@@ -9,13 +9,9 @@ const sections = [
   { href: "/three-body", label: es.site.navigation.threeBody },
 ] as const;
 
-/** A section is current on its own page and on every page below it. */
-function isCurrentSection(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
 export function SiteNavigation() {
   const pathname = usePathname();
+
   return (
     <nav aria-label={es.site.navigation.label}>
       {/* The links' padding enlarges their targets; the margin keeps the text aligned. */}
@@ -36,4 +32,9 @@ export function SiteNavigation() {
       </ul>
     </nav>
   );
+}
+
+/** A section is current on its own page and on every page below it. */
+function isCurrentSection(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
 }

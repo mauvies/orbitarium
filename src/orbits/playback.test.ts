@@ -15,6 +15,8 @@ const BOUNDARIES = 10;
 const VISIBLE_DRIFT = 0.1;
 const MAX_DRIFT_PERIODS = 10;
 
+const lagrange = presetOf("lagrange");
+
 function substepOf({ period, stepsPerPeriod }: OrbitPreset): number {
   return period / stepsPerPeriod;
 }
@@ -23,8 +25,6 @@ function substepOf({ period, stepsPerPeriod }: OrbitPreset): number {
 function uncapped(orbit: OrbitPreset, reanchor: boolean): PlaybackOptions {
   return { reanchor, maxSubsteps: 10 * orbit.stepsPerPeriod };
 }
-
-const lagrange = presetOf("lagrange");
 
 // Spec 02, O5.
 describe.each([
@@ -36,6 +36,7 @@ describe.each([
 
   it("returns exactly to the initial bodies at every boundary", () => {
     let playback = startPlayback(orbit);
+
     for (let boundary = 1; boundary <= BOUNDARIES; boundary++) {
       playback = advancePlayback(playback, orbit.period, options);
 
@@ -48,8 +49,10 @@ describe.each([
   it("keeps state.time increasing, at a multiple of the period on every boundary", () => {
     const callsPerPeriod = 4;
     let playback = startPlayback(orbit);
+
     for (let call = 1; call <= BOUNDARIES * callsPerPeriod; call++) {
       const previousTime = playback.state.time;
+
       playback = advancePlayback(
         playback,
         orbit.period / callsPerPeriod,
@@ -57,6 +60,7 @@ describe.each([
       );
 
       expect(playback.state.time).toBeGreaterThan(previousTime);
+
       if (playback.substepInPeriod === 0) {
         expect(playback.state.time).toBe(
           orbit.initialState.time + playback.periodsCompleted * orbit.period,
@@ -71,7 +75,9 @@ describe.each([
       (orbit.stepsPerPeriod - 3) * dt,
       options,
     );
+
     const crossed = advancePlayback(beforeBoundary, 5 * dt, options);
+
     const twoSubstepsIn = advancePlayback(
       startPlayback(orbit),
       2 * dt,
@@ -105,6 +111,7 @@ describe.each([
     reanchor,
     maxSubsteps: orbit.stepsPerPeriod,
   });
+
   const driftFromPath = (state: SystemState) =>
     maxDistance(positions(state), positions(orbit.initialState));
 
@@ -129,6 +136,7 @@ describe.each([
     "is exactly on its path at that boundary with re-anchoring",
     () => {
       let reanchored = startPlayback(orbit);
+
       while (reanchored.periodsCompleted < drifted.periodsCompleted) {
         reanchored = advancePlayback(
           reanchored,
@@ -164,6 +172,7 @@ describe("applies a change of re-anchoring at the next boundary", () => {
       lagrange.period / 2,
       uncapped(lagrange, true),
     );
+
     const snapped = advancePlayback(
       halfway,
       lagrange.period / 2,
@@ -196,6 +205,7 @@ describe("accumulates frame time into whole substeps", () => {
       (playback, frame) => advancePlayback(playback, frame, options),
       startPlayback(lagrange),
     );
+
     const inOneCall = advancePlayback(startPlayback(lagrange), total, options);
 
     expect(frameByFrame.periodsCompleted).toBe(inOneCall.periodsCompleted);
@@ -213,11 +223,13 @@ describe("accumulates frame time into whole substeps", () => {
       { length: lagrange.stepsPerPeriod / 5 },
       () => 5 * dt,
     );
+
     const playback = callsOfFiveSubsteps.reduce(
       (current, duration) =>
         advancePlayback(current, duration, uncapped(lagrange, false)),
       startPlayback(lagrange),
     );
+
     // One call for the whole period: each of its substeps is period / stepsPerPeriod.
     const oneAdvance = advance(lagrange.initialState, lagrange.period, { dt });
 
@@ -247,6 +259,7 @@ describe("accumulates frame time into whole substeps", () => {
 
   it("runs at most maxSubsteps and drops the excess", () => {
     const maxSubsteps = 1500;
+
     const capped = advancePlayback(
       startPlayback(lagrange),
       10 * lagrange.period,
@@ -255,6 +268,7 @@ describe("accumulates frame time into whole substeps", () => {
         maxSubsteps,
       },
     );
+
     const atSubstep500 = advancePlayback(
       startPlayback(lagrange),
       500 * dt,

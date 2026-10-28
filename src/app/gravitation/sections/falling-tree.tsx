@@ -9,21 +9,24 @@ import {
   TRUNK_OFFSET_X,
 } from "./falling-geometry";
 
+interface Props {
+  angle: number;
+  label: string;
+  groupAnimation: string;
+  fallAnimation: string;
+}
+
 /** A tree on the ground, its apple resting below the crown. */
 export function FallingTree({
   angle,
   label,
   groupAnimation,
   fallAnimation,
-}: {
-  angle: number;
-  label: string;
-  groupAnimation: string;
-  fallAnimation: string;
-}) {
+}: Props) {
   const top = CENTRE_Y - RADIUS;
   const crownY = top - TRUNK_HEIGHT;
   const radians = (angle * Math.PI) / 180;
+
   return (
     <g className={groupAnimation}>
       <g transform={`rotate(${angle} ${CENTRE_X} ${CENTRE_Y})`}>

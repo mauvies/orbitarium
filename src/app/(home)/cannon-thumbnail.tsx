@@ -14,11 +14,16 @@ const STOP_RADIUS = 2 * LAUNCH_POINT.y;
 const POINT_STRIDE = 10;
 const CANNON_DOT_RADIUS_PX = 2.5;
 
+interface Props {
+  className?: string;
+}
+
 /** Newton's cannon, computed with the physics engine when the page is built. */
-export function CannonThumbnail({ className }: { className?: string }) {
+export function CannonThumbnail({ className }: Props) {
   const shots = SHOT_SPEEDS.map((fraction) =>
     everyNthPoint(shotPath(fraction * circularSpeed(LAUNCH_POINT.y))),
   );
+
   const frame = svgFrame(
     boundsOf([
       ...shots.flat(),
@@ -26,7 +31,9 @@ export function CannonThumbnail({ className }: { className?: string }) {
       { x: EARTH_RADIUS, y: EARTH_RADIUS },
     ]),
   );
+
   const unitsPerPixel = plateUnitsPerPixel(frame, "beside-text");
+
   return (
     <Plate frame={frame} shape="beside-text" className={className}>
       <path
@@ -55,6 +62,7 @@ export function CannonThumbnail({ className }: { className?: string }) {
 
 function shotPath(speed: number): readonly Vec2[] {
   const launch = { position: LAUNCH_POINT, velocity: { x: speed, y: 0 } };
+
   return traceLaunch(launch, { stopRadius: STOP_RADIUS }).points;
 }
 

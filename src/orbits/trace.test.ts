@@ -56,15 +56,19 @@ describe("traces one period", () => {
 
   it("passes through the positions of the playback", () => {
     const figureEightTrace = tracePeriod(figureEight, FIGURE_EIGHT_POINTS);
+
     const options = {
       reanchor: true,
       maxSubsteps: figureEight.stepsPerPeriod,
     };
+
     let playback = startPlayback(figureEight);
+
     for (let sample = 0; sample < FIGURE_EIGHT_POINTS; sample++) {
       expect(figureEightTrace.map((track) => track[sample])).toStrictEqual(
         positions(playback.state),
       );
+
       playback = advancePlayback(
         playback,
         figureEight.period / FIGURE_EIGHT_POINTS,

@@ -46,8 +46,19 @@ function afterOnePeriod(
   stepsPerPeriod: number,
 ): readonly Vec2[] {
   const dt = eccentricBinaryPeriod / stepsPerPeriod;
+
   return positions(
     advance(eccentricBinary, eccentricBinaryPeriod, { dt, integrator }),
+  );
+}
+
+/** How far each body ends from its start after one period (absolute). */
+function closureError(state: SystemState, period: number): number {
+  const dt = period / CLOSURE_STEPS_PER_PERIOD;
+
+  return maxDistance(
+    positions(advance(state, period, { dt })),
+    positions(state),
   );
 }
 
@@ -67,15 +78,6 @@ describe("Yoshida weights", () => {
     ).toBeLessThanOrEqual(LITERAL_TOLERANCE);
   });
 });
-
-/** How far each body ends from its start after one period (absolute). */
-function closureError(state: SystemState, period: number): number {
-  const dt = period / CLOSURE_STEPS_PER_PERIOD;
-  return maxDistance(
-    positions(advance(state, period, { dt })),
-    positions(state),
-  );
-}
 
 // Spec 01, E6.
 it("closes a circular two-body orbit", () => {
@@ -100,6 +102,7 @@ describe("is time-reversible", () => {
       ...options,
       integrator,
     });
+
     return advance(withVelocitiesReversed(forward), circularBinaryPeriod, {
       ...options,
       integrator,
@@ -132,6 +135,7 @@ describe("is time-reversible", () => {
 // Spec 01, E9.
 describe("converges at the expected order", () => {
   const REFERENCE_STEPS = 12_800;
+
   const errorAt = (integrator: IntegratorName, stepsPerPeriod: number) =>
     maxDistance(
       afterOnePeriod(integrator, stepsPerPeriod),

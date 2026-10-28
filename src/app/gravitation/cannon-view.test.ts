@@ -27,6 +27,7 @@ describe("the cannon's view", () => {
       launchState(CANNON_PRESETS["long-ellipse"]),
       { stopRadius: CANNON_STOP_RADIUS },
     );
+
     const outside = points.filter(
       ({ x, y }) =>
         Math.abs(x) > CANNON_VIEW_RADIUS || Math.abs(y) > CANNON_VIEW_RADIUS,

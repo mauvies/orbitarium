@@ -1,12 +1,10 @@
-export function MutualArrow({
-  x,
-  fromY,
-  toY,
-}: {
+interface Props {
   x: number;
   fromY: number;
   toY: number;
-}) {
+}
+
+export function MutualArrow({ x, fromY, toY }: Props) {
   return (
     <line
       x1={x}

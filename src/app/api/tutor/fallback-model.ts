@@ -6,16 +6,9 @@ import { isServerError } from "./error-code";
 type ProviderModel = ReturnType<typeof wrapLanguageModel>;
 type CallOptions = Parameters<ProviderModel["doStream"]>[0];
 type StreamResult = Awaited<ReturnType<ProviderModel["doStream"]>>;
+
 type StreamPart =
   StreamResult["stream"] extends ReadableStream<infer Part> ? Part : never;
-
-const CONTENT_PARTS: ReadonlySet<StreamPart["type"]> = new Set([
-  "text-delta",
-  "tool-input-start",
-  "tool-call",
-]);
-
-const SILENCE = Symbol("silence");
 
 export type FallbackOptions = {
   /** How long the first model has to start answering. */
@@ -27,6 +20,14 @@ type FirstAttempt =
   | { readonly status: "started"; readonly result: StreamResult }
   | { readonly status: "overloaded"; readonly reason: string };
 
+const CONTENT_PARTS: ReadonlySet<StreamPart["type"]> = new Set([
+  "text-delta",
+  "tool-input-start",
+  "tool-call",
+]);
+
+const SILENCE = Symbol("silence");
+
 export function withFallback(
   primary: ProviderModel,
   fallback: ProviderModel,
@@ -37,8 +38,13 @@ export function withFallback(
     middleware: {
       wrapStream: async ({ model, params }) => {
         const attempt = await firstAttempt(model, params, silenceMs);
-        if (attempt.status === "started") return attempt.result;
+
+        if (attempt.status === "started") {
+          return attempt.result;
+        }
+
         log(`tutor: falling back to ${fallback.modelId}: ${attempt.reason}`);
+
         return fallback.doStream(params);
       },
     },
@@ -51,48 +57,65 @@ async function firstAttempt(
   silenceMs: number,
 ): Promise<FirstAttempt> {
   const ownAbort = new AbortController();
+
   const abortSignal =
     params.abortSignal === undefined
       ? ownAbort.signal
       : AbortSignal.any([params.abortSignal, ownAbort.signal]);
+
   let timer: ReturnType<typeof setTimeout> | undefined;
+
   const silence = new Promise<typeof SILENCE>((resolve) => {
     timer = setTimeout(() => resolve(SILENCE), silenceMs);
   });
+
   const overloaded = (reason: string): FirstAttempt => {
     ownAbort.abort(new Error(reason));
+
     return { status: "overloaded", reason };
   };
 
   const call = Promise.resolve(model.doStream({ ...params, abortSignal }));
+
   // Once silence wins the race, the aborted call rejects with nobody waiting.
   call.catch(() => {});
+
   try {
     const result = await Promise.race([call, silence]);
+
     if (result === SILENCE) {
       return overloaded(`no answer within ${silenceMs} ms`);
     }
+
     const reader = result.stream.getReader();
     const read: StreamPart[] = [];
-    
+
     for (;;) {
       const next = await Promise.race([reader.read(), silence]);
+
       if (next === SILENCE) {
         await reader.cancel();
+
         return overloaded(`no answer within ${silenceMs} ms`);
       }
+
       if (next.done) {
         return {
           status: "started",
           result: { ...result, stream: replay(read, reader) },
         };
       }
+
       const part = next.value;
+
       if (part.type === "error" && isOverloaded(part.error)) {
         await reader.cancel();
+
         return overloaded(describe(part.error));
       }
+
       read.push(part);
+
       if (CONTENT_PARTS.has(part.type)) {
         return {
           status: "started",
@@ -104,6 +127,7 @@ async function firstAttempt(
     if (isOverloaded(error)) {
       return overloaded(describe(error));
     }
+
     throw error;
   } finally {
     clearTimeout(timer);
@@ -123,6 +147,7 @@ function replay(
     },
     async pull(controller) {
       const next = await reader.read();
+
       if (next.done) {
         controller.close();
       } else {

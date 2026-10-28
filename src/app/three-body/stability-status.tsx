@@ -1,11 +1,15 @@
 import { es } from "@/content/es";
 
+interface Props {
+  holds: boolean;
+}
+
 /**
  * Spec 03, Decision 9: what the simulation shows, not a formal result. Both
  * labels are full-strength text; only the dot differs: filled for an orbit
  * that holds, hollow for one that drifts.
  */
-export function StabilityStatus({ holds }: { holds: boolean }) {
+export function StabilityStatus({ holds }: Props) {
   return (
     <p className="flex items-center gap-2 text-small">
       <span

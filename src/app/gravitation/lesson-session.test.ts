@@ -17,9 +17,11 @@ const ELLIPTICAL = CANNON_PRESETS["elliptical-orbit"];
 
 function launched(session: LessonSession, request: CannonRequest) {
   const { session: next, result } = launchCannon(session, request);
+
   if (result.status !== "launched") {
     throw new Error(`expected a launch, got ${result.reason}`);
   }
+
   return next;
 }
 
@@ -95,11 +97,13 @@ describe("launchCannon", () => {
 
   it(`keeps the last ${RECENT_LAUNCHES} launches, newest last, with distinct ids`, () => {
     const speeds = [6, 6.5, 7, 7.5, 8, 8.5, 9];
+
     const session = speeds.reduce(
       (current, speedKmPerSecond) =>
         launched(current, { speedKmPerSecond, angleDegrees: 0 }),
       START,
     );
+
     const kept = session.launches;
 
     expect(kept.map((launch) => launch.settings.speedKmPerSecond)).toEqual(
@@ -138,6 +142,7 @@ describe("clearEarlierPaths", () => {
       launched(START, CANNON_PRESETS.ballistic),
       ELLIPTICAL,
     );
+
     const last = twoLaunches.launches.at(-1);
 
     expect(clearEarlierPaths(twoLaunches).launches).toEqual([last]);

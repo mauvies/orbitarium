@@ -17,16 +17,21 @@ interface Props {
 
 export function OrbitPlayer({ orbit, path }: Props) {
   const [run, setRun] = useState(0);
-  const [collided, setCollided] = useState(false);
+  const [hasCollided, setHasCollided] = useState(false);
   const [playChoice, setPlayChoice] = useState<boolean | null>(null);
 
-  const hydrated = useHydrated();
+  const isHydrated = useHydrated();
   const { detailPreferences, changeDetailPreferences } = useGallerySession();
-  const prefersReducedMotion = usePrefersReducedMotion();
+  const shouldReduceMotion = usePrefersReducedMotion();
 
-  const handleCollision = useCallback(() => setCollided(true), []);
+  const isPlaying = playChoice ?? !shouldReduceMotion;
 
-  const playing = playChoice ?? !prefersReducedMotion;
+  const handleCollision = useCallback(() => setHasCollided(true), []);
+
+  const handleRestart = () => {
+    setHasCollided(false);
+    setRun((previous) => previous + 1);
+  };
 
   return (
     <div className="grid w-full justify-items-start gap-4">
@@ -35,23 +40,20 @@ export function OrbitPlayer({ orbit, path }: Props) {
         orbit={orbit}
         path={path}
         label={es.detail.player.canvasLabel(es.orbits[orbit.slug].name)}
-        playing={playing}
+        playing={isPlaying}
         preferences={detailPreferences}
         onCollision={handleCollision}
       />
       <p aria-live="polite" className="text-strong empty:hidden">
-        {collided ? es.detail.player.collision : ""}
+        {hasCollided ? es.detail.player.collision : ""}
       </p>
       <PlayerControls
-        playing={playing}
-        collided={collided}
-        hydrated={hydrated}
+        playing={isPlaying}
+        collided={hasCollided}
+        hydrated={isHydrated}
         preferences={detailPreferences}
         onPlayingChange={setPlayChoice}
-        onRestart={() => {
-          setCollided(false);
-          setRun((previous) => previous + 1);
-        }}
+        onRestart={handleRestart}
         onPreferencesChange={changeDetailPreferences}
       />
     </div>

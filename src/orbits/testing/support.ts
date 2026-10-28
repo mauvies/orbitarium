@@ -9,12 +9,13 @@ import type { OrbitPreset, OrbitSlug } from "../types";
  */
 export const HEAVY_TEST_TIMEOUT_MS = 30_000;
 
-/** The catalog preset with this slug. */
 export function presetOf(slug: OrbitSlug): OrbitPreset {
   const preset = getOrbit(slug);
+
   if (preset === undefined) {
     throw new RangeError(`no orbit with slug "${slug}"`);
   }
+
   return preset;
 }
 

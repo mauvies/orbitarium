@@ -11,6 +11,14 @@ const EARTH_X = 70;
 const MOON_X = 330;
 const BODIES_Y = 80;
 const BREAK_X = 200;
+// The dashed line stops short of the break mark, whose two slashes stand
+// between 3 and 9 units either side of it.
+const BREAK_GAP = 6;
+const SLASH_INNER_X = 3;
+const SLASH_OUTER_X = 9;
+const SLASH_HALF_HEIGHT = 8;
+const NAME_GAP = 20;
+const DISTANCE_LABEL_GAP = 16;
 
 /**
  * The Earth, drawn large, and the Moon at the same scale, with the distance
@@ -27,13 +35,13 @@ export function MoonPicture() {
       <line
         x1={EARTH_X + EARTH_RADIUS}
         y1={BODIES_Y}
-        x2={BREAK_X - 6}
+        x2={BREAK_X - BREAK_GAP}
         y2={BODIES_Y}
         className="stroke-muted"
         strokeDasharray="3 4"
       />
       <line
-        x1={BREAK_X + 6}
+        x1={BREAK_X + BREAK_GAP}
         y1={BODIES_Y}
         x2={MOON_X - MOON_RADIUS}
         y2={BODIES_Y}
@@ -42,7 +50,7 @@ export function MoonPicture() {
       />
       {/* The break mark: two slashes where the distance is cut. */}
       <path
-        d={`M ${BREAK_X - 9} ${BODIES_Y + 8} L ${BREAK_X - 3} ${BODIES_Y - 8} M ${BREAK_X + 3} ${BODIES_Y + 8} L ${BREAK_X + 9} ${BODIES_Y - 8}`}
+        d={`M ${BREAK_X - SLASH_OUTER_X} ${BODIES_Y + SLASH_HALF_HEIGHT} L ${BREAK_X - SLASH_INNER_X} ${BODIES_Y - SLASH_HALF_HEIGHT} M ${BREAK_X + SLASH_INNER_X} ${BODIES_Y + SLASH_HALF_HEIGHT} L ${BREAK_X + SLASH_OUTER_X} ${BODIES_Y - SLASH_HALF_HEIGHT}`}
         className="stroke-body"
         strokeWidth={1.5}
       />
@@ -60,7 +68,7 @@ export function MoonPicture() {
       />
       <text
         x={EARTH_X}
-        y={BODIES_Y + EARTH_RADIUS + 20}
+        y={BODIES_Y + EARTH_RADIUS + NAME_GAP}
         textAnchor="middle"
         className="fill-body text-[12px]"
       >
@@ -68,7 +76,7 @@ export function MoonPicture() {
       </text>
       <text
         x={MOON_X}
-        y={BODIES_Y + MOON_RADIUS + 20}
+        y={BODIES_Y + MOON_RADIUS + NAME_GAP}
         textAnchor="middle"
         className="fill-body text-[12px]"
       >
@@ -76,7 +84,7 @@ export function MoonPicture() {
       </text>
       <text
         x={BREAK_X}
-        y={BODIES_Y - 16}
+        y={BODIES_Y - DISTANCE_LABEL_GAP}
         textAnchor="middle"
         className="fill-muted text-[12px]"
       >

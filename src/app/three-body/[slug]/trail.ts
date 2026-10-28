@@ -21,10 +21,14 @@ export function extendTrail(
   if (!(Number.isFinite(span) && span > 0)) {
     throw new RangeError(`span must be a positive finite number, got ${span}`);
   }
+
   const newest = samples.at(-1);
+
   if (newest === undefined) {
     return trail;
   }
+
   const oldestKept = newest.time - span;
+
   return [...trail, ...samples].filter(({ time }) => time >= oldestKept);
 }

@@ -34,6 +34,7 @@ export type ParsedTutorContext =
 
 const QUESTION_IDS = QUESTIONS.map(({ id }) => id);
 const CONCEPTS = [...new Set(QUESTIONS.map(({ concept }) => concept))];
+
 const MISCONCEPTIONS = [
   ...new Set(
     QUESTIONS.flatMap(({ options }) =>
@@ -80,17 +81,22 @@ const tutorContextSchema: z.ZodType<TutorContext> = z.strictObject({
 
 export function parseTutorContext(value: unknown): ParsedTutorContext {
   const result = tutorContextSchema.safeParse(value);
+
   if (result.success) {
     return { status: "valid", context: result.data };
   }
+
   const [issue] = result.error.issues;
+
   if (issue === undefined) {
     throw new Error("zod reported an invalid context without an issue");
   }
+
   const path =
     issue.code === "unrecognized_keys"
       ? [...issue.path, ...issue.keys]
       : issue.path;
+
   return {
     status: "invalid",
     field: path.length === 0 ? "context" : path.map(String).join("."),

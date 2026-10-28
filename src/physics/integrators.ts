@@ -11,6 +11,30 @@ export type Step = (
   parameters: ForceParameters,
 ) => readonly Particle[];
 
+// Yoshida (1990): 1 / (2 − ∛2) and −∛2 / (2 − ∛2). Literals rather than
+// Math.cbrt, so every platform uses the same bits (spec 01).
+export const OUTER_WEIGHT = 1.3512071919596578;
+export const INNER_WEIGHT = -1.7024143839193153;
+
+/** Kick-drift-kick velocity Verlet: symplectic and time-reversible. */
+export const verletStep: Step = (particles, dt, parameters) => {
+  const drifted = particles.map((particle) =>
+    drift(kick(particle, dt / 2), dt),
+  );
+
+  return withAccelerations(drifted, parameters).map((particle) =>
+    kick(particle, dt / 2),
+  );
+};
+
+/** 4th order: three Verlet steps, the middle one backwards in time. */
+export const yoshida4Step: Step = (particles, dt, parameters) => {
+  const first = verletStep(particles, OUTER_WEIGHT * dt, parameters);
+  const second = verletStep(first, INNER_WEIGHT * dt, parameters);
+
+  return verletStep(second, OUTER_WEIGHT * dt, parameters);
+};
+
 export function withAccelerations(
   bodies: readonly Body[],
   parameters: ForceParameters,
@@ -20,28 +44,6 @@ export function withAccelerations(
     acceleration: accelerationOf(index, body, bodies, parameters),
   }));
 }
-
-/** Kick-drift-kick velocity Verlet: symplectic and time-reversible. */
-export const verletStep: Step = (particles, dt, parameters) => {
-  const drifted = particles.map((particle) =>
-    drift(kick(particle, dt / 2), dt),
-  );
-  return withAccelerations(drifted, parameters).map((particle) =>
-    kick(particle, dt / 2),
-  );
-};
-
-// Yoshida (1990): 1 / (2 − ∛2) and −∛2 / (2 − ∛2). Literals rather than
-// Math.cbrt, so every platform uses the same bits (spec 01).
-export const OUTER_WEIGHT = 1.3512071919596578;
-export const INNER_WEIGHT = -1.7024143839193153;
-
-/** 4th order: three Verlet steps, the middle one backwards in time. */
-export const yoshida4Step: Step = (particles, dt, parameters) => {
-  const first = verletStep(particles, OUTER_WEIGHT * dt, parameters);
-  const second = verletStep(first, INNER_WEIGHT * dt, parameters);
-  return verletStep(second, OUTER_WEIGHT * dt, parameters);
-};
 
 function kick(particle: Particle, dt: number): Particle {
   return {

@@ -11,8 +11,10 @@ export function runSubsteps(
   dt: number,
 ): SystemState {
   let current = state;
+
   for (let substep = 0; substep < count; substep++) {
     current = advance(current, dt, { dt });
   }
+
   return current;
 }

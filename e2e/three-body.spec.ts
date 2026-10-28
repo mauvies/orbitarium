@@ -11,6 +11,7 @@ test("gallery lists the six orbits", async ({ page }) => {
   const items = page.getByRole("main").getByRole("listitem");
 
   await expect(items).toHaveCount(orbits.length);
+
   for (const [i, orbit] of orbits.entries()) {
     const item = items.nth(i);
     const name = es.orbits[orbit.slug].name;
@@ -35,23 +36,29 @@ test.describe("returning from a detail page", () => {
   }) => {
     await page.goto("/three-body");
     const lastOrbit = orbits.at(-1);
+
     if (lastOrbit === undefined) {
       throw new Error("no orbit to open");
     }
+
     const lastCard = page
       .getByRole("main")
       .getByRole("link", { name: es.orbits[lastOrbit.slug].name });
+
     await lastCard.scrollIntoViewIfNeeded();
     const scrolledTo = await page.evaluate(() => window.scrollY);
+
     expect(scrolledTo).toBeGreaterThan(0);
 
     await lastCard.click();
+
     await expect(
       page.getByRole("heading", {
         level: 1,
         name: es.orbits[lastOrbit.slug].name,
       }),
     ).toBeVisible();
+
     await page.goBack();
 
     await expect(page).toHaveURL("/three-body");
@@ -69,5 +76,6 @@ test("gallery thumbnails render without JavaScript", async ({ browser }) => {
   await expect(
     page.getByRole("main").getByRole("listitem").locator("svg path"),
   ).toHaveCount(orbits.length);
+
   await context.close();
 });

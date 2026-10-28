@@ -8,6 +8,7 @@ interface Props {
 
 export function OrbitFacts({ orbit }: Props) {
   const content = es.orbits[orbit.slug];
+
   const facts = [
     { term: es.detail.facts.discovery, value: content.discovery },
     { term: es.detail.facts.period, value: es.detail.period(orbit.period) },

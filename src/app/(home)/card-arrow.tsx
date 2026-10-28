@@ -1,4 +1,8 @@
-export function CardArrow({ className }: { className: string }) {
+interface Props {
+  className: string;
+}
+
+export function CardArrow({ className }: Props) {
   return (
     <svg
       aria-hidden="true"

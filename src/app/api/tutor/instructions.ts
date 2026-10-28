@@ -68,6 +68,19 @@ const LESSON = [
   CANNON,
 ].join("\n\n");
 
+function questionLine(question: Question): string {
+  const text = questionText(question.id);
+
+  const options = question.options
+    .map(
+      ({ id, misconception }) =>
+        `«${text.option(id).label}» (${misconception === null ? "correct" : `misconception ${misconception}`})`,
+    )
+    .join("; ");
+
+  return `- ${question.id} (part ${question.section}, concept ${question.concept}): «${text.prompt}» Options: ${options}.`;
+}
+
 /**
  * The model's instructions: the lesson, which never changes, then what the
  * page says about the learner now (spec 05, Decisions 4 and 5). The same
@@ -82,23 +95,13 @@ function situation({ section, cannon: state, profile }: TutorContext): string {
     state.lastLaunch === null
       ? "none yet"
       : `${settingsText(state.lastLaunch)}, outcome ${state.lastLaunch.outcome}`;
+
   return `The learner's situation now:
 Part at the top of the learner's screen: ${section} («${sections[section].title}»).
 Cannon settings: ${settingsText(state.settings)}.
 Last launch: ${lastLaunch}.
 Learner profile:
 ${profile.map(profileLine).join("\n")}`;
-}
-
-function questionLine(question: Question): string {
-  const text = questionText(question.id);
-  const options = question.options
-    .map(
-      ({ id, misconception }) =>
-        `«${text.option(id).label}» (${misconception === null ? "correct" : `misconception ${misconception}`})`,
-    )
-    .join("; ");
-  return `- ${question.id} (part ${question.section}, concept ${question.concept}): «${text.prompt}» Options: ${options}.`;
 }
 
 function profileLine({ question, concept, result }: ProfileEntry): string {
@@ -108,6 +111,7 @@ function profileLine({ question, concept, result }: ProfileEntry): string {
       : result.status === "correct"
         ? "correct"
         : `wrong, misconception ${result.misconception}`;
+
   return `- ${question} (${concept}): ${state}`;
 }
 
