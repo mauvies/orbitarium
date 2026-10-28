@@ -15,15 +15,15 @@ Each orbit is then defined by three numbers: p₁, p₂ and its period T.
 
 1. **Šuvakov and Dmitrašinović, "Three Classes of Newtonian Three-Body Planar Periodic Orbits", Phys. Rev. Lett. 110, 114301 (2013), Table I.** The original source for butterfly I, moth I, goggles and yin-yang I. Values are given to 5 decimals.
 2. **Li and Liao, "More than six hundred new families of Newtonian periodic planar collisionless three-body orbits", Sci. China Phys. Mech. Astron. 60, 129511 (2017), supplementary Tables S III and S VII.** The same orbits to 10 decimals, with positions slightly off (−1, 0), so they need rescaling to be compared. Used as an independent cross-check. These tables do not include yin-yang I.
-3. **Chenciner and Montgomery, Annals of Mathematics 152 (2000), with C. Simó's initial conditions.** The figure-eight, used as a cross-check of its period.
+3. **Chenciner and Montgomery, Annals of Mathematics 152 (2000), with C. Simó's initial conditions.** The source of the figure-eight's values, and a cross-check of its period.
 
-   The figure-eight's starting values in this convention (p₁ = 0.347111, p₂ = 0.532728) are not a cited value. They were taken from memory of Šuvakov's online gallery, which could not be fetched. What validates them is the rest of the method: the refinement closes the orbit to about 1e-12, and the refined period matches two independent sources, Li and Liao's (rescaled, to 1e-9) and Simó's.
+   Simó's start is already collinear, with the middle body at the origin and the other two at ±(0.97000436, −0.24308753), at distance 1 from it to 3e-9. Rotated onto the x-axis, his velocities give the figure-eight in this convention: p₁ = 0.3471168892, p₂ = 0.5327249447, T = 6.32591398. They match the refined values below to about 1e-9, and the period to 3e-8, at the precision of his eight printed decimals. In the repository, `catalog.test.ts` ("closes every orbit after one period") checks the catalog's values with the project's engine.
 4. **Lagrange (1772).** The equilateral solution has an exact analytic form and needs no table (spec 01, `lagrangeTriangle`).
 
 ## Method
 
 1. **Check the published values.** Integrating the 5-decimal values from source 1 for one period with a high-accuracy reference integrator (SciPy DOP853, relative and absolute tolerance 1e-13) leaves the state 1e-3 to 4e-3 away from where it started. That is enough to see a jump if the animation resets every period, so the published precision is not enough.
-2. **Refine them.** Newton shooting on (p₁, p₂, T): find the values for which the state after one period equals the initial state, starting from the published values and keeping the convention above. It converged in 2 or 3 iterations for every orbit, to a closure residual of 1e-10 or better.
+2. **Refine them.** Newton shooting on (p₁, p₂, T): find the values for which the state after one period equals the initial state, starting from the published values and keeping the convention above. It converged in 2 or 3 iterations for every orbit, to a closure residual of 1e-10 or better. The refinement was a SciPy script run outside the project, and that script is not in this repository: what the repository keeps is its result, the table below, which steps 3 and 4 check.
 3. **Cross-check independently.** Li and Liao's values, rescaled so that r₁ is at distance 1 (positions scale by α, periods by α^(3/2)), give the same periods as the refined values to 1e-9 for the four orbits they list. The refined figure-eight period also matches Simó's (6.32591398).
 4. **Verify with the project's own engine.** Spec 02 tests that each orbit closes after one period with the engine in `src/physics`.
 
