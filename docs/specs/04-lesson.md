@@ -421,5 +421,3 @@ Mechanical check, before the human review: the sentences of the table match `src
 | 7.91 km/s in km/h | 28,476 |
 
 Rows marked **Review** in the table are where the reviewer should look first: the Stukeley account (row 1), the exact «60 veces» and «3600 veces» (rows 7, 8 and 16), «Aquí no hay aire» (row 10), «casi el 90 %» (row 13), «igual de deprisa» (row 20) and «solo la manzana se mueve» (row 26).
-
-Reviewed by a human: pending.
