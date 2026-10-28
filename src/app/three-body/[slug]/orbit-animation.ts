@@ -8,11 +8,7 @@ import type { DetailPreferences } from "./detail-preferences";
 import { drawBodies, drawPath, drawTrail, pathShape } from "./draw";
 import { advanceAnimation, startAnimation } from "./orbit-frame";
 
-/**
- * The canvas's largest width in CSS pixels: `orbit-canvas.tsx` caps it there
- * (`max-w-160`), and the page simplifies the path for it (spec 03, Decision 4).
- */
-export const CANVAS_MAX_WIDTH_PX = 640;
+export const CANVAS_MAX_WIDTH_PX = 720;
 
 const PADDING_PX = 16;
 
@@ -47,6 +43,7 @@ export function startOrbitAnimation(
   if (context === null) {
     throw new Error("the canvas has no 2D context");
   }
+
   const colors = readThemeColors(canvas);
   let controls = initialControls;
   let state = startAnimation(orbit);
@@ -59,12 +56,15 @@ export function startOrbitAnimation(
     const { size, transform } = view;
     context.setTransform(size.pixelRatio, 0, 0, size.pixelRatio, 0, 0);
     context.clearRect(0, 0, size.width, size.height);
+
     if (controls.showPath) {
       drawPath(context, view.path, colors.accent);
     }
+
     if (controls.showTrail) {
       drawTrail(context, state.trail, transform, colors.accent);
     }
+
     drawBodies(
       context,
       state.playback.state.bodies.map(({ position }) => position),
@@ -77,6 +77,7 @@ export function startOrbitAnimation(
     view = viewFor(size, path);
     draw();
   });
+
   const loop = startAnimationLoop((elapsedMs) => {
     if (controls.playing && !state.collided) {
       state = advanceAnimation(state, elapsedMs, controls);

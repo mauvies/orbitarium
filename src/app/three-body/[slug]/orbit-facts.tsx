@@ -2,8 +2,11 @@ import { es } from "@/content/es";
 import type { OrbitPreset } from "@/orbits";
 import { StabilityStatus } from "../stability-status";
 
-/** Who found the orbit, its period, its stability label and its source. */
-export function OrbitFacts({ orbit }: { orbit: OrbitPreset }) {
+interface Props {
+  orbit: OrbitPreset;
+}
+
+export function OrbitFacts({ orbit }: Props) {
   const content = es.orbits[orbit.slug];
   const facts = [
     { term: es.detail.facts.discovery, value: content.discovery },
@@ -14,12 +17,13 @@ export function OrbitFacts({ orbit }: { orbit: OrbitPreset }) {
     },
     { term: es.detail.facts.source, value: content.source },
   ];
+
   return (
-    <dl className="grid gap-4">
+    <dl className="divide-y divide-line">
       {facts.map(({ term, value }) => (
-        <div key={term}>
-          <dt className="text-small text-muted">{term}</dt>
-          <dd className="mt-1">{value}</dd>
+        <div key={term} className="py-4 first:pt-0">
+          <dt className="font-heading font-medium text-strong">{term}</dt>
+          <dd className="mt-1 text-small">{value}</dd>
         </div>
       ))}
     </dl>

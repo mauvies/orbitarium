@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canvasAspectRatio, fitTransform, toCanvas } from "./transform";
+import { fitTransform, toCanvas } from "./transform";
 
 // An orbit twice as wide as it is tall, centred on (1, 0).
 const WIDE_BOUNDS = { minX: -1, minY: -1, maxX: 3, maxY: 1 };
@@ -55,32 +55,5 @@ describe("fitTransform", () => {
   ])("rejects an invalid %s naming the field", (field, call) => {
     expect(call).toThrow(RangeError);
     expect(call).toThrow(new RegExp(field));
-  });
-});
-
-describe("canvasAspectRatio", () => {
-  // Width : height of 3 : 2, 4 : 1 and 1 : 2.
-  const MODERATE_BOUNDS = { minX: 0, minY: 0, maxX: 3, maxY: 2 };
-  const FLAT_BOUNDS = { minX: -2, minY: -0.5, maxX: 2, maxY: 0.5 };
-  const TALL_BOUNDS = { minX: 0, minY: -1, maxX: 1, maxY: 1 };
-
-  it("follows the bounds between 1:1 and 2:1", () => {
-    expect(canvasAspectRatio(MODERATE_BOUNDS)).toBeCloseTo(1.5);
-  });
-
-  it("is at most 2:1 for a flat orbit", () => {
-    expect(canvasAspectRatio(FLAT_BOUNDS)).toBe(2);
-  });
-
-  it("is at least 1:1 for a tall orbit", () => {
-    expect(canvasAspectRatio(TALL_BOUNDS)).toBe(1);
-  });
-
-  it("rejects bounds without area naming the field", () => {
-    const call = () =>
-      canvasAspectRatio({ minX: 0, minY: 1, maxX: 2, maxY: 1 });
-
-    expect(call).toThrow(RangeError);
-    expect(call).toThrow(/bounds/);
   });
 });

@@ -2,7 +2,6 @@
 
 import { useLayoutEffect, useRef } from "react";
 import type { OrbitPath } from "@/drawing/orbit-path";
-import { canvasAspectRatio } from "@/drawing/transform";
 import type { OrbitPreset } from "@/orbits";
 import type { DetailPreferences } from "./detail-preferences";
 import {
@@ -11,11 +10,15 @@ import {
   startOrbitAnimation,
 } from "./orbit-animation";
 
-/**
- * The canvas and the animation on it. React renders it only when a control
- * changes; the frames never go through React (spec 03, Decision 5).
- * `onCollision` must keep its identity, or the animation starts over.
- */
+interface Props {
+  orbit: OrbitPreset;
+  path: OrbitPath;
+  label: string;
+  playing: boolean;
+  preferences: DetailPreferences;
+  onCollision: () => void;
+}
+
 export function OrbitCanvas({
   orbit,
   path,
@@ -23,14 +26,7 @@ export function OrbitCanvas({
   playing,
   preferences: { speed, showPath, showTrail, correction },
   onCollision,
-}: {
-  orbit: OrbitPreset;
-  path: OrbitPath;
-  label: string;
-  playing: boolean;
-  preferences: DetailPreferences;
-  onCollision: () => void;
-}) {
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<OrbitAnimation | null>(null);
   const controlsRef = useRef<PlayerControls>({
@@ -53,6 +49,7 @@ export function OrbitCanvas({
     if (canvas === null) {
       throw new Error("the orbit canvas is not mounted");
     }
+
     const animation = startOrbitAnimation(
       canvas,
       orbit,
@@ -61,6 +58,7 @@ export function OrbitCanvas({
       onCollision,
     );
     animationRef.current = animation;
+
     return () => {
       animation.stop();
       animationRef.current = null;
@@ -72,9 +70,7 @@ export function OrbitCanvas({
       ref={canvasRef}
       role="img"
       aria-label={label}
-      className="w-full max-w-160 rounded-xl bg-bg-bottom"
-      // Each orbit's own ratio, so Tailwind cannot generate the class.
-      style={{ aspectRatio: canvasAspectRatio(path.bounds) }}
+      className="aspect-3/2 w-full max-w-180 rounded-xl bg-bg-bottom"
     />
   );
 }

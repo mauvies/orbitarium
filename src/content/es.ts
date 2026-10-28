@@ -149,9 +149,9 @@ export const es = {
       restart: "Reiniciar",
       speed: "Velocidad",
       speedOption: (speed: number) => `${speedFormat.format(speed)}×`,
-      showPath: "Mostrar la trayectoria",
-      showTrail: "Mostrar la estela",
-      correction: "Corregir la deriva",
+      showPath: "Trayectoria",
+      showTrail: "Estela",
+      correction: "Corrección",
       // Spec 03, Decision 12.
       collision:
         "Dos cuerpos han chocado y la simulación se ha detenido. Pulsa «Reiniciar» para empezar de nuevo.",

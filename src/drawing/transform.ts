@@ -1,7 +1,6 @@
 import type { Vec2 } from "@/physics";
 import type { Bounds } from "./orbit-path";
 
-/** From simulation units to canvas pixels: x' = offsetX + x·scale, y' = offsetY − y·scale. */
 export type CanvasTransform = {
   readonly scale: number;
   readonly offsetX: number;
@@ -43,20 +42,6 @@ export function toCanvas(
   { scale, offsetX, offsetY }: CanvasTransform,
 ): Vec2 {
   return { x: offsetX + x * scale, y: offsetY - y * scale };
-}
-
-// Spec 03, Decision 5: flat orbits fill a wide canvas, and none is drawn
-// taller than it is wide.
-const MIN_ASPECT_RATIO = 1;
-const MAX_ASPECT_RATIO = 2;
-
-/** The canvas's width : height for `bounds`, between 1:1 and 2:1. */
-export function canvasAspectRatio(bounds: Bounds): number {
-  const { boundsWidth, boundsHeight } = sizeOf(bounds);
-  return Math.min(
-    MAX_ASPECT_RATIO,
-    Math.max(MIN_ASPECT_RATIO, boundsWidth / boundsHeight),
-  );
 }
 
 function sizeOf(bounds: Bounds): {

@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
 import { orbitPath } from "@/drawing/orbit-path";
 import { getOrbit, type OrbitPreset, orbits } from "@/orbits";
+import { BackLink } from "./back-link";
 import { CANVAS_MAX_WIDTH_PX } from "./orbit-animation";
 import { OrbitFacts } from "./orbit-facts";
 import { OrbitPlayer } from "./orbit-player";
 
-// Spec 03, Decision 1: one page per orbit, built ahead of time; any other
-// slug is a 404.
 export const dynamicParams = false;
 
 export function generateStaticParams(): { slug: string }[] {
@@ -30,26 +28,19 @@ export default async function OrbitPage({
 }: PageProps<"/three-body/[slug]">) {
   const orbit = orbitFor((await params).slug);
   const content = es.orbits[orbit.slug];
+
   return (
     <Container className="pb-16">
       <PageHeader title={content.name} />
-      <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,45rem)_minmax(0,1fr)]">
         <OrbitPlayer
           orbit={orbit}
           path={orbitPath(orbit, CANVAS_MAX_WIDTH_PX)}
         />
         <div className="max-w-[60ch]">
-          <p>{content.description}</p>
-          <div className="mt-6">
-            <OrbitFacts orbit={orbit} />
-          </div>
+          <OrbitFacts orbit={orbit} />
           <p className="mt-8">
-            <Link
-              href="/three-body"
-              className="text-accent underline underline-offset-4"
-            >
-              {es.detail.backLink}
-            </Link>
+            <BackLink />
           </p>
         </div>
       </div>

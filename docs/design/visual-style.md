@@ -108,11 +108,13 @@ A border that is what identifies a control needs 3:1 against its background (WCA
 - From 640 px the plate sits beside the text; below, it is above the text and 2:1. Both drawings are framed alike, so they come out the same size.
 - The text is a title and a line or two, so both cards have the same height. A 24 px arrow sits at the bottom right in `muted`, turning `accent` on hover and focus. It is decorative (`aria-hidden`): the link's name is the title only.
 
-**Links and buttons.** Text links are `accent`. Primary buttons are `accent` with `bg-bottom` text; secondary buttons are `surface` with a `line` border. No arrows appended to link or button text; the home's section cards have one of their own, outside the link's text.
+**Links and buttons.** Text links are `accent`. Primary buttons are `accent` with `bg-bottom` text; secondary buttons are `surface` with a `line` border. No arrows appended to link or button text; the home's section cards have one of their own, outside the link's text, and the detail page's «Volver a la galería de soluciones» starts with a back arrow.
 
 **Lesson controls.** The cannon's number fields, presets, «Borrar trayectorias» and outcome label sit on `surface` with a 1 px `muted` border (see "Contrast").
 
 **Reference badges.** Two pills at the top right of the cannon's canvas: `surface`, a 1 px `muted` border, `body` text in small size with tabular figures; below 640 px `text-xs` and a shorter label.
+
+**Detail page.** The canvas (3:2, up to 720 px) and, 32 px to its right from 1,024 px, the facts and the back link. Below the canvas, the controls in one row of bordered options in `text-small`, spread across its width: playback on the left, speed in the middle, what is drawn on the right. In the facts, each term is in Poppins 500 `strong` and its value in small text, with a `line` hairline between them.
 
 **Tutor's panel.** From 1,280 px a floating card at the bottom right, set apart from the page by a `surface-raised` background, a 1 px `strong` border and a 12 px radius, with no shadow. Below, a full-width bottom sheet on `surface` with a `muted` top border.
 
