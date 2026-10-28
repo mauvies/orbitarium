@@ -1,6 +1,6 @@
 # Decision log
  
-Technical decisions that matter for the result and are not recorded in a spec. Decisions about a component live in its spec (`docs/specs/`). At the end of the project, the README's "Decisions at a glance" table is built from this log and the specs.
+Technical decisions that matter for the result and are not recorded in a spec. Decisions about a component live in its spec (`docs/specs/`). At the end of the project, the README's "Key decisions" table is built from this log and the specs.
  
 Format: **decision.** Why. Cost.
  
