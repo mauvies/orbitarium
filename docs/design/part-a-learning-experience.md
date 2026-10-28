@@ -1,6 +1,6 @@
 # Part A: Learning experience (design note)
 
-Status: draft agreed on 2026-10-22. It is the basis for the Part A spec, which will be written when that block starts. Anything listed under "Open questions" is not decided yet.
+Status: draft agreed on 2026-10-22; it was the basis for spec 04 (the lesson) and spec 05 (the tutor), which describe what is built and prevail over this note where they differ (one page in sections instead of steps, a floating tutor panel instead of a side panel, the cannon's added controls). Anything listed under "Open questions" was not decided here.
 
 ## Goal
 

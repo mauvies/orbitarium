@@ -55,7 +55,7 @@ Measured on the rendered brief pages, plus two derived tokens for structure.
 | `strong` on `surface` | 16.2:1 |
 | `body` on `surface` | 10.3:1 |
 | `muted` on `surface` | 5.9:1 |
-| `muted` on `surface-raised` | about 5.3:1 |
+| `muted` on `surface-raised` | 5.5:1 |
 | `accent` on `surface` | 10.3:1 |
 | `bg-bottom` (dark text) on `accent` | 11.4:1 |
 
