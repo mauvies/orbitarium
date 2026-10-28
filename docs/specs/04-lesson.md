@@ -380,7 +380,7 @@ Run on the production build: `pnpm typecheck`, `pnpm lint`, `pnpm exec biome ci`
 | L14 | Withdrawn |
 | L15 | Met. «Opening focuses the close button» holds below 1,280 px only; from there it focuses the input (spec 05, Decision 11), and the criterion says so |
 | L17, L18 | Met by the checks they name (`src/theme.test.ts` and Biome's rules, `environment.test.ts`), which run in `pnpm test` and `pnpm lint` |
-| L19 | Pending: the human review of the table below |
+| L19 | Met. Reviewed by a human: Mauricio Viera, 2026-10-28 |
 | L24, "once per frame" | Met, by code review of the predicted path's scheduling in the cannon's canvas |
 
 ### Keyboard and contrast pass (L15, L16)
@@ -422,3 +422,5 @@ Mechanical check, before the human review: the sentences of the table match `src
 | 7.91 km/s in km/h | 28,476 |
 
 Rows marked **Review** in the table are where the reviewer should look first: the Stukeley account (row 1), the exact «60 veces» and «3600 veces» (rows 7, 8 and 16), «Aquí no hay aire» (row 10), «lo bastante deprisa» (row 10a), «casi el 90 %» (row 13), «igual de deprisa» (row 20) and «solo la manzana se mueve» (row 26).
+
+Reviewed by a human: Mauricio Viera, 2026-10-28.

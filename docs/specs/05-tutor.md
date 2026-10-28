@@ -1,6 +1,6 @@
 # Spec 05: Tutor (Part A)
 
-Status: draft, 2026-10-27. Not approved.
+Status: implemented (2026-10-28).
 
 ## Goal
 
