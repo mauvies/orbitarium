@@ -26,17 +26,17 @@ pnpm start      # http://localhost:3000
 
 ## The tutor
 
-The lesson at `/gravitation` has an AI tutor that explains, answers questions and operates the cannon. It runs on Google's Gemini free tier and needs a key:
+The lesson at `/gravitation` has an AI tutor that explains, answers questions and operates the cannon. It runs on Google's Gemini. The deployed version already has a key configured, so the tutor should work there as it is, and reviewers are welcome to set their own with `GOOGLE_GENERATIVE_AI_API_KEY`. To run it locally:
 
-1. Get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
+1. Get a key at [Google AI Studio](https://aistudio.google.com/apikey).
 2. Copy `.env.example` to `.env.local` and set `GOOGLE_GENERATIVE_AI_API_KEY`.
 3. Restart the server. `TUTOR_MODEL` is optional: it names the model as `google:<model>` and defaults to `google:gemini-3.5-flash-lite`.
 
-**Limits:** the route refuses requests past a per-client and a global limit, both below Google's free-tier limits ([spec 05, Decision 9](docs/specs/05-tutor.md)). They are kept in memory by each server instance, so on a platform that runs several instances they are approximate.
+**Limits:** the route refuses requests past a per-client and a global limit, both below Google's own limits for the model ([spec 05, Decision 9](docs/specs/05-tutor.md)). They are kept in memory by each server instance, so on a platform that runs several instances they are approximate.
 
 **Without a key** the app works as usual. The tutor's panel opens and says that the tutor is not set up and points here, with its input read-only; the lesson, the cannon and the gallery do not depend on it.
 
-**Data:** the tutor is an AI and can be wrong. What you write to it is sent to Google, whose free tier may use it to improve its products. Do not write personal data.
+**Data:** the tutor is an AI and can be wrong. What you write is sent to Google; do not write personal data.
 
 ## How to review it
 
