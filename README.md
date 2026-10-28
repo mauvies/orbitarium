@@ -34,7 +34,7 @@ The lesson at `/gravitation` has an AI tutor that explains, answers questions an
 
 **Limits:** the route refuses requests past a per-client and a global limit, both below Google's free-tier limits ([spec 05, Decision 9](docs/specs/05-tutor.md)). They are kept in memory by each server instance, so on a platform that runs several instances they are approximate.
 
-**Without a key** the app works as usual. The tutor's panel opens and says that the tutor is not set up and points here, with its input disabled; the lesson, the cannon and the gallery do not depend on it.
+**Without a key** the app works as usual. The tutor's panel opens and says that the tutor is not set up and points here, with its input read-only; the lesson, the cannon and the gallery do not depend on it.
 
 **Data:** the tutor is an AI and can be wrong. What you write to it is sent to Google, whose free tier may use it to improve its products. Do not write personal data.
 
@@ -42,7 +42,7 @@ The lesson at `/gravitation` has an AI tutor that explains, answers questions an
 
 1. On `/gravitation`, answer the question of «¿Llega hasta la Luna?» wrongly, open the tutor and ask «¿y ahora qué?». It addresses the misconception your answer showed.
 2. Ask the tutor «dispara a 8 km/s». It sets and fires the cannon, the conversation shows what it did, and it explains the outcome the page returned.
-3. On `/three-body`, open Goggles and turn «Corrección» off: within a few periods the bodies leave their path. Go back: the gallery keeps its scroll position.
+3. On `/three-body`, open Goggles, choose 4× and turn «Corrección» off: within a few periods, about 10 s, the bodies leave their path. Go back: the gallery keeps its scroll position.
 4. Read the files below.
 
 | File | What it shows |
@@ -51,7 +51,7 @@ The lesson at `/gravitation` has an AI tutor that explains, answers questions an
 | [`src/physics/simulate.ts`](src/physics/simulate.ts) | `advance`: input validation, equal substeps and the finiteness check. |
 | [`src/orbits/catalog.ts`](src/orbits/catalog.ts) | The six orbits as typed data, each with its source. |
 | [`src/orbits/playback.ts`](src/orbits/playback.ts) | Playback in whole substeps, re-anchored to the initial state at every period. |
-| [`src/app/gravitation/lesson-controls.ts`](src/app/gravitation/lesson-controls.ts) | The one path to the cannon and the navigation, shared by the learner's buttons and the tutor. |
+| [`src/app/gravitation/lesson-controls.ts`](src/app/gravitation/lesson-controls.ts) | The tutor's way into the page: its tools set and fire the cannon and move to a part, and each message reads the cannon's state and the learner profile from it. Inputs are checked at runtime, and changes go through the same session transitions as the learner's own controls. |
 | [`src/app/api/tutor/tutor-handler.ts`](src/app/api/tutor/tutor-handler.ts) | The tutor's route: body validation, rate limits, tool rounds and error codes. |
 | [`src/app/api/tutor/instructions.ts`](src/app/api/tutor/instructions.ts) | The model's instructions, built from the lesson's own content and the learner's context. |
 | [`src/app/api/tutor/rate-limit.ts`](src/app/api/tutor/rate-limit.ts) | Per-client and global sliding windows. |
