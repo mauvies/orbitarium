@@ -1,5 +1,5 @@
 import type { SystemState } from "@/physics";
-import type { OrbitPreset } from "./types";
+import type { OrbitPreset, OrbitSlug } from "./types";
 
 // The values the app uses: the refined values of docs/research/orbits.md,
 // with G = 1 and unit masses (spec 02, Decision 2). holdsWithoutCorrection is
@@ -125,4 +125,14 @@ export const orbits: readonly OrbitPreset[] = [
 /** The orbit with this slug, or undefined for an unknown slug (for example, from a URL). */
 export function getOrbit(slug: string): OrbitPreset | undefined {
   return orbits.find((orbit) => orbit.slug === slug);
+}
+
+export function orbitOf(slug: OrbitSlug): OrbitPreset {
+  const orbit = getOrbit(slug);
+
+  if (orbit === undefined) {
+    throw new RangeError(`no orbit with slug "${slug}"`);
+  }
+
+  return orbit;
 }

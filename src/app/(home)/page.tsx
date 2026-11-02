@@ -2,7 +2,7 @@ import { Container } from "@/components/container";
 import { OrbitThumbnail } from "@/components/orbit-thumbnail";
 import { PageHeader } from "@/components/page-header";
 import { es } from "@/content/es";
-import { getOrbit } from "@/orbits";
+import { orbitOf } from "@/orbits";
 import { CannonThumbnail } from "./cannon-thumbnail";
 import { HeroOrbit } from "./hero-orbit";
 import { SectionCard } from "./section-card";
@@ -11,11 +11,7 @@ import { SectionCard } from "./section-card";
 const PLATE_CLASSES = "sm:w-56 sm:shrink-0";
 
 export default function HomePage() {
-  const galleryOrbit = getOrbit("moth-i");
-
-  if (galleryOrbit === undefined) {
-    throw new RangeError('no orbit with slug "moth-i"');
-  }
+  const galleryOrbit = orbitOf("moth-i");
 
   return (
     <Container className="pb-16">

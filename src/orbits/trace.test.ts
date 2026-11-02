@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Vec2 } from "@/physics";
 import { deepFreeze, maxDistance } from "@/physics/testing/assertions";
+import { orbitOf } from "./catalog";
 import { advancePlayback, startPlayback } from "./playback";
-import { positions, presetOf } from "./testing/support";
+import { positions } from "./testing/support";
 import { tracePeriod } from "./trace";
 
 // Spec 02, O8: spec 01's tolerance for Lagrange's closure at the same dt (E7).
@@ -11,8 +12,8 @@ const ROTATION_TOLERANCE = 1e-7;
 const LAGRANGE_POINTS = 100;
 const FIGURE_EIGHT_POINTS = 10;
 
-const lagrange = presetOf("lagrange");
-const figureEight = presetOf("figure-eight");
+const lagrange = orbitOf("lagrange");
+const figureEight = orbitOf("figure-eight");
 
 /** Rotates a position counter-clockwise about the origin. */
 function rotate({ x, y }: Vec2, angle: number): Vec2 {

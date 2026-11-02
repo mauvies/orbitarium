@@ -1,8 +1,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { advance, type SystemState } from "@/physics";
 import { deepFreeze, maxDistance } from "@/physics/testing/assertions";
+import { orbitOf } from "./catalog";
 import { advancePlayback, startPlayback } from "./playback";
-import { HEAVY_TEST_TIMEOUT_MS, positions, presetOf } from "./testing/support";
+import { HEAVY_TEST_TIMEOUT_MS, positions } from "./testing/support";
 import type { OrbitPreset, PlaybackOptions } from "./types";
 
 // Spec 02, O7.
@@ -15,7 +16,7 @@ const BOUNDARIES = 10;
 const VISIBLE_DRIFT = 0.1;
 const MAX_DRIFT_PERIODS = 10;
 
-const lagrange = presetOf("lagrange");
+const lagrange = orbitOf("lagrange");
 
 function substepOf({ period, stepsPerPeriod }: OrbitPreset): number {
   return period / stepsPerPeriod;
@@ -28,8 +29,8 @@ function uncapped(orbit: OrbitPreset, reanchor: boolean): PlaybackOptions {
 
 // Spec 02, O5.
 describe.each([
-  presetOf("lagrange"),
-  presetOf("figure-eight"),
+  orbitOf("lagrange"),
+  orbitOf("figure-eight"),
 ])("re-anchors at every period ($slug)", (orbit) => {
   const options = uncapped(orbit, true);
   const dt = substepOf(orbit);
@@ -103,8 +104,8 @@ describe.each([
 
 // Spec 02, O6.
 describe.each([
-  presetOf("lagrange"),
-  presetOf("goggles"),
+  orbitOf("lagrange"),
+  orbitOf("goggles"),
 ])("re-anchoring keeps unstable orbits on their path ($slug)", (orbit) => {
   // One period per call, so every call ends on a boundary.
   const onePeriodPerCall = (reanchor: boolean): PlaybackOptions => ({

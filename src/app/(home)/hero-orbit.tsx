@@ -4,7 +4,7 @@ import {
   svgPathData,
   svgUnitsPerPixel,
 } from "@/drawing/orbit-path";
-import { getOrbit } from "@/orbits";
+import { orbitOf } from "@/orbits";
 
 // The hero is at most this wide (beside the title on a wide screen, capped
 // below it), so its line stays close to 1.5 px at every width.
@@ -18,12 +18,7 @@ const BODY_DOT_RADIUS_PX = 4;
  * visual-style.md, "Motion"). With reduced motion it is shown finished.
  */
 export function HeroOrbit() {
-  const orbit = getOrbit("figure-eight");
-
-  if (orbit === undefined) {
-    throw new RangeError('no orbit with slug "figure-eight"');
-  }
-
+  const orbit = orbitOf("figure-eight");
   const path = orbitPath(orbit, HERO_WIDTH_PX);
   // The three bodies share one curve, so one body's path draws all of it.
   const curve = path.bodies[0];

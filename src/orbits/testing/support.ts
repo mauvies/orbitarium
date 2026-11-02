@@ -1,6 +1,4 @@
 import type { SystemState, Vec2 } from "@/physics";
-import { getOrbit } from "../catalog";
-import type { OrbitPreset, OrbitSlug } from "../types";
 
 /**
  * For tests that integrate a heavy orbit: up to 500,000 substeps per period
@@ -8,16 +6,6 @@ import type { OrbitPreset, OrbitSlug } from "../types";
  * and Vitest's default is 5 s per test.
  */
 export const HEAVY_TEST_TIMEOUT_MS = 30_000;
-
-export function presetOf(slug: OrbitSlug): OrbitPreset {
-  const preset = getOrbit(slug);
-
-  if (preset === undefined) {
-    throw new RangeError(`no orbit with slug "${slug}"`);
-  }
-
-  return preset;
-}
 
 export function positions(state: SystemState): readonly Vec2[] {
   return state.bodies.map((body) => body.position);

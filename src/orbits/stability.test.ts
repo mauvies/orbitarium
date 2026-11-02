@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Vec2 } from "@/physics";
 import { maxDistance } from "@/physics/testing/assertions";
+import { orbitOf } from "./catalog";
 import { advancePlayback, startPlayback } from "./playback";
-import { HEAVY_TEST_TIMEOUT_MS, positions, presetOf } from "./testing/support";
+import { HEAVY_TEST_TIMEOUT_MS, positions } from "./testing/support";
 import type { OrbitPreset } from "./types";
 
 // Spec 03, Decision 9.
@@ -59,10 +60,10 @@ function samePhase(
 // Butterfly I and yin-yang I leave their path at periods 11 and 15: about 3 s
 // and 20 s in Vitest. `pnpm measure:stability` checks all six (spec 03, G7).
 describe.each([
-  presetOf("figure-eight"),
-  presetOf("moth-i"),
-  presetOf("lagrange"),
-  presetOf("goggles"),
+  orbitOf("figure-eight"),
+  orbitOf("moth-i"),
+  orbitOf("lagrange"),
+  orbitOf("goggles"),
 ])("records whether $slug holds its path for 30 periods without correction", (orbit) => {
   it(
     "matches the simulation",

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { advancePlayback, type Playback, startPlayback } from "@/orbits";
-import { positions, presetOf } from "@/orbits/testing/support";
+import {
+  advancePlayback,
+  orbitOf,
+  type Playback,
+  startPlayback,
+} from "@/orbits";
+import { positions } from "@/orbits/testing/support";
 import { coincidentTriple } from "@/physics/testing/fixtures";
 import {
   advanceAnimation,
@@ -11,8 +16,8 @@ import {
 } from "./orbit-frame";
 import { MAX_SUBSTEPS_PER_FRAME } from "./speed";
 
-const lagrange = presetOf("lagrange");
-const mothI = presetOf("moth-i");
+const lagrange = orbitOf("lagrange");
+const mothI = orbitOf("moth-i");
 
 const corrected: FrameControls = { speed: 1, correction: true };
 const uncorrected: FrameControls = { speed: 1, correction: false };

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tracePeriod } from "@/orbits";
-import { presetOf } from "@/orbits/testing/support";
+import { orbitOf, tracePeriod } from "@/orbits";
 import {
   COORDINATE_DECIMALS,
   orbitPath,
@@ -20,8 +19,8 @@ const ROUNDING_ERROR = Math.SQRT1_2 * 10 ** -COORDINATE_DECIMALS;
 
 // The traces of these two cost milliseconds; the others up to 1.3 s in Vitest.
 describe.each([
-  presetOf("lagrange"),
-  presetOf("figure-eight"),
+  orbitOf("lagrange"),
+  orbitOf("figure-eight"),
 ])("orbitPath ($slug)", (orbit) => {
   const path = orbitPath(orbit, DETAIL_SIZE_PX);
   const trace = tracePeriod(orbit, orbit.stepsPerPeriod);
@@ -79,7 +78,7 @@ describe("orbitPath input", () => {
     -160,
     Number.NaN,
   ])("rejects a sizePx of %s naming the field", (sizePx) => {
-    const call = () => orbitPath(presetOf("lagrange"), sizePx);
+    const call = () => orbitPath(orbitOf("lagrange"), sizePx);
 
     expect(call).toThrow(RangeError);
     expect(call).toThrow(/sizePx/);
