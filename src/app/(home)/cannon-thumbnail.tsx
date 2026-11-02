@@ -4,9 +4,7 @@ import { boundsOf, svgFrame, svgOpenPathData } from "@/drawing/orbit-path";
 import type { Vec2 } from "@/physics";
 
 const LAUNCH_POINT: Vec2 = { x: 0, y: 1.35 };
-// Three shots that fall back ever farther and one that circles, as fractions
-// of the circular speed.
-const SHOT_SPEEDS = [0.55, 0.75, 0.9, 1] as const;
+const SHOT_SPEEDS = [0.6, 0.9, 1] as const;
 // None of the shots rises above the cannon.
 const STOP_RADIUS = 2 * LAUNCH_POINT.y;
 // The paths are smooth, so one point in ten is enough at plate size.
