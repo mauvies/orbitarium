@@ -20,7 +20,7 @@ export default function HomePage() {
           <HeroOrbit />
         </div>
       </div>
-      <ul className="mt-16 grid gap-4 sm:gap-6 lg:grid-cols-2">
+      <ul className="mt-10 grid gap-4 sm:gap-6 lg:mt-14 lg:grid-cols-2">
         <li>
           <SectionCard
             href="/gravitation"
