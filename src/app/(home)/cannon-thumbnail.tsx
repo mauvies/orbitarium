@@ -3,7 +3,6 @@ import { Plate, plateUnitsPerPixel } from "@/components/plate";
 import { boundsOf, svgFrame, svgOpenPathData } from "@/drawing/orbit-path";
 import type { Vec2 } from "@/physics";
 
-/** A much taller mountain than the lesson's, as in Newton's own drawing. */
 const LAUNCH_POINT: Vec2 = { x: 0, y: 1.35 };
 // Three shots that fall back ever farther and one that circles, as fractions
 // of the circular speed.

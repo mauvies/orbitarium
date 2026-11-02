@@ -7,7 +7,6 @@ import { CannonThumbnail } from "./cannon-thumbnail";
 import { HeroOrbit } from "./hero-orbit";
 import { SectionCard } from "./section-card";
 
-// A plate beside the text from 640 px, so both cards stay short.
 const PLATE_CLASSES = "sm:w-56 sm:shrink-0";
 
 export default function HomePage() {

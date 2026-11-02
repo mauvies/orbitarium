@@ -9,7 +9,6 @@ export type OrbitSlug =
   | "moth-i"
   | "yin-yang-i";
 
-/** One of the ladder values (spec 02, Decision 3). */
 export type StepsPerPeriod = (typeof STEPS_PER_PERIOD_LADDER)[number];
 
 export type OrbitPreset = {

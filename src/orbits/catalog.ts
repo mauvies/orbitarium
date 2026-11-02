@@ -112,7 +112,6 @@ const yinYangI: OrbitPreset = {
   holdsWithoutCorrection: false,
 };
 
-/** The six orbits of the brief, in its order (spec 02, O1). */
 export const orbits: readonly OrbitPreset[] = [
   lagrange,
   figureEight,
@@ -122,7 +121,6 @@ export const orbits: readonly OrbitPreset[] = [
   yinYangI,
 ];
 
-/** The orbit with this slug, or undefined for an unknown slug (for example, from a URL). */
 export function getOrbit(slug: string): OrbitPreset | undefined {
   return orbits.find((orbit) => orbit.slug === slug);
 }
