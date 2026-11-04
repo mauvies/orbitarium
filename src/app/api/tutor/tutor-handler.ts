@@ -78,7 +78,7 @@ export async function handleTutorRequest(
   const hasUsedUpTools =
     toolCallsSinceLearnerMessage(messages) >= MAX_TOOL_CALLS;
 
-  const result = streamText({
+  const streamedText = streamText({
     model,
     instructions: tutorInstructions(context),
     messages: await convertToModelMessages(messages),
@@ -91,15 +91,17 @@ export async function handleTutorRequest(
     timeout: timeoutMs,
   });
 
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({
-      stream: result.stream,
-      onError: (error) => {
-        log(`tutor: ${describe(error)}`);
+  const uiStream = toUIMessageStream({
+    stream: streamedText.stream,
+    onError: (error) => {
+      log(`tutor: ${describe(error)}`);
 
-        return toErrorCode(error);
-      },
-    }).pipeThrough(timeoutAsError(log)),
+      return toErrorCode(error);
+    },
+  });
+
+  return createUIMessageStreamResponse({
+    stream: uiStream.pipeThrough(timeoutAsError(log)),
   });
 }
 
