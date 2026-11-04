@@ -4,6 +4,7 @@
 // fails if stepsPerPeriod is not the smallest ladder value that meets O3 or if
 // the closure there is not truncation error.
 import { bundleForNode } from "./bundle.mjs";
+import { markdownTable } from "./lib/markdown-table.ts";
 
 // Spec 02, O3.
 const CLOSURE_TOLERANCE = 1e-4;
@@ -102,12 +103,20 @@ const rows = orbits.map((orbit) => {
 
 console.log(`Node ${process.version}, ${process.arch}\n`);
 console.log(
-  "| Orbit | T | Steps per period | Closure (position / velocity) | Margin to 1e-4 | Next lower value | At twice the steps (ratio) | Substeps per unit of time |",
+  markdownTable(
+    [
+      "Orbit",
+      "T",
+      "Steps per period",
+      "Closure (position / velocity)",
+      "Margin to 1e-4",
+      "Next lower value",
+      "At twice the steps (ratio)",
+      "Substeps per unit of time",
+    ],
+    rows,
+  ),
 );
-console.log("|---|---|---|---|---|---|---|---|");
-for (const row of rows) {
-  console.log(`| ${row.join(" | ")} |`);
-}
 if (failures.length > 0) {
   console.error(`\n${failures.join("\n")}`);
   process.exit(1);

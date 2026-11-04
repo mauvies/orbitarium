@@ -4,6 +4,7 @@
 // Markdown table for the spec, and fails if a preset's holdsWithoutCorrection
 // disagrees with the measurement.
 import { bundleForNode } from "./bundle.mjs";
+import { markdownTable } from "./lib/markdown-table.ts";
 
 const PATH_TOLERANCE = 0.1;
 const PERIODS = 30;
@@ -96,12 +97,17 @@ const rows = orbits.map((orbit) => {
 
 console.log(`Node ${process.version}, ${process.arch}\n`);
 console.log(
-  `| Orbit | First period over ${PATH_TOLERANCE} | At period boundaries only | Largest over ${PERIODS} periods | Label |`,
+  markdownTable(
+    [
+      "Orbit",
+      `First period over ${PATH_TOLERANCE}`,
+      "At period boundaries only",
+      `Largest over ${PERIODS} periods`,
+      "Label",
+    ],
+    rows,
+  ),
 );
-console.log("|---|---|---|---|---|");
-for (const row of rows) {
-  console.log(`| ${row.join(" | ")} |`);
-}
 if (failures.length > 0) {
   console.error(`\n${failures.join("\n")}`);
   process.exit(1);

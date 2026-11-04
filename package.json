@@ -12,9 +12,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "bench:physics": "node scripts/bench-physics.mjs",
-    "bench:playback": "node scripts/bench-playback.mjs",
-    "measure:orbits": "node scripts/measure-orbits.mjs",
-    "measure:stability": "node scripts/measure-stability.mjs",
+    "bench:playback": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/bench-playback.mjs",
+    "measure:orbits": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/measure-orbits.mjs",
+    "measure:stability": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/measure-stability.mjs",
     "format": "biome format --write",
     "record:tutor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/record-tutor-streams.mjs",
     "eval:tutor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/eval-tutor.mjs"

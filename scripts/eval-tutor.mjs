@@ -7,6 +7,7 @@
 //
 //   pnpm eval:tutor [--base-url https://...]   (default http://localhost:3000)
 import { answerFlags } from "./lib/answer-flags.ts";
+import { markdownTable } from "./lib/markdown-table.ts";
 import {
   CONTEXT,
   createTutorClient,
@@ -210,14 +211,6 @@ function median(values) {
     : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
-function cell(value) {
-  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
-}
-
-function row(cells) {
-  return `| ${cells.map(cell).join(" | ")} |`;
-}
-
 const yesNo = (flag) => (flag ? "YES" : "-");
 
 const results = [];
@@ -233,34 +226,34 @@ for (const prompt of PROMPTS) {
 }
 
 console.log(`# Tutor eval against ${BASE_URL}\n`);
-console.log(
-  row([
-    "prompt",
-    "expected tool",
-    "called",
-    "tool ok",
-    "markdown",
-    "list",
-    "por segundo",
-    "expected behaviour",
-  ]),
-);
-console.log(row(Array(8).fill("---")));
-for (const { prompt, calls, flags } of results) {
+const resultRows = results.map(({ prompt, calls, flags }) => {
   const called = calls[0] ?? null;
-  console.log(
-    row([
-      prompt.id,
-      prompt.expectedTool ?? "-",
-      calls.length === 0 ? "-" : calls.join(", "),
-      called === prompt.expectedTool ? "ok" : "NO",
-      yesNo(flags.markdown),
-      yesNo(flags.list),
-      yesNo(flags.perSecond),
-      prompt.expected,
-    ]),
-  );
-}
+  return [
+    prompt.id,
+    prompt.expectedTool ?? "-",
+    calls.length === 0 ? "-" : calls.join(", "),
+    called === prompt.expectedTool ? "ok" : "NO",
+    yesNo(flags.markdown),
+    yesNo(flags.list),
+    yesNo(flags.perSecond),
+    prompt.expected,
+  ];
+});
+console.log(
+  markdownTable(
+    [
+      "prompt",
+      "expected tool",
+      "called",
+      "tool ok",
+      "markdown",
+      "list",
+      "por segundo",
+      "expected behaviour",
+    ],
+    resultRows,
+  ),
+);
 
 console.log("\n## Answers\n");
 for (const { prompt, calls, text, notes } of results) {
@@ -280,29 +273,28 @@ console.log("## First token\n");
 console.log(
   `First request, apart because it may include a cold start: ${Math.round(timings[0]?.ms ?? 0)} ms (${timings[0]?.kind}).\n`,
 );
-console.log(row(["kind", "n", "min ms", "median ms", "max ms"]));
-console.log(row(Array(5).fill("---")));
-for (const [kind, what] of [
+const timingRows = [
   ["text", "a text answer, to its first text"],
   ["call", "a tool's call, to its first chunk"],
   ["answer", "the answer after a tool, to its first text"],
-]) {
+].map(([kind, what]) => {
   const values = timings
     .slice(1)
     .filter((timing) => timing.kind === kind && timing.ms !== null)
     .map(({ ms }) => ms);
-  console.log(
-    values.length === 0
-      ? row([`${kind}: ${what}`, 0, "-", "-", "-"])
-      : row([
-          `${kind}: ${what}`,
-          values.length,
-          Math.round(Math.min(...values)),
-          Math.round(median(values)),
-          Math.round(Math.max(...values)),
-        ]),
-  );
-}
+  return values.length === 0
+    ? [`${kind}: ${what}`, 0, "-", "-", "-"]
+    : [
+        `${kind}: ${what}`,
+        values.length,
+        Math.round(Math.min(...values)),
+        Math.round(median(values)),
+        Math.round(Math.max(...values)),
+      ];
+});
+console.log(
+  markdownTable(["kind", "n", "min ms", "median ms", "max ms"], timingRows),
+);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} question(s) failed:`);

@@ -6,6 +6,7 @@
 import { cpus } from "node:os";
 import { performance } from "node:perf_hooks";
 import { bundleForNode } from "./bundle.mjs";
+import { markdownTable } from "./lib/markdown-table.ts";
 
 const WARM_UP_CALLS = 300;
 const TIMED_CALLS = 1000;
@@ -78,19 +79,35 @@ function timeTrace(orbit) {
 const microseconds = (ms, substeps) => ((ms * 1000) / substeps).toFixed(2);
 
 console.log(`${cpus()[0]?.model}, Node ${process.version}\n`);
-console.log(
-  "| Orbit | Substeps per frame | Frame mean | Frame p99 | Per substep | One advance call, per substep | Trace of one period |",
-);
-console.log("|---|---|---|---|---|---|---|");
-for (const orbit of orbits) {
+const frameRows = orbits.map((orbit) => {
   // A frame runs this many substeps on average: the carry makes some longer.
   const substeps = orbit.stepsPerPeriod / FRAMES_PER_PERIOD;
   const frames = timeFrames(orbit);
   const oneAdvance = timeOneAdvance(orbit, Math.round(substeps));
-  console.log(
-    `| ${orbit.name} | ${substeps.toLocaleString("en-US", { maximumFractionDigits: 1 })} | ${frames.mean.toFixed(3)} ms | ${frames.p99.toFixed(3)} ms | ${microseconds(frames.mean, substeps)} µs | ${microseconds(oneAdvance.mean, Math.round(substeps))} µs | ${timeTrace(orbit).toFixed(0)} ms |`,
-  );
-}
+  return [
+    orbit.name,
+    substeps.toLocaleString("en-US", { maximumFractionDigits: 1 }),
+    `${frames.mean.toFixed(3)} ms`,
+    `${frames.p99.toFixed(3)} ms`,
+    `${microseconds(frames.mean, substeps)} µs`,
+    `${microseconds(oneAdvance.mean, Math.round(substeps))} µs`,
+    `${timeTrace(orbit).toFixed(0)} ms`,
+  ];
+});
+console.log(
+  markdownTable(
+    [
+      "Orbit",
+      "Substeps per frame",
+      "Frame mean",
+      "Frame p99",
+      "Per substep",
+      "One advance call, per substep",
+      "Trace of one period",
+    ],
+    frameRows,
+  ),
+);
 
 /** Times 60 Hz frames of the gallery animation, with correction on. */
 function timeAnimation(orbit, playbackSpeed) {
@@ -115,12 +132,8 @@ const range = (values) => {
 console.log(
   `\nGallery frames at 60 Hz, cap ${MAX_SUBSTEPS_PER_FRAME} substeps, budget ${BUDGET_MS} ms p99, ${ANIMATION_RUNS} runs (lowest–highest):\n`,
 );
-console.log(
-  "| Orbit | Speed | Substeps per frame | Plays at | Frame mean | Frame p99 | Within budget |",
-);
-console.log("|---|---|---|---|---|---|---|");
-for (const orbit of orbits) {
-  for (const playbackSpeed of PLAYBACK_SPEEDS) {
+const animationRows = orbits.flatMap((orbit) =>
+  PLAYBACK_SPEEDS.map((playbackSpeed) => {
     const runs = Array.from({ length: ANIMATION_RUNS }, () =>
       timeAnimation(orbit, playbackSpeed),
     );
@@ -129,8 +142,28 @@ for (const orbit of orbits) {
     const substeps = Math.min(requested, MAX_SUBSTEPS_PER_FRAME);
     const p99s = runs.map(({ p99 }) => p99);
     const playsAt = runs[0]?.playsAt ?? Number.NaN;
-    console.log(
-      `| ${orbit.name} | ${playbackSpeed}× | ${substeps.toFixed(0)} | ${playsAt.toFixed(1)}× | ${range(runs.map(({ mean }) => mean))} | ${range(p99s)} | ${Math.max(...p99s) < BUDGET_MS ? "yes" : "**no**"} |`,
-    );
-  }
-}
+    return [
+      orbit.name,
+      `${playbackSpeed}×`,
+      substeps.toFixed(0),
+      `${playsAt.toFixed(1)}×`,
+      range(runs.map(({ mean }) => mean)),
+      range(p99s),
+      Math.max(...p99s) < BUDGET_MS ? "yes" : "**no**",
+    ];
+  }),
+);
+console.log(
+  markdownTable(
+    [
+      "Orbit",
+      "Speed",
+      "Substeps per frame",
+      "Plays at",
+      "Frame mean",
+      "Frame p99",
+      "Within budget",
+    ],
+    animationRows,
+  ),
+);
