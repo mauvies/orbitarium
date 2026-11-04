@@ -1,13 +1,13 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { es } from "@/content/es";
 import type { TutorMessage } from "@/lib/tutor/tools";
-import { finishedAnswer } from "./finished-answer";
 import { type Availability, type NoticeKind, noticeKind } from "./notice-kind";
 import { TutorChatMessage } from "./tutor-chat-message";
 import { TutorGreeting } from "./tutor-greeting";
 import { TutorInput } from "./tutor-input";
 import { announcedNotice, TutorNotice } from "./tutor-notice";
+import { useAnnouncements } from "./use-announcements";
 import { useSlowAnswer } from "./use-slow-answer";
 
 const { tutor } = es.gravitation;
@@ -32,13 +32,7 @@ export function TutorConversation({
   atCannon,
   retryAvailability,
 }: Props) {
-  const [announcement, setAnnouncement] = useState("");
-  const announced = useRef<string | null>(null);
   const list = useRef<HTMLDivElement>(null);
-
-  const isSlow = useSlowAnswer(status);
-
-  const isWaiting = status === "submitted" || status === "streaming";
 
   const kind = noticeKind({
     availability,
@@ -48,11 +42,10 @@ export function TutorConversation({
 
   const notice = kind === null ? null : announcedNotice(kind);
 
-  // Cleared first, so the same words twice are announced twice.
-  const announce = useCallback((text: string) => {
-    setAnnouncement("");
-    requestAnimationFrame(() => setAnnouncement(text));
-  }, []);
+  const { announcement } = useAnnouncements(status, messages, notice);
+  const isSlow = useSlowAnswer(status);
+
+  const isWaiting = status === "submitted" || status === "streaming";
 
   function retryFor(shown: NoticeKind): (() => void) | undefined {
     if (!RETRYABLE.includes(shown)) {
@@ -61,29 +54,6 @@ export function TutorConversation({
 
     return availability === "failed" ? retryAvailability : () => regenerate();
   }
-
-  useEffect(() => {
-    const answer = finishedAnswer(status, messages);
-
-    if (answer === null || announced.current === answer.id) {
-      return;
-    }
-
-    announced.current = answer.id;
-    announce(answer.text);
-  }, [status, messages, announce]);
-
-  useEffect(() => {
-    if (notice !== null) {
-      announce(notice);
-    }
-  }, [notice, announce]);
-
-  useEffect(() => {
-    if (isSlow) {
-      announce(tutor.slowAnswer);
-    }
-  }, [isSlow, announce]);
 
   useEffect(() => {
     const element = list.current;
