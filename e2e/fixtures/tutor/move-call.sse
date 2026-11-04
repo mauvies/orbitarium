@@ -2,11 +2,11 @@ data: {"type":"start"}
 
 data: {"type":"start-step"}
 
-data: {"type":"tool-input-start","toolCallId":"call_4419429","toolName":"goToSection","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TLL6U59KEpzgfYKVUYKsUtPJACY6z6vXr3qvJVpWFZUF9+w0FJNW9PokVMWxfARS/2Z2x+Y4YXIflvoYpGcJBJiFO5zKBncBn3QZzYTbYM95cBT0O8mOf78Q="}},"dynamic":false}
+data: {"type":"tool-input-start","toolCallId":"call_69101","toolName":"goToSection","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TNDpCGj3szn594P2ZOItUg+MmLDcH0PgNnOqY/qE3+koUuAIAs1xlNjTUxf7yrcaFVJ4fXe6/+YtUOjEGFG64Mf2EAB/BA+SZHa0pxCJzLsSGYRQoYpuudK4="}},"dynamic":false}
 
-data: {"type":"tool-input-delta","toolCallId":"call_4419429","inputTextDelta":"{\"section\":\"moon\"}"}
+data: {"type":"tool-input-delta","toolCallId":"call_69101","inputTextDelta":"{\"section\":\"moon\"}"}
 
-data: {"type":"tool-input-available","toolCallId":"call_4419429","toolName":"goToSection","input":{"section":"moon"},"providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TLL6U59KEpzgfYKVUYKsUtPJACY6z6vXr3qvJVpWFZUF9+w0FJNW9PokVMWxfARS/2Z2x+Y4YXIflvoYpGcJBJiFO5zKBncBn3QZzYTbYM95cBT0O8mOf78Q="}}}
+data: {"type":"tool-input-available","toolCallId":"call_69101","toolName":"goToSection","input":{"section":"moon"},"providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TNDpCGj3szn594P2ZOItUg+MmLDcH0PgNnOqY/qE3+koUuAIAs1xlNjTUxf7yrcaFVJ4fXe6/+YtUOjEGFG64Mf2EAB/BA+SZHa0pxCJzLsSGYRQoYpuudK4="}}}
 
 data: {"type":"finish-step"}
 

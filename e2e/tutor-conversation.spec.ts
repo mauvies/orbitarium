@@ -514,8 +514,10 @@ test.describe("the tutor's actions", () => {
 
     await ask(page, LAUNCH);
 
+    // The angle is the recorded model's choice, which can change with each
+    // recording.
     await expect(conversation).toContainText(
-      /Disparo el cañón a 8,00 km\/s, 45° y 10 km: /,
+      /Disparo el cañón a 8,00 km\/s, \d+° y 10 km: /,
     );
     await expect(conversation).toContainText(
       recordedText("launch-continuation"),

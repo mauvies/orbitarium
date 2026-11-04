@@ -4,13 +4,13 @@ data: {"type":"start-step"}
 
 data: {"type":"text-start","id":"0"}
 
-data: {"type":"text-delta","id":"0","delta":"Te he"}
+data: {"type":"text-delta","id":"0","delta":"Ya estás"}
 
-data: {"type":"text-delta","id":"0","delta":" llevado a la parte de la lección dedicada a la Luna. Puedes leer la explicación"}
+data: {"type":"text-delta","id":"0","delta":" en la sección sobre la Luna. Aquí puedes ver cómo la gravedad llega hasta allí y"}
 
-data: {"type":"text-delta","id":"0","delta":" sobre cómo se debilita la gravedad con la distancia y probar la pregunta cuando quieras."}
+data: {"type":"text-delta","id":"0","delta":" cómo se debilita con la distancia. ¿Quieres que veamos por qué la fuerza se reduce a la cuarta parte si duplicamos la distancia?"}
 
-data: {"type":"text-delta","id":"0","delta":"","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TWKrwjenJ55ij6QyASNpJPkVnhMiRZF6AdSNPpad32vwtEmt0ha66i8l+aF8lm9AEsjWod2gBYHNUunVdlS6AHSSr5/DmIlH26wtT/nmARbWcih5ylLrkUb8="}}}
+data: {"type":"text-delta","id":"0","delta":"","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0T9afhpRfqmxkzamXBUFnk/lrFBdFw66Drnb1zMylcdcTZAnVR3QmGXp1Ieb53HO5L18EoCCjEhurxtsS80aEryAaZrfh32pfNPxnr5RUOZYC6us3fz1+oaVI="}}}
 
 data: {"type":"text-end","id":"0"}
 

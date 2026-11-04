@@ -6,15 +6,15 @@ data: {"type":"text-start","id":"0"}
 
 data: {"type":"text-delta","id":"0","delta":"La"}
 
-data: {"type":"text-delta","id":"0","delta":" Luna en realidad sí está cayendo continuamente hacia la Tierra, igual que una piedra"}
+data: {"type":"text-delta","id":"0","delta":" Luna sí está cayendo continuamente hacia la Tierra, pero se desplaza hacia un lado tan deprisa"}
 
-data: {"type":"text-delta","id":"0","delta":" que lanzas. La diferencia es que se mueve hacia un lado tan deprisa que, a medida que cae, la superficie"}
+data: {"type":"text-delta","id":"0","delta":" que siempre falla el suelo. Piensa en una piedra lanzada cada vez más rápido desde un cañón: ¿d"}
 
-data: {"type":"text-delta","id":"0","delta":" de la Tierra se curva y se aleja por debajo de ella. Por eso nunca llega a chocar contra el suelo y se"}
+data: {"type":"text-delta","id":"0","delta":"ónde caería si fuera muy veloz? Puedes probar a lanzar el cañón que tienes en la pantalla para ver cómo una"}
 
-data: {"type":"text-delta","id":"0","delta":" mantiene en órbita alrededor del planeta."}
+data: {"type":"text-delta","id":"0","delta":" velocidad alta hace que el proyect orbit alrededor del planeta."}
 
-data: {"type":"text-delta","id":"0","delta":"","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0TdhyMo9RSWiKhqVOQ0bYijvzuayyQ4KNEqvCsbMAUz1i+SZz6DFpEGSih181CahKr11nDNXVMxL4BeUI/CrfVpx6GN6XnzOS5YTdLnoByKQUfvb9kFLHE7S4="}}}
+data: {"type":"text-delta","id":"0","delta":"","providerMetadata":{"google":{"thoughtSignature":"EmAKXgFpFH0T5TruId2VLBBMkuZ2LG8PArDwvh1kU3fBh2qF6koTYP9SrqFFWyg7hZ2uS18UOBWiBuMIAUs7cj72hPZ8a3ycnGjLoQB82K0LWPVWhzcAD9AETovGC/vI6VI="}}}
 
 data: {"type":"text-end","id":"0"}
 
