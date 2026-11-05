@@ -42,7 +42,7 @@ export function TutorConversation({
 
   const notice = kind === null ? null : announcedNotice(kind);
 
-  const { announcement } = useAnnouncements(status, messages, notice);
+  const { announcement, announce } = useAnnouncements(status, messages, notice);
   const isSlow = useSlowAnswer(status);
 
   const isWaiting = status === "submitted" || status === "streaming";
@@ -54,6 +54,12 @@ export function TutorConversation({
 
     return availability === "failed" ? retryAvailability : () => regenerate();
   }
+
+  useEffect(() => {
+    if (isSlow) {
+      announce(tutor.slowAnswer);
+    }
+  }, [isSlow, announce]);
 
   useEffect(() => {
     const element = list.current;
